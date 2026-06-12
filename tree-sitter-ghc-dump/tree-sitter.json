@@ -1,0 +1,42 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ghc_dump",
+      "camelcase": "GhcDump",
+      "title": "GHC dump stream",
+      "scope": "source.ghc_dump",
+      "file-types": [
+        "dump"
+      ],
+      "injection-regex": "^ghc[-_]?dump$",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "class-name": "TreeSitterGhcDump"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter container grammar for GHC dump streams (Core/STG/Cmm sections).",
+    "authors": [
+      {
+        "name": "Curtis Chin Jen Sem",
+        "email": "csochinjensem@gmail.com",
+        "url": "https://crtschin.com/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}

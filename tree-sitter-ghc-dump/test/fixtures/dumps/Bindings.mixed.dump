@@ -1,0 +1,915 @@
+
+==================== Tidy Core ====================
+Result size of Tidy Core
+  = {terms: 182, types: 90, coercions: 0, joins: 4/8}
+
+-- RHS size: {terms: 1, types: 0, coercions: 0, joins: 0/0}
+Bindings.$trModule4 :: GHC.Prim.Addr#
+[GblId,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [] 20 0}]
+Bindings.$trModule4 = "main"#
+
+-- RHS size: {terms: 2, types: 0, coercions: 0, joins: 0/0}
+Bindings.$trModule3 :: GHC.Types.TrName
+[GblId,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [] 10 10}]
+Bindings.$trModule3 = GHC.Types.TrNameS Bindings.$trModule4
+
+-- RHS size: {terms: 1, types: 0, coercions: 0, joins: 0/0}
+Bindings.$trModule2 :: GHC.Prim.Addr#
+[GblId,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [] 30 0}]
+Bindings.$trModule2 = "Bindings"#
+
+-- RHS size: {terms: 2, types: 0, coercions: 0, joins: 0/0}
+Bindings.$trModule1 :: GHC.Types.TrName
+[GblId,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [] 10 10}]
+Bindings.$trModule1 = GHC.Types.TrNameS Bindings.$trModule2
+
+-- RHS size: {terms: 3, types: 0, coercions: 0, joins: 0/0}
+Bindings.$trModule :: GHC.Types.Module
+[GblId,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [] 10 10}]
+Bindings.$trModule
+  = GHC.Types.Module Bindings.$trModule3 Bindings.$trModule1
+
+-- RHS size: {terms: 20, types: 5, coercions: 0, joins: 0/2}
+poly :: Int -> Int
+[GblId,
+ Arity=1,
+ Str=<1!P(L)>,
+ Cpr=1,
+ Unf=Unf{Src=StableSystem, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=ALWAYS_IF(arity=1,unsat_ok=True,boring_ok=False)
+         Tmpl= \ (x_aLS [Occ=Once1!] :: Int) ->
+                 case x_aLS of { GHC.Types.I# x1_a1bf ->
+                 GHC.Types.I#
+                   (let {
+                      x2_X1 :: GHC.Prim.Int#
+                      [LclId]
+                      x2_X1 = GHC.Prim.+# x1_a1bf 1# } in
+                    let {
+                      y_a1bi :: GHC.Prim.Int#
+                      [LclId]
+                      y_a1bi = GHC.Prim.*# x2_X1 x2_X1 } in
+                    GHC.Prim.+#
+                      (GHC.Prim.+# x2_X1 y_a1bi) (GHC.Prim.+# y_a1bi x1_a1bf))
+                 }}]
+poly
+  = \ (x_aLS :: Int) ->
+      case x_aLS of { GHC.Types.I# x1_a1bf ->
+      GHC.Types.I#
+        (let {
+           x2_X1 :: GHC.Prim.Int#
+           [LclId]
+           x2_X1 = GHC.Prim.+# x1_a1bf 1# } in
+         let {
+           y_a1bi :: GHC.Prim.Int#
+           [LclId]
+           y_a1bi = GHC.Prim.*# x2_X1 x2_X1 } in
+         GHC.Prim.+#
+           (GHC.Prim.+# x2_X1 y_a1bi) (GHC.Prim.+# y_a1bi x1_a1bf))
+      }
+
+Rec {
+-- RHS size: {terms: 12, types: 2, coercions: 0, joins: 0/0}
+Bindings.$wisEven [InlPrag=[2], Occ=LoopBreaker]
+  :: GHC.Prim.Int# -> Bool
+[GblId, Arity=1, Str=<1L>, Unf=OtherCon []]
+Bindings.$wisEven
+  = \ (ww_s1hC :: GHC.Prim.Int#) ->
+      case ww_s1hC of wild_X1 {
+        __DEFAULT -> Bindings.$wisEven (GHC.Prim.-# wild_X1 2#);
+        0# -> GHC.Types.True;
+        1# -> GHC.Types.False
+      }
+end Rec }
+
+-- RHS size: {terms: 6, types: 3, coercions: 0, joins: 0/0}
+Bindings.parity_isEven [InlPrag=[2]] :: Int -> Bool
+[GblId[StrictWorker([!])],
+ Arity=1,
+ Str=<1!P(1L)>,
+ Unf=Unf{Src=StableSystem, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=ALWAYS_IF(arity=1,unsat_ok=True,boring_ok=False)
+         Tmpl= \ (ds_s1hA [Occ=Once1!] :: Int) ->
+                 case ds_s1hA of { GHC.Types.I# ww_s1hC [Occ=Once1] ->
+                 Bindings.$wisEven ww_s1hC
+                 }}]
+Bindings.parity_isEven
+  = \ (ds_s1hA :: Int) ->
+      case ds_s1hA of { GHC.Types.I# ww_s1hC ->
+      Bindings.$wisEven ww_s1hC
+      }
+
+-- RHS size: {terms: 3, types: 1, coercions: 0, joins: 0/0}
+parity :: Int -> Bool
+[GblId,
+ Arity=1,
+ Str=<1!P(1L)>,
+ Unf=Unf{Src=StableSystem, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=ALWAYS_IF(arity=1,unsat_ok=True,boring_ok=True)
+         Tmpl= \ (n_aLN [Occ=Once1] :: Int) ->
+                 Bindings.parity_isEven n_aLN}]
+parity = \ (n_aLN :: Int) -> Bindings.parity_isEven n_aLN
+
+-- RHS size: {terms: 89, types: 34, coercions: 0, joins: 4/6}
+Bindings.$wlabel [InlPrag=[2]] :: Either Int Int -> GHC.Prim.Int#
+[GblId[StrictWorker([!])],
+ Arity=1,
+ Str=<1L>,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [103] 166 0}]
+Bindings.$wlabel
+  = \ (e_s1i9 :: Either Int Int) ->
+      case e_s1i9 of {
+        Left n_aLL ->
+          case n_aLL of { GHC.Types.I# x_a1bf ->
+          let {
+            x1_s1gH :: GHC.Prim.Int#
+            [LclId]
+            x1_s1gH = GHC.Prim.+# x_a1bf 1# } in
+          case GHC.Prim.># 1# x1_s1gH of {
+            __DEFAULT ->
+              join {
+                exit_X2 [Dmd=SC(S,L)] :: GHC.Prim.Int# -> GHC.Prim.Int#
+                [LclId[JoinId(1)(Nothing)], Arity=1, Str=<L>]
+                exit_X2 (ww_s1hT [OS=OneShot] :: GHC.Prim.Int#)
+                  = GHC.Prim.+# 1# (GHC.Prim.+# x1_s1gH ww_s1hT) } in
+              joinrec {
+                $wgo3_s1hW [InlPrag=[2], Occ=LoopBreaker, Dmd=SC(S,C(1,L))]
+                  :: GHC.Prim.Int# -> GHC.Prim.Int# -> GHC.Prim.Int#
+                [LclId[JoinId(2)(Nothing)], Arity=2, Str=<L><L>, Unf=OtherCon []]
+                $wgo3_s1hW (x2_s1hQ :: GHC.Prim.Int#) (ww_s1hT :: GHC.Prim.Int#)
+                  = case GHC.Prim.==# x2_s1hQ x1_s1gH of {
+                      __DEFAULT ->
+                        jump $wgo3_s1hW (GHC.Prim.+# x2_s1hQ 1#) (GHC.Prim.+# ww_s1hT 1#);
+                      1# -> jump exit_X2 ww_s1hT
+                    }; } in
+              jump $wgo3_s1hW 1# 0#;
+            1# -> x1_s1gH
+          }
+          };
+        Right n_aLM ->
+          case n_aLM of { GHC.Types.I# x_a1bn ->
+          let {
+            x1_s1gJ :: GHC.Prim.Int#
+            [LclId]
+            x1_s1gJ = GHC.Prim.*# x_a1bn 2# } in
+          case GHC.Prim.># 1# x1_s1gJ of {
+            __DEFAULT ->
+              join {
+                exit_X2 [Dmd=SC(S,L)] :: GHC.Prim.Int# -> GHC.Prim.Int#
+                [LclId[JoinId(1)(Nothing)], Arity=1, Str=<L>]
+                exit_X2 (ww_s1i4 [OS=OneShot] :: GHC.Prim.Int#)
+                  = GHC.Prim.+# 1# (GHC.Prim.+# x1_s1gJ ww_s1i4) } in
+              joinrec {
+                $wgo3_s1i7 [InlPrag=[2], Occ=LoopBreaker, Dmd=SC(S,C(1,L))]
+                  :: GHC.Prim.Int# -> GHC.Prim.Int# -> GHC.Prim.Int#
+                [LclId[JoinId(2)(Nothing)], Arity=2, Str=<L><L>, Unf=OtherCon []]
+                $wgo3_s1i7 (x2_s1i1 :: GHC.Prim.Int#) (ww_s1i4 :: GHC.Prim.Int#)
+                  = case GHC.Prim.==# x2_s1i1 x1_s1gJ of {
+                      __DEFAULT ->
+                        jump $wgo3_s1i7 (GHC.Prim.+# x2_s1i1 1#) (GHC.Prim.+# ww_s1i4 1#);
+                      1# -> jump exit_X2 ww_s1i4
+                    }; } in
+              jump $wgo3_s1i7 1# 0#;
+            1# -> x1_s1gJ
+          }
+          }
+      }
+
+-- RHS size: {terms: 7, types: 4, coercions: 0, joins: 0/0}
+label [InlPrag=[2]] :: Either Int Int -> Int
+[GblId,
+ Arity=1,
+ Str=<1L>,
+ Cpr=1,
+ Unf=Unf{Src=StableSystem, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=ALWAYS_IF(arity=1,unsat_ok=True,boring_ok=False)
+         Tmpl= \ (e_s1i9 [Occ=Once1] :: Either Int Int) ->
+                 case Bindings.$wlabel e_s1i9 of ww_s1im [Occ=Once1] { __DEFAULT ->
+                 GHC.Types.I# ww_s1im
+                 }}]
+label
+  = \ (e_s1i9 :: Either Int Int) ->
+      case Bindings.$wlabel e_s1i9 of ww_s1im { __DEFAULT ->
+      GHC.Types.I# ww_s1im
+      }
+
+Rec {
+-- RHS size: {terms: 15, types: 10, coercions: 0, joins: 0/0}
+Bindings.$wgo [InlPrag=[2], Occ=LoopBreaker]
+  :: GHC.Prim.Int# -> [Int] -> GHC.Prim.Int#
+[GblId[StrictWorker([~, !])],
+ Arity=2,
+ Str=<L><1L>,
+ Unf=OtherCon []]
+Bindings.$wgo
+  = \ (ww_s1ig :: GHC.Prim.Int#) (ds_s1ii :: [Int]) ->
+      case ds_s1ii of {
+        [] -> ww_s1ig;
+        : x_ay4 xs_ay5 ->
+          case x_ay4 of { GHC.Types.I# y_a1bi ->
+          Bindings.$wgo (GHC.Prim.+# ww_s1ig y_a1bi) xs_ay5
+          }
+      }
+end Rec }
+
+-- RHS size: {terms: 8, types: 3, coercions: 0, joins: 0/0}
+sumList :: [Int] -> Int
+[GblId,
+ Arity=1,
+ Str=<1L>,
+ Cpr=1,
+ Unf=Unf{Src=<vanilla>, TopLvl=True,
+         Value=True, ConLike=True, WorkFree=True, Expandable=True,
+         Guidance=IF_ARGS [0] 50 10}]
+sumList
+  = \ (ds_s1ii :: [Int]) ->
+      case Bindings.$wgo 0# ds_s1ii of ww_s1io { __DEFAULT ->
+      GHC.Types.I# ww_s1io
+      }
+
+
+
+
+==================== Final STG: ====================
+Bindings.$trModule2 :: GHC.Prim.Addr#
+[GblId, Unf=OtherCon []] =
+    "Bindings"#;
+
+Bindings.$trModule4 :: GHC.Prim.Addr#
+[GblId, Unf=OtherCon []] =
+    "main"#;
+
+Bindings.$trModule3 :: GHC.Types.TrName
+[GblId, Unf=OtherCon []] =
+    GHC.Types.TrNameS! [Bindings.$trModule4];
+
+Bindings.$trModule1 :: GHC.Types.TrName
+[GblId, Unf=OtherCon []] =
+    GHC.Types.TrNameS! [Bindings.$trModule2];
+
+Bindings.$trModule :: GHC.Types.Module
+[GblId, Unf=OtherCon []] =
+    GHC.Types.Module! [Bindings.$trModule3 Bindings.$trModule1];
+
+Bindings.poly :: GHC.Types.Int -> GHC.Types.Int
+[GblId, Arity=1, Str=<1!P(L)>, Cpr=1, Unf=OtherCon []] =
+    {} \r [x_s1iY]
+        case x_s1iY of wild_s1iZ {
+        GHC.Types.I# x1_s1j0 ->
+        case +# [x1_s1j0 1#] of x2_s1j1 {
+        __DEFAULT ->
+        case *# [x2_s1j1 x2_s1j1] of y_s1j2 {
+        __DEFAULT ->
+        case +# [y_s1j2 x1_s1j0] of sat_s1j4 {
+        __DEFAULT ->
+        case +# [x2_s1j1 y_s1j2] of sat_s1j3 {
+        __DEFAULT ->
+        case +# [sat_s1j3 sat_s1j4] of sat_s1j5 {
+        __DEFAULT -> GHC.Types.I# [sat_s1j5];
+        };
+        };
+        };
+        };
+        };
+        };
+
+Rec {
+Bindings.$wisEven [InlPrag=[2], Occ=LoopBreaker]
+  :: GHC.Prim.Int# -> GHC.Types.Bool
+[GblId, Arity=1, Str=<1L>, Unf=OtherCon []] =
+    {} \r [ww_s1j6]
+        case ww_s1j6<TagProper> of wild_s1j7 {
+          __DEFAULT ->
+              case -# [wild_s1j7 2#] of sat_s1j8 [Dmd=1L] {
+              __DEFAULT -> Bindings.$wisEven sat_s1j8;
+              };
+          0# -> GHC.Types.True [];
+          1# -> GHC.Types.False [];
+        };
+end Rec }
+
+Bindings.parity_isEven [InlPrag=[2]]
+  :: GHC.Types.Int -> GHC.Types.Bool
+[GblId[StrictWorker([!])],
+ Arity=1,
+ Str=<1!P(1L)>,
+ Unf=OtherCon []] =
+    {} \r [ds_s1j9]
+        case ds_s1j9<TagProper> of wild_s1ja {
+        GHC.Types.I# ww_s1jb [Occ=Once1] -> Bindings.$wisEven ww_s1jb;
+        };
+
+Bindings.parity :: GHC.Types.Int -> GHC.Types.Bool
+[GblId, Arity=1, Str=<1!P(1L)>, Unf=OtherCon []] =
+    {} \r [n_s1jc]
+        case n_s1jc of n_t1jU [Occ=Once1] {
+        __DEFAULT -> Bindings.parity_isEven n_t1jU;
+        };
+
+Bindings.$wlabel [InlPrag=[2]]
+  :: GHC.Internal.Data.Either.Either GHC.Types.Int GHC.Types.Int
+     -> GHC.Prim.Int#
+[GblId[StrictWorker([!])], Arity=1, Str=<1L>, Unf=OtherCon []] =
+    {} \r [e_s1jd]
+        case e_s1jd<TagProper> of wild_s1je {
+          GHC.Internal.Data.Either.Left n_s1jf [Occ=Once1!] ->
+              case n_s1jf of wild1_s1jg {
+              GHC.Types.I# x_s1jh [Occ=Once1] ->
+              case +# [x_s1jh 1#] of x1_s1ji {
+              __DEFAULT ->
+              case ># [1# x1_s1ji] of lwild_s1jj {
+                __DEFAULT ->
+                    let-no-escape {
+                      exit_s1jk [Occ=OnceL1!T[1], Dmd=SC(S,L)]
+                        :: GHC.Prim.Int# -> GHC.Prim.Int#
+                      [LclId[JoinId(1)(Nothing)], Arity=1, Str=<L>, Unf=OtherCon []] =
+                          {x1_s1ji} \r [ww_s1jl]
+                              case +# [x1_s1ji ww_s1jl] of sat_s1jm {
+                              __DEFAULT -> +# [1# sat_s1jm];
+                              };
+                    } in 
+                      let-no-escape {
+                        Rec {
+                        $wgo3_s1jn [InlPrag=[2], Occ=LoopBreakerT[2], Dmd=SC(S,C(1,L))]
+                          :: GHC.Prim.Int# -> GHC.Prim.Int# -> GHC.Prim.Int#
+                        [LclId[JoinId(2)(Nothing)], Arity=2, Str=<L><L>, Unf=OtherCon []] =
+                            {$wgo3_s1jn, exit_s1jk, x1_s1ji} \r [x2_s1jo ww_s1jp]
+                                case ==# [x2_s1jo x1_s1ji] of lwild1_s1jq {
+                                  __DEFAULT ->
+                                      case +# [ww_s1jp 1#] of sat_s1js {
+                                      __DEFAULT ->
+                                      case +# [x2_s1jo 1#] of sat_s1jr {
+                                      __DEFAULT -> $wgo3_s1jn sat_s1jr sat_s1js;
+                                      };
+                                      };
+                                  1# -> exit_s1jk ww_s1jp;
+                                };
+                        end Rec }
+                      } in  $wgo3_s1jn 1# 0#;
+                1# -> x1_s1ji<TagProper>;
+              };
+              };
+              };
+          GHC.Internal.Data.Either.Right n_s1jt [Occ=Once1!] ->
+              case n_s1jt of wild1_s1ju {
+              GHC.Types.I# x_s1jv [Occ=Once1] ->
+              case *# [x_s1jv 2#] of x1_s1jw {
+              __DEFAULT ->
+              case ># [1# x1_s1jw] of lwild_s1jx {
+                __DEFAULT ->
+                    let-no-escape {
+                      exit_s1jy [Occ=OnceL1!T[1], Dmd=SC(S,L)]
+                        :: GHC.Prim.Int# -> GHC.Prim.Int#
+                      [LclId[JoinId(1)(Nothing)], Arity=1, Str=<L>, Unf=OtherCon []] =
+                          {x1_s1jw} \r [ww_s1jz]
+                              case +# [x1_s1jw ww_s1jz] of sat_s1jA {
+                              __DEFAULT -> +# [1# sat_s1jA];
+                              };
+                    } in 
+                      let-no-escape {
+                        Rec {
+                        $wgo3_s1jB [InlPrag=[2], Occ=LoopBreakerT[2], Dmd=SC(S,C(1,L))]
+                          :: GHC.Prim.Int# -> GHC.Prim.Int# -> GHC.Prim.Int#
+                        [LclId[JoinId(2)(Nothing)], Arity=2, Str=<L><L>, Unf=OtherCon []] =
+                            {$wgo3_s1jB, exit_s1jy, x1_s1jw} \r [x2_s1jC ww_s1jD]
+                                case ==# [x2_s1jC x1_s1jw] of lwild1_s1jE {
+                                  __DEFAULT ->
+                                      case +# [ww_s1jD 1#] of sat_s1jG {
+                                      __DEFAULT ->
+                                      case +# [x2_s1jC 1#] of sat_s1jF {
+                                      __DEFAULT -> $wgo3_s1jB sat_s1jF sat_s1jG;
+                                      };
+                                      };
+                                  1# -> exit_s1jy ww_s1jD;
+                                };
+                        end Rec }
+                      } in  $wgo3_s1jB 1# 0#;
+                1# -> x1_s1jw<TagProper>;
+              };
+              };
+              };
+        };
+
+Bindings.label [InlPrag=[2]]
+  :: GHC.Internal.Data.Either.Either GHC.Types.Int GHC.Types.Int
+     -> GHC.Types.Int
+[GblId, Arity=1, Str=<1L>, Cpr=1, Unf=OtherCon []] =
+    {} \r [e_s1jH]
+        case
+            case e_s1jH of e_t1jW [Occ=Once1] {
+            __DEFAULT -> Bindings.$wlabel e_t1jW;
+            }
+        of
+        ww_s1jI
+        {
+        __DEFAULT -> GHC.Types.I# [ww_s1jI];
+        };
+
+Rec {
+Bindings.$wgo [InlPrag=[2], Occ=LoopBreaker]
+  :: GHC.Prim.Int# -> [GHC.Types.Int] -> GHC.Prim.Int#
+[GblId[StrictWorker([~, !])],
+ Arity=2,
+ Str=<L><1L>,
+ Unf=OtherCon []] =
+    {} \r [ww_s1jJ ds_s1jK]
+        case ds_s1jK<TagProper> of wild_s1jL {
+          [] -> ww_s1jJ<TagProper>;
+          : x_s1jM [Occ=Once1!] xs_s1jN [Occ=Once1] ->
+              case x_s1jM of wild1_s1jO {
+              GHC.Types.I# y_s1jP [Occ=Once1] ->
+              case +# [ww_s1jJ y_s1jP] of sat_s1jQ {
+              __DEFAULT ->
+              case xs_s1jN of xs_t1jY [Occ=Once1] {
+              __DEFAULT -> Bindings.$wgo sat_s1jQ xs_t1jY;
+              };
+              };
+              };
+        };
+end Rec }
+
+Bindings.sumList :: [GHC.Types.Int] -> GHC.Types.Int
+[GblId, Arity=1, Str=<1L>, Cpr=1, Unf=OtherCon []] =
+    {} \r [ds_s1jR]
+        case
+            case ds_s1jR of ds_t1k0 [Occ=Once1] {
+            __DEFAULT -> Bindings.$wgo 0# ds_t1k0;
+            }
+        of
+        ww_s1jS
+        {
+        __DEFAULT -> GHC.Types.I# [ww_s1jS];
+        };
+
+
+
+==================== Output Cmm ====================
+[section ""cstring" . Bindings.$trModule2_bytes" {
+     Bindings.$trModule2_bytes:
+         I8[] "Bindings"
+ }]
+
+
+
+==================== Output Cmm ====================
+[section ""cstring" . Bindings.$trModule4_bytes" {
+     Bindings.$trModule4_bytes:
+         I8[] "main"
+ }]
+
+
+
+==================== Output Cmm ====================
+[section ""data" . Bindings.$trModule3_closure" {
+     Bindings.$trModule3_closure:
+         const GHC.Types.TrNameS_con_info;
+         const Bindings.$trModule4_bytes;
+ }]
+
+
+
+==================== Output Cmm ====================
+[section ""data" . Bindings.$trModule1_closure" {
+     Bindings.$trModule1_closure:
+         const GHC.Types.TrNameS_con_info;
+         const Bindings.$trModule2_bytes;
+ }]
+
+
+
+==================== Output Cmm ====================
+[section ""data" . Bindings.$trModule_closure" {
+     Bindings.$trModule_closure:
+         const GHC.Types.Module_con_info;
+         const Bindings.$trModule3_closure+1;
+         const Bindings.$trModule1_closure+1;
+         const 3;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.poly_entry() { //  [R2]
+         { info_tbls: [(c1ka,
+                        label: block_c1ka_info
+                        rep: StackRep []
+                        srt: Nothing),
+                       (c1kd,
+                        label: Bindings.poly_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1kd: // global
+           if ((Sp + -8) < SpLim) (likely: False) goto c1kw; else goto c1kx;
+       c1kw: // global
+           R1 = Bindings.poly_closure;
+           call (stg_gc_fun)(R2, R1) args: 8, res: 0, upd: 8;
+       c1kx: // global
+           I64[Sp - 8] = c1ka;
+           R1 = R2;
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1ka; else goto c1kb;
+       c1kb: // global
+           call (I64![R1])(R1) returns to c1ka, args: 8, res: 8, upd: 8;
+       c1ka: // global
+           Hp = Hp + 16;
+           if (Hp > HpLim) (likely: False) goto c1kA; else goto c1kz;
+       c1kA: // global
+           HpAlloc = 16;
+           call stg_gc_unpt_r1(R1) returns to c1ka, args: 8, res: 8, upd: 8;
+       c1kz: // global
+           _s1j0::I64 = I64[R1 + 7];
+           I64[Hp - 8] = GHC.Types.I#_con_info;
+           _s1j1::I64 = _s1j0::I64 + 1;
+           _s1j2::I64 = _s1j1::I64 * _s1j1::I64;
+           I64[Hp] = _s1j1::I64 + (_s1j2::I64 + (_s1j2::I64 + _s1j0::I64));
+           R1 = Hp - 7;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.poly_closure" {
+     Bindings.poly_closure:
+         const Bindings.poly_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.$wisEven_entry() { //  [R2]
+         { info_tbls: [(c1kW,
+                        label: Bindings.$wisEven_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 4} }
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1kW: // global
+           _s1j6::I64 = R2;
+           goto c1kO;
+       c1kO: // global
+           if (_s1j6::I64 != 0) goto u1l1; else goto c1kU;
+       u1l1: // global
+           if (_s1j6::I64 != 1) goto c1kT; else goto c1kV;
+       c1kT: // global
+           _s1j6::I64 = _s1j6::I64 - 2;
+           goto c1kO;
+       c1kV: // global
+           R1 = GHC.Types.False_closure+1;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+       c1kU: // global
+           R1 = GHC.Types.True_closure+2;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.$wisEven_closure" {
+     Bindings.$wisEven_closure:
+         const Bindings.$wisEven_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.parity_isEven_entry() { //  [R2]
+         { info_tbls: [(c1lb,
+                        label: Bindings.parity_isEven_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1lb: // global
+           R2 = I64[R2 + 7];
+           call Bindings.$wisEven_info(R2) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.parity_isEven_closure" {
+     Bindings.parity_isEven_closure:
+         const Bindings.parity_isEven_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.parity_entry() { //  [R2]
+         { info_tbls: [(c1ll,
+                        label: block_c1ll_info
+                        rep: StackRep []
+                        srt: Nothing),
+                       (c1lo,
+                        label: Bindings.parity_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1lo: // global
+           if ((Sp + -8) < SpLim) (likely: False) goto c1lp; else goto c1lq;
+       c1lp: // global
+           R1 = Bindings.parity_closure;
+           call (stg_gc_fun)(R2, R1) args: 8, res: 0, upd: 8;
+       c1lq: // global
+           I64[Sp - 8] = c1ll;
+           R1 = R2;
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1ll; else goto c1lm;
+       c1lm: // global
+           call (I64![R1])(R1) returns to c1ll, args: 8, res: 8, upd: 8;
+       c1ll: // global
+           R2 = R1;
+           Sp = Sp + 8;
+           call Bindings.parity_isEven_info(R2) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.parity_closure" {
+     Bindings.parity_closure:
+         const Bindings.parity_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.$wlabel_entry() { //  [R2]
+         { info_tbls: [(c1lJ,
+                        label: Bindings.$wlabel_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing),
+                       (c1lQ,
+                        label: block_c1lQ_info
+                        rep: StackRep []
+                        srt: Nothing),
+                       (c1mv,
+                        label: block_c1mv_info
+                        rep: StackRep []
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1lJ: // global
+           if ((Sp + -8) < SpLim) (likely: False) goto c1lK; else goto c1lL;
+       c1lK: // global
+           R1 = Bindings.$wlabel_closure;
+           call (stg_gc_fun)(R2, R1) args: 8, res: 0, upd: 8;
+       c1lL: // global
+           if (R2 & 7 != 1) goto c1lH; else goto c1lG;
+       c1lH: // global
+           I64[Sp - 8] = c1mv;
+           R1 = P64[R2 + 6];
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1mv; else goto c1mx;
+       c1mx: // global
+           call (I64![R1])(R1) returns to c1mv, args: 8, res: 8, upd: 8;
+       c1mv: // global
+           _s1jw::I64 = I64[R1 + 7] << 1;
+           if (%MO_S_Le_W64(1, _s1jw::I64)) goto c1n4; else goto c1n5;
+       c1n4: // global
+           _s1jD::I64 = 0;
+           _s1jC::I64 = 1;
+           goto c1mU;
+       c1mU: // global
+           if (_s1jC::I64 != _s1jw::I64) goto c1n1; else goto c1n2;
+       c1n1: // global
+           _s1jD::I64 = _s1jD::I64 + 1;
+           _s1jC::I64 = _s1jC::I64 + 1;
+           goto c1mU;
+       c1n2: // global
+           R1 = _s1jw::I64 + _s1jD::I64 + 1;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+       c1n5: // global
+           R1 = _s1jw::I64;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+       c1lG: // global
+           I64[Sp - 8] = c1lQ;
+           R1 = P64[R2 + 7];
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1lQ; else goto c1lS;
+       c1lS: // global
+           call (I64![R1])(R1) returns to c1lQ, args: 8, res: 8, upd: 8;
+       c1lQ: // global
+           _s1ji::I64 = I64[R1 + 7] + 1;
+           if (%MO_S_Le_W64(1, _s1ji::I64)) goto c1mp; else goto c1mq;
+       c1mp: // global
+           _s1jp::I64 = 0;
+           _s1jo::I64 = 1;
+           goto c1mf;
+       c1mf: // global
+           if (_s1jo::I64 != _s1ji::I64) goto c1mm; else goto c1mn;
+       c1mm: // global
+           _s1jp::I64 = _s1jp::I64 + 1;
+           _s1jo::I64 = _s1jo::I64 + 1;
+           goto c1mf;
+       c1mn: // global
+           R1 = _s1ji::I64 + _s1jp::I64 + 1;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+       c1mq: // global
+           R1 = _s1ji::I64;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.$wlabel_closure" {
+     Bindings.$wlabel_closure:
+         const Bindings.$wlabel_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.label_entry() { //  [R2]
+         { info_tbls: [(c1nx,
+                        label: block_c1nx_info
+                        rep: StackRep []
+                        srt: Nothing),
+                       (c1nB,
+                        label: Bindings.label_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing),
+                       (c1nE,
+                        label: block_c1nE_info
+                        rep: StackRep []
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1nB: // global
+           if ((Sp + -8) < SpLim) (likely: False) goto c1nK; else goto c1nL;
+       c1nK: // global
+           R1 = Bindings.label_closure;
+           call (stg_gc_fun)(R2, R1) args: 8, res: 0, upd: 8;
+       c1nL: // global
+           I64[Sp - 8] = c1nx;
+           R1 = R2;
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1nx; else goto c1ny;
+       c1ny: // global
+           call (I64![R1])(R1) returns to c1nx, args: 8, res: 8, upd: 8;
+       c1nx: // global
+           I64[Sp] = c1nE;
+           R2 = R1;
+           call Bindings.$wlabel_info(R2) returns to c1nE, args: 8, res: 8, upd: 8;
+       c1nE: // global
+           Hp = Hp + 16;
+           if (Hp > HpLim) (likely: False) goto c1nP; else goto c1nO;
+       c1nP: // global
+           HpAlloc = 16;
+           I64[Sp] = c1nE;
+           call stg_gc_unbx_r1(R1) returns to c1nE, args: 8, res: 8, upd: 8;
+       c1nO: // global
+           I64[Hp - 8] = GHC.Types.I#_con_info;
+           I64[Hp] = R1;
+           R1 = Hp - 7;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.label_closure" {
+     Bindings.label_closure:
+         const Bindings.label_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.$wgo_entry() { //  [R3, R2]
+         { info_tbls: [(c1o5,
+                        label: Bindings.$wgo_info
+                        rep: HeapRep static { Fun {arity: 2 fun_type: ArgSpec 13} }
+                        srt: Nothing),
+                       (c1oh,
+                        label: block_c1oh_info
+                        rep: StackRep [True, False]
+                        srt: Nothing),
+                       (c1op,
+                        label: block_c1op_info
+                        rep: StackRep [True]
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1o5: // global
+           _s1jK::P64 = R3;
+           _s1jJ::I64 = R2;
+           if ((Sp + -24) >= SpLim) (likely: True) goto c1nW; else goto c1o6;
+       c1nW: // global
+           if (_s1jK::P64 & 7 != 1) goto c1o3; else goto c1o2;
+       c1o3: // global
+           I64[Sp - 24] = c1oh;
+           R1 = P64[_s1jK::P64 + 6];
+           I64[Sp - 16] = _s1jJ::I64;
+           P64[Sp - 8] = P64[_s1jK::P64 + 14];
+           Sp = Sp - 24;
+           if (R1 & 7 != 0) goto c1oh; else goto c1oi;
+       c1oi: // global
+           call (I64![R1])(R1) returns to c1oh, args: 8, res: 8, upd: 8;
+       c1oh: // global
+           _s1jQ::I64 = I64[Sp + 8] + I64[R1 + 7];
+           I64[Sp + 8] = c1op;
+           R1 = P64[Sp + 16];
+           I64[Sp + 16] = _s1jQ::I64;
+           Sp = Sp + 8;
+           if (R1 & 7 != 0) goto c1op; else goto c1os;
+       c1os: // global
+           call (I64![R1])(R1) returns to c1op, args: 8, res: 8, upd: 8;
+       c1op: // global
+           _s1jJ::I64 = I64[Sp + 8];
+           Sp = Sp + 16;
+           _s1jK::P64 = R1;
+           goto c1nW;
+       c1o2: // global
+           R1 = _s1jJ::I64;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+       c1o6: // global
+           R3 = _s1jK::P64;
+           R2 = _s1jJ::I64;
+           R1 = Bindings.$wgo_closure;
+           call (stg_gc_fun)(R3, R2, R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.$wgo_closure" {
+     Bindings.$wgo_closure:
+         const Bindings.$wgo_info;
+ }]
+
+
+
+==================== Output Cmm ====================
+[Bindings.sumList_entry() { //  [R2]
+         { info_tbls: [(c1oO,
+                        label: block_c1oO_info
+                        rep: StackRep []
+                        srt: Nothing),
+                       (c1oS,
+                        label: Bindings.sumList_info
+                        rep: HeapRep static { Fun {arity: 1 fun_type: ArgSpec 5} }
+                        srt: Nothing),
+                       (c1oV,
+                        label: block_c1oV_info
+                        rep: StackRep []
+                        srt: Nothing)]
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1oS: // global
+           if ((Sp + -8) < SpLim) (likely: False) goto c1p1; else goto c1p2;
+       c1p1: // global
+           R1 = Bindings.sumList_closure;
+           call (stg_gc_fun)(R2, R1) args: 8, res: 0, upd: 8;
+       c1p2: // global
+           I64[Sp - 8] = c1oO;
+           R1 = R2;
+           Sp = Sp - 8;
+           if (R1 & 7 != 0) goto c1oO; else goto c1oP;
+       c1oP: // global
+           call (I64![R1])(R1) returns to c1oO, args: 8, res: 8, upd: 8;
+       c1oO: // global
+           I64[Sp] = c1oV;
+           R3 = R1;
+           R2 = 0;
+           call Bindings.$wgo_info(R3,
+                                   R2) returns to c1oV, args: 8, res: 8, upd: 8;
+       c1oV: // global
+           Hp = Hp + 16;
+           if (Hp > HpLim) (likely: False) goto c1p6; else goto c1p5;
+       c1p6: // global
+           HpAlloc = 16;
+           I64[Sp] = c1oV;
+           call stg_gc_unbx_r1(R1) returns to c1oV, args: 8, res: 8, upd: 8;
+       c1p5: // global
+           I64[Hp - 8] = GHC.Types.I#_con_info;
+           I64[Hp] = R1;
+           R1 = Hp - 7;
+           Sp = Sp + 8;
+           call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . Bindings.sumList_closure" {
+     Bindings.sumList_closure:
+         const Bindings.sumList_info;
+ }]
+
+

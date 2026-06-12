@@ -3,24 +3,25 @@ mod cabal-project 'tree-sitter-cabal-project'
 mod ghc-core 'tree-sitter-ghc-core'
 mod ghc-stg 'tree-sitter-ghc-stg'
 mod ghc-cmm 'tree-sitter-ghc-cmm'
+mod ghc-dump 'tree-sitter-ghc-dump'
 
 default: test
 
 # Run tests for every grammar
-test: cabal::test cabal-project::test ghc-core::test ghc-stg::test ghc-cmm::test
+test: cabal::test cabal-project::test ghc-core::test ghc-stg::test ghc-cmm::test ghc-dump::test
 
 # Build every grammar
-build: cabal::build cabal-project::build ghc-core::build ghc-stg::build ghc-cmm::build
+build: cabal::build cabal-project::build ghc-core::build ghc-stg::build ghc-cmm::build ghc-dump::build
 
 # Static checks for every grammar
-check: cabal::check cabal-project::check ghc-core::check ghc-stg::check ghc-cmm::check
+check: cabal::check cabal-project::check ghc-core::check ghc-stg::check ghc-cmm::check ghc-dump::check
 
 # Format every grammar and the flake (mode: write|check)
-fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mode) (ghc-stg::fmt mode) (ghc-cmm::fmt mode)
+fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mode) (ghc-stg::fmt mode) (ghc-cmm::fmt mode) (ghc-dump::fmt mode)
     nixfmt {{ if mode == "check" { "--check" } else { "" } }} flake.nix
 
 # Clean build artifacts in every grammar
-clean: cabal::clean cabal-project::clean ghc-core::clean ghc-stg::clean ghc-cmm::clean
+clean: cabal::clean cabal-project::clean ghc-core::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
 
 # Generate flamegraphs for the corpus-backed grammars.
 flamegraph: cabal::flamegraph cabal-project::flamegraph
