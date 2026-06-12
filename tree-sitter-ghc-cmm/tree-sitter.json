@@ -1,0 +1,44 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ghc_cmm",
+      "camelcase": "GhcCmm",
+      "title": "GHC Cmm",
+      "scope": "source.ghc_cmm",
+      "file-types": [
+        "dump-cmm",
+        "dump-cmm-from-stg",
+        "dump-cmm-raw",
+        "dump-opt-cmm"
+      ],
+      "injection-regex": "^ghc[-_]?cmm$",
+      "highlights": "queries/highlights.scm",
+      "class-name": "TreeSitterGhcCmm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for GHC Cmm dumps.",
+    "authors": [
+      {
+        "name": "Curtis Chin Jen Sem",
+        "email": "csochinjensem@gmail.com",
+        "url": "https://crtschin.com/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}

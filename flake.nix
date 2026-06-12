@@ -88,6 +88,20 @@
           useCommon = false;
         };
 
+        treeSitterGhcStg = buildTreeSitterPkg {
+          pname = "tree-sitter-ghc-stg";
+          language = "ghc_stg";
+          useScanner = false;
+          useCommon = false;
+        };
+
+        treeSitterGhcCmm = buildTreeSitterPkg {
+          pname = "tree-sitter-ghc-cmm";
+          language = "ghc_cmm";
+          useScanner = false;
+          useCommon = false;
+        };
+
         # git-hooks.nix wires the generated git hooks into .git/hooks on `nix
         # develop` and `nix flake check` runs them. Entries shell out to the
         # justfile, the single source of truth shared with CI (see
@@ -134,6 +148,8 @@
           tree-sitter-cabal = treeSitterCabal;
           tree-sitter-cabal-project = treeSitterCabalProject;
           tree-sitter-ghc-core = treeSitterGhcCore;
+          tree-sitter-ghc-stg = treeSitterGhcStg;
+          tree-sitter-ghc-cmm = treeSitterGhcCmm;
         };
 
         # `nix flake check` runs the hooks over the tree, failing on a diff or

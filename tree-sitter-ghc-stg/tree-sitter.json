@@ -1,0 +1,44 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ghc_stg",
+      "camelcase": "GhcStg",
+      "title": "GHC STG",
+      "scope": "source.ghc_stg",
+      "file-types": [
+        "dump-stg-final",
+        "dump-stg-from-core",
+        "dump-stg-cg",
+        "dump-stg-tags"
+      ],
+      "injection-regex": "^ghc[-_]?stg$",
+      "highlights": "queries/highlights.scm",
+      "class-name": "TreeSitterGhcStg"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for GHC STG dumps.",
+    "authors": [
+      {
+        "name": "Curtis Chin Jen Sem",
+        "email": "csochinjensem@gmail.com",
+        "url": "https://crtschin.com/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}

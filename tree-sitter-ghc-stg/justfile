@@ -1,0 +1,33 @@
+default: test
+
+# Run the inline unit tests for this grammar.
+test: build
+    tree-sitter test --lib-path result/parser --lang-name ghc_stg
+
+# Build the grammar via the nix flake (buildGrammar runs generate internally).
+build:
+    nix build ..#tree-sitter-ghc-stg
+
+# Check grammar for errors without building a result symlink.
+check:
+    nix build ..#tree-sitter-ghc-stg --no-link
+
+# Format the grammar file (mode: write|check)
+fmt mode="write":
+    prettier --{{ mode }} grammar.js
+
+# Clean build artifacts
+clean:
+    rm -rf ghc_stg.so result
+
+# Generate src/parser.c locally (needed by highlight).
+generate:
+    tree-sitter generate
+
+# Parse a file and print AST
+parse file: build
+    tree-sitter parse --lib-path result/parser --lang-name ghc_stg {{ file }}
+
+# Show syntax highlighting for a file
+highlight file: generate
+    tree-sitter highlight {{ file }}
