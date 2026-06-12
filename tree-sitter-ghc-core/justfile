@@ -1,8 +1,52 @@
 default: test
 
-# Run the inline unit tests for this grammar.
-test: build
+# Run the inline unit tests and parse the Core-dump corpus for this grammar.
+test: build parse-corpus
     tree-sitter test --lib-path result/parser --lang-name ghc_core
+
+# Parse every GHC Core dump (`-ddump-simpl` output): the .stderr files
+# harvested from $GHC_SRC plus the committed fixtures in test/fixtures/dumps/.
+# NOTE: while the grammar is a lexical scaffold (atom catch-all), every file
+# parses, so this is a smoke test; it becomes a real gate as the grammar
+# grows to reject malformed Core.
+parse-corpus:
+    ../test/parse-corpus.sh ghc-core | tapview
+
+# Regenerate the committed Core-dump fixtures in test/fixtures/dumps/ from the
+# nixpkgs-pinned GHC, covering constructs/flags the harvested corpus
+# under-represents (join points, letrec, ticks, -dsuppress extremes). Pulls a
+# GHC on demand via `nix shell` (it is deliberately not in the dev shell), so
+# normal `test`/CI never compile. Review and commit the resulting diff; expect
+# churn on a nixpkgs bump (the Core dialect tracks the compiler version).
+gen-core-corpus:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    src="test/fixtures"
+    out="$src/dumps"
+    mkdir -p "$out"
+    # gen <module> <tag> <ghc-flags...>: dump Tidy Core to <module>.<tag>.dump-simpl.
+    gen() {
+        local mod="$1" tag="$2"; shift 2
+        local tmp; tmp="$(mktemp -d)"
+        nix shell --inputs-from .. nixpkgs#ghc --command \
+            ghc -fforce-recomp -ddump-simpl -ddump-to-file \
+                -dumpdir "$tmp" -outputdir "$tmp" "$@" "$src/$mod.hs" >/dev/null
+        # GHC mirrors the source's relative path under -dumpdir. Keep the dump
+        # from its Tidy Core banner onward and drop the wall-clock timestamp
+        # line GHC prints under the banner, so committed files don't churn on
+        # every regen (uniques are deterministic per compiler, so they don't).
+        sed -n '/==* Tidy Core/,$p' "$tmp/$src/$mod.dump-simpl" \
+            | grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} .*UTC$' \
+            > "$out/$mod.$tag.dump-simpl"
+        rm -rf "$tmp"
+    }
+    gen Bindings bare             -O2
+    gen Bindings suppress-all     -O2 -dsuppress-all
+    gen Bindings suppress-uniques -O2 -dsuppress-uniques
+    gen Ticks    ticks            -O  -g3
+    nix shell --inputs-from .. nixpkgs#ghc --command ghc --numeric-version \
+        | sed 's/^/generated with GHC /'
+    echo "wrote $(ls "$out" | wc -l) dumps to $out; review & commit"
 
 # Build the grammar via the nix flake (buildGrammar runs generate internally).
 build:

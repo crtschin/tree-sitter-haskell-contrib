@@ -14,6 +14,10 @@
       url = "github:haskell/haskell-language-server";
       flake = false;
     };
+    ghc-src = {
+      url = "github:ghc/ghc";
+      flake = false;
+    };
   };
 
   outputs =
@@ -23,6 +27,7 @@
       git-hooks,
       cabal-src,
       hls-src,
+      ghc-src,
       ...
     }:
     utils.lib.eachDefaultSystem (
@@ -159,6 +164,7 @@
             ++ pre-commit-check.enabledPackages;
           env.CABAL_SRC = "${cabal-src}";
           env.HLS_SRC = "${hls-src}";
+          env.GHC_SRC = "${ghc-src}";
         };
       }
     );

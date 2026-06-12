@@ -4,7 +4,7 @@
 # stdout. Exits non-zero if any file fails to parse.
 #
 # Usage: parse-corpus.sh <preset>
-#   preset = cabal | cabal-project
+#   preset = cabal | cabal-project | ghc-core
 #
 # Must be invoked from inside the grammar's directory (the one containing
 # tree-sitter.json) so `tree-sitter parse` picks the right parser.
@@ -13,12 +13,15 @@ set -uo pipefail
 
 preset="${1:-}"
 case "$preset" in
-    cabal|cabal-project) ;;
-    *) echo "usage: $0 <preset>  (preset = cabal | cabal-project)" >&2; exit 64 ;;
+    cabal|cabal-project|ghc-core) ;;
+    *) echo "usage: $0 <preset>  (preset = cabal | cabal-project | ghc-core)" >&2; exit 64 ;;
 esac
 
 dir="$(dirname "$0")"
 mapfile -t files < <("$dir/${preset}-files.sh")
+
+# Root of the committed ghc-core fixtures, stripped from TAP labels below.
+gen_root="$(cd "$dir/.." && pwd)/tree-sitter-ghc-core/test/fixtures/dumps"
 
 n=${#files[@]}
 echo "TAP version 14"
@@ -50,7 +53,7 @@ done <<< "$parse_output"
 # Strip a known corpus root prefix for human-readable TAP labels.
 label_for() {
     local f="$1" root
-    for root in "$CABAL_SRC" "$HLS_SRC"; do
+    for root in "${CABAL_SRC:-}" "${HLS_SRC:-}" "${GHC_SRC:-}" "$gen_root"; do
         if [[ -n "$root" && "$f" == "$root"/* ]]; then
             printf '%s' "${f#"$root"/}"
             return

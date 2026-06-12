@@ -1,0 +1,95 @@
+==================== Tidy Core ====================
+
+Result size of Tidy Core
+  = {terms: 182, types: 90, coercions: 0, joins: 4/8}
+
+$trModule4 = "main"#
+
+$trModule3 = TrNameS $trModule4
+
+$trModule2 = "Bindings"#
+
+$trModule1 = TrNameS $trModule2
+
+$trModule = Module $trModule3 $trModule1
+
+poly
+  = \ x_aLS ->
+      case x_aLS of { I# x1_a1bf ->
+      I#
+        (let { x2_X1 = +# x1_a1bf 1# } in
+         let { y_a1bi = *# x2_X1 x2_X1 } in
+         +# (+# x2_X1 y_a1bi) (+# y_a1bi x1_a1bf))
+      }
+
+Rec {
+$wisEven
+  = \ ww_s1hC ->
+      case ww_s1hC of wild_X1 {
+        __DEFAULT -> $wisEven (-# wild_X1 2#);
+        0# -> True;
+        1# -> False
+      }
+end Rec }
+
+parity_isEven
+  = \ ds_s1hA -> case ds_s1hA of { I# ww_s1hC -> $wisEven ww_s1hC }
+
+parity = \ n_aLN -> parity_isEven n_aLN
+
+$wlabel
+  = \ e_s1i9 ->
+      case e_s1i9 of {
+        Left n_aLL ->
+          case n_aLL of { I# x_a1bf ->
+          let { x1_s1gH = +# x_a1bf 1# } in
+          case ># 1# x1_s1gH of {
+            __DEFAULT ->
+              join { exit_X2 ww_s1hT = +# 1# (+# x1_s1gH ww_s1hT) } in
+              joinrec {
+                $wgo3_s1hW x2_s1hQ ww_s1hT
+                  = case ==# x2_s1hQ x1_s1gH of {
+                      __DEFAULT -> jump $wgo3_s1hW (+# x2_s1hQ 1#) (+# ww_s1hT 1#);
+                      1# -> jump exit_X2 ww_s1hT
+                    }; } in
+              jump $wgo3_s1hW 1# 0#;
+            1# -> x1_s1gH
+          }
+          };
+        Right n_aLM ->
+          case n_aLM of { I# x_a1bn ->
+          let { x1_s1gJ = *# x_a1bn 2# } in
+          case ># 1# x1_s1gJ of {
+            __DEFAULT ->
+              join { exit_X2 ww_s1i4 = +# 1# (+# x1_s1gJ ww_s1i4) } in
+              joinrec {
+                $wgo3_s1i7 x2_s1i1 ww_s1i4
+                  = case ==# x2_s1i1 x1_s1gJ of {
+                      __DEFAULT -> jump $wgo3_s1i7 (+# x2_s1i1 1#) (+# ww_s1i4 1#);
+                      1# -> jump exit_X2 ww_s1i4
+                    }; } in
+              jump $wgo3_s1i7 1# 0#;
+            1# -> x1_s1gJ
+          }
+          }
+      }
+
+label
+  = \ e_s1i9 ->
+      case $wlabel e_s1i9 of ww_s1im { __DEFAULT -> I# ww_s1im }
+
+Rec {
+$wgo
+  = \ ww_s1ig ds_s1ii ->
+      case ds_s1ii of {
+        [] -> ww_s1ig;
+        : x_ay4 xs_ay5 ->
+          case x_ay4 of { I# y_a1bi -> $wgo (+# ww_s1ig y_a1bi) xs_ay5 }
+      }
+end Rec }
+
+sumList
+  = \ ds_s1ii ->
+      case $wgo 0# ds_s1ii of ww_s1io { __DEFAULT -> I# ww_s1io }
+
+

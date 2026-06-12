@@ -32,6 +32,22 @@
         "type": "github"
       }
     },
+    "ghc-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781254447,
+        "narHash": "sha256-rmiO5xydzY4zD0JYx8/2saQbrJ6NYxxwArU3MuBAVP8=",
+        "owner": "ghc",
+        "repo": "ghc",
+        "rev": "674858e3fb1b7fe644d7ec5d4b0c6d9f18d7bc51",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ghc",
+        "repo": "ghc",
+        "type": "github"
+      }
+    },
     "git-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -109,6 +125,7 @@
     "root": {
       "inputs": {
         "cabal-src": "cabal-src",
+        "ghc-src": "ghc-src",
         "git-hooks": "git-hooks",
         "hls-src": "hls-src",
         "nixpkgs": "nixpkgs",
