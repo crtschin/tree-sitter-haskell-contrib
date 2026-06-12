@@ -20,13 +20,6 @@ esac
 dir="$(dirname "$0")"
 mapfile -t files < <("$dir/${preset}-files.sh")
 
-# Root of the grammar's committed generated fixtures (ghc-* presets), stripped
-# from TAP labels below so they read as e.g. Bindings.bare.dump-simpl.
-case "$preset" in
-    ghc-*) gen_root="$(cd "$dir/.." && pwd)/tree-sitter-$preset/test/fixtures/dumps" ;;
-    *)     gen_root="" ;;
-esac
-
 n=${#files[@]}
 echo "TAP version 14"
 echo "1..$n"
@@ -57,7 +50,7 @@ done <<< "$parse_output"
 # Strip a known corpus root prefix for human-readable TAP labels.
 label_for() {
     local f="$1" root
-    for root in "${CABAL_SRC:-}" "${HLS_SRC:-}" "${GHC_SRC:-}" "$gen_root"; do
+    for root in "${CABAL_SRC:-}" "${HLS_SRC:-}" "${GHC_SRC:-}"; do
         if [[ -n "$root" && "$f" == "$root"/* ]]; then
             printf '%s' "${f#"$root"/}"
             return

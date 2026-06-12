@@ -4,17 +4,16 @@ default: test
 test: build parse-corpus
     tree-sitter test --lib-path result/parser --lang-name ghc_stg
 
-# Parse every GHC STG dump (`-ddump-stg-final` output): the .stderr files
-# harvested from $GHC_SRC plus the committed fixtures in test/fixtures/dumps/.
+# Parse every harvested STG dump (`Final STG:` banner) in $GHC_SRC.
 # NOTE: while the grammar is a lexical scaffold (atom catch-all), every file
 # parses, so this is a smoke test; it becomes a real gate as the grammar
 # grows to reject malformed STG.
 parse-corpus:
     ../test/parse-corpus.sh ghc-stg | tapview
 
-# Regenerate the committed STG-dump fixtures in test/fixtures/dumps/ (shared
-# generator; see test/gen-corpus.sh).
-gen-corpus:
+# Ephemeral coverage check: generate STG dumps with GHC into a temp dir, parse
+# them, report errors, tear down (nothing committed; see test/gen-corpus.sh).
+gen-corpus: build
     ../test/gen-corpus.sh ghc-stg
 
 # Build the grammar via the nix flake (buildGrammar runs generate internally).

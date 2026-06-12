@@ -4,17 +4,16 @@ default: test
 test: build parse-corpus
     tree-sitter test --lib-path result/parser --lang-name ghc_cmm
 
-# Parse every GHC Cmm dump (`-ddump-cmm` output): the .stderr files harvested
-# from $GHC_SRC plus the committed fixtures in test/fixtures/dumps/.
+# Parse every harvested Cmm dump (`Output Cmm` banner) in $GHC_SRC.
 # NOTE: while the grammar is a lexical scaffold (atom catch-all), every file
 # parses, so this is a smoke test; it becomes a real gate as the grammar
 # grows to reject malformed Cmm.
 parse-corpus:
     ../test/parse-corpus.sh ghc-cmm | tapview
 
-# Regenerate the committed Cmm-dump fixtures in test/fixtures/dumps/ (shared
-# generator; see test/gen-corpus.sh).
-gen-corpus:
+# Ephemeral coverage check: generate Cmm dumps with GHC into a temp dir, parse
+# them, report errors, tear down (nothing committed; see test/gen-corpus.sh).
+gen-corpus: build
     ../test/gen-corpus.sh ghc-cmm
 
 # Build the grammar via the nix flake (buildGrammar runs generate internally).
