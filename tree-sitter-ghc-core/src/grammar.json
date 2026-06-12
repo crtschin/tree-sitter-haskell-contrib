@@ -98,6 +98,30 @@
               "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "trailing_sections"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_item_sep"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -113,6 +137,25 @@
           "name": "rec_block"
         }
       ]
+    },
+    "trailing_sections": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "banner"
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_soup"
+            }
+          }
+        ]
+      }
     },
     "banner": {
       "type": "TOKEN",
@@ -919,8 +962,17 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "\\"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "\\"
+            },
+            {
+              "type": "STRING",
+              "value": "/"
+            }
+          ]
         },
         {
           "type": "REPEAT1",
@@ -1518,25 +1570,33 @@
         },
         {
           "type": "STRING",
-          "value": "~"
-        },
-        {
-          "type": "STRING",
-          "value": "~#"
-        },
-        {
-          "type": "STRING",
-          "value": "~~"
-        },
-        {
-          "type": "STRING",
           "value": "~R#"
         },
         {
           "type": "SYMBOL",
           "name": "mult_arrow"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "type_operator"
         }
       ]
+    },
+    "type_operator": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "([A-Z][A-Za-z0-9_']*\\.)*[-+*/<>=~!&|^%][-+*/<>=~!&|^%]*#*"
+          },
+          {
+            "type": "PATTERN",
+            "value": ":[-+*/<>=~!&|^%][-+*/<>=~!&|^%:]*"
+          }
+        ]
+      }
     },
     "mult_arrow": {
       "type": "SEQ",
@@ -1890,14 +1950,14 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*[a-z_$][A-Za-z0-9_'$#]*"
+        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[a-z_$][A-Za-z0-9_'$#]*[-+*/<>=~!&|^%$]*"
       }
     },
     "constructor": {
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*[A-Z][A-Za-z0-9_'#]*"
+        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[A-Z][A-Za-z0-9_'#]*"
       }
     },
     "operator": {
@@ -1945,6 +2005,10 @@
     [
       "_type",
       "type_apply"
+    ],
+    [
+      "source_file",
+      "trailing_sections"
     ]
   ],
   "precedences": [],

@@ -14,18 +14,20 @@
 // _item_sep token (src/scanner.c), which also bounds a multi-line type signature
 // from the binding line that follows it.
 //
-// Coverage (plan layers A-B): bindings with optional type signatures and the
-// [IdInfo] bracket, Rec groups, the expression grammar (lambda, application incl.
-// @type args, let/letrec/join/joinrec, jump, case + alternatives, literals,
-// tuples), qualified names, a type grammar (forall, contexts, arrows incl.
-// multiplicity, application, lists/tuples/kinds/promotion/equality), and
-// occurrence-annotated binders, casts (e `cast` co), coercions (paren/bare,
-// with their `:: t1 ~role# t2`), ticks (src<..>), tuple patterns and qualified
-// special constructors. The [IdInfo] bracket and coercion bodies are modelled
-// coarsely as balanced delimiter soup (the Tmpl= template and coercion forms are
-// real Core to recurse into later). Display-mode edges (-dppr-debug, full
-// unicode, -dppr-case-as-let, RULES/SPEC, library type operators) are layer D --
-// see README.md.
+// Coverage (plan layers A-D): bindings with optional type signatures and the
+// [IdInfo] bracket, Rec groups, the expression grammar (lambda -- `\` or `/` --,
+// application incl. @type / @~coercion args, let/letrec/join/joinrec, jump, case
+// + alternatives + tuple patterns, literals), qualified and package-qualified
+// names, a type grammar (forall incl. inferred {a}, contexts, arrows incl.
+// multiplicity, application, lists/tuples/kinds/promotion/equality, infix type
+// operators, `*` kind, `...`), occurrence-annotated binders, casts and coercions
+// (paren/bare with their `:: t1 ~role# t2`), ticks (src<..>), and trailing
+// banner-delimited sections (Tidy Core rules / CorePrep / ...). The [IdInfo]
+// bracket, coercion bodies and trailing sections are modelled coarsely as
+// balanced delimiter soup -- leniency over structure. Drives ~93% of harvested
+// Tidy Core dumps to a clean parse; a few stubborn files (a GLR/lexer
+// interaction on qualified special-cons after a signature, bannerless SPEC
+// rules) still error. See README.md.
 
 const sepBy1 = (sep, rule) => seq(rule, repeat(seq(sep, rule)));
 const sepBy = (sep, rule) => optional(sepBy1(sep, rule));
@@ -42,13 +44,21 @@ export default grammar({
   // After a signature's type, the next `variable` is either a type-application
   // argument or the binding name on the next line. Let GLR explore both; the
   // over-munch branch dies because the binding then can't complete.
-  conflicts: ($) => [[$._type, $.type_apply]],
+  conflicts: ($) => [
+    [$._type, $.type_apply],
+    // A leading banner may attach to the header or start a trailing section;
+    // either parses cleanly, so let GLR pick.
+    [$.source_file, $.trailing_sections],
+  ],
 
   rules: {
     // Optional banner + Result-size header (which may abut, as in harvested
     // stderr, or be blank-separated, as in -ddump-to-file output), then the
     // binding groups, which ARE blank-separated by _item_sep (that separator
-    // also bounds each binding's RHS expression).
+    // also bounds each binding's RHS expression), then any trailing sections.
+    // The corpus selector keeps only files that lead with a Tidy Core banner;
+    // multi-dump captures that lead with other sections (Demand/Cpr signatures,
+    // compile logs) are excluded as the container grammar's domain.
     source_file: ($) =>
       seq(
         optional($.banner),
@@ -57,9 +67,17 @@ export default grammar({
         optional($._item_sep),
         sepBy($._item_sep, $._group),
         optional($._item_sep),
+        optional($.trailing_sections),
+        optional($._item_sep),
       ),
 
     _group: ($) => choice($.binding, $.rec_block),
+
+    // Any banner-delimited sections after the Tidy Core: `Tidy Core rules`,
+    // CorePrep, Demand signatures, Simplified expression, etc. Captured coarsely
+    // as balanced soup per section (leniency over structure); each section's soup
+    // stops at the next banner, which out-lexes a soup token by longest match.
+    trailing_sections: ($) => repeat1(seq($.banner, repeat($._soup))),
 
     // ==================== Tidy Core ====================
     banner: ($) => token(prec(1, /={4,}[^\n]*={4,}/)),
@@ -187,7 +205,8 @@ export default grammar({
     type_arg: ($) => seq("@", $._type_atom),
     coercion_arg: ($) => seq("@~", $.coercion),
 
-    lambda: ($) => seq("\\", repeat1($._binder), "->", $._expr),
+    // GHC prints the lambda head as `\`; some (newer) dumps render it `/`.
+    lambda: ($) => seq(choice("\\", "/"), repeat1($._binder), "->", $._expr),
 
     jump: ($) => seq("jump", $.variable, repeat($._arg)),
 
@@ -256,7 +275,18 @@ export default grammar({
 
     function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
     _type_op: ($) =>
-      choice("->", "→", "⊸", "=>", "⇒", "~", "~#", "~~", "~R#", $.mult_arrow),
+      choice("->", "→", "⊸", "=>", "⇒", "~R#", $.mult_arrow, $.type_operator),
+    // Infix type operators: type-level + (Nat), :~:, qualified GHC.Prim.~#, etc.
+    // Two shapes -- symbolic (possibly qualified) and colon-led -- the latter
+    // requiring a non-colon char so it never swallows the `::` separator.
+    // Literal arrows -> / => still win by string precedence.
+    type_operator: ($) =>
+      token(
+        choice(
+          /([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=~!&|^%][-+*/<>=~!&|^%]*#*/,
+          /:[-+*/<>=~!&|^%][-+*/<>=~!&|^%:]*/,
+        ),
+      ),
     mult_arrow: ($) => seq("%", $._type_atom, choice("->", "→")),
 
     _type_btype: ($) => choice($.type_apply, $._type_atom),
@@ -311,11 +341,18 @@ export default grammar({
 
     // ---- lexical ----
 
-    // Optional `Module.Sub.` qualifier, then a lower/underscore/$-led name.
-    // `#` may appear within the name (unboxed workers, e.g. c##_a#io).
-    variable: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*/),
+    // Optional `pkg-ver:` package qualifier and `Module.Sub.` qualifier, then a
+    // lower/underscore/$-led name. `#` may appear within (unboxed workers,
+    // c##_a#io); a trailing operator run covers method selectors like $c== / $c<$.
+    variable: ($) =>
+      token(
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*[-+*/<>=~!&|^%$]*/,
+      ),
     // Qualified upper-led data constructors / worker names (I#, GHC.Types.I#).
-    constructor: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*/),
+    constructor: ($) =>
+      token(
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*/,
+      ),
     // Symbolic primops used in prefix position (+#, *#, ==#, ># ...).
     operator: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%]+#*/),
     // Built-in / parenthesised constructors, optionally module-qualified:

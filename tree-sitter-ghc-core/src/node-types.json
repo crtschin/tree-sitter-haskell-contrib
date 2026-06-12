@@ -636,6 +636,10 @@
           "named": true
         },
         {
+          "type": "type_operator",
+          "named": true
+        },
+        {
           "type": "type_paren_form",
           "named": true
         },
@@ -1254,6 +1258,10 @@
         {
           "type": "result_size",
           "named": true
+        },
+        {
+          "type": "trailing_sections",
+          "named": true
         }
       ]
     }
@@ -1328,6 +1336,21 @@
         },
         {
           "type": "variable",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "trailing_sections",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "banner",
           "named": true
         }
       ]
@@ -1994,6 +2017,10 @@
     "named": false
   },
   {
+    "type": "/",
+    "named": false
+  },
+  {
     "type": "::",
     "named": false
   },
@@ -2119,6 +2146,10 @@
     "named": true
   },
   {
+    "type": "type_operator",
+    "named": true
+  },
+  {
     "type": "variable",
     "named": true
   },
@@ -2135,19 +2166,7 @@
     "named": false
   },
   {
-    "type": "~",
-    "named": false
-  },
-  {
-    "type": "~#",
-    "named": false
-  },
-  {
     "type": "~R#",
-    "named": false
-  },
-  {
-    "type": "~~",
     "named": false
   },
   {

@@ -29,4 +29,18 @@ case "$lang" in
     *) echo "unknown lang: $lang  (ghc-core|ghc-stg|ghc-cmm|ghc-dump)" >&2; exit 64 ;;
 esac
 
-grep -rlE "$banner" "$GHC_SRC/testsuite/tests" --include='*.stderr' | LC_ALL=C sort
+matches="$(grep -rlE "$banner" "$GHC_SRC/testsuite/tests" --include='*.stderr')"
+
+# ghc-core models pure Core dumps. Keep only files whose first non-blank line is
+# a `Tidy Core` banner. This drops multi-dump captures that lead with other
+# sections -- compile logs (`[N of M] Compiling`/warnings/TYPE SIGNATURES) and
+# Demand/Cpr-signature dumps -- which are the container grammar's domain.
+if [[ "$lang" == ghc-core ]]; then
+    while IFS= read -r f; do
+        [[ -z "$f" ]] && continue
+        first="$(grep -m1 -vE '^[[:space:]]*$' "$f")"
+        [[ "$first" == ====*"Tidy Core"* ]] && printf '%s\n' "$f"
+    done <<<"$matches" | LC_ALL=C sort
+else
+    printf '%s\n' "$matches" | LC_ALL=C sort
+fi
