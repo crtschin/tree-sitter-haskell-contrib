@@ -360,9 +360,12 @@ export default grammar({
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*/,
       ),
     // Qualified upper-led data constructors / worker names (I#, GHC.Types.I#).
+    // Trailing `:Upper` segments cover class-dictionary constructors (C:C,
+    // C:Show, D:R:FInt); requiring an upper-led tail keeps `::` and the spaced
+    // cons operator out.
     constructor: ($) =>
       token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*/,
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*/,
       ),
     // Symbolic primops used in prefix position (+#, *#, ==#, ># ...).
     operator: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%]+#*/),

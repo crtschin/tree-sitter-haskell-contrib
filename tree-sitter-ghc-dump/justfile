@@ -1,14 +1,25 @@
 default: test
 
-# Run the inline unit tests and parse the dump-stream corpus for this grammar.
-test: build parse-corpus
+# Run the inline unit tests, parse the dump-stream corpus, and validate that
+# injections.scm dispatches every section body to a member grammar that parses
+# it (a clean gate modulo documented known gaps).
+test: build parse-corpus validate-injections
     tree-sitter test --lib-path result/parser --lang-name ghc_dump
 
-# Parse every harvested GHC dump stream in $GHC_SRC (any IL banner).
-# NOTE: this only checks the banner/body split parses; injection dispatch
-# (injections.scm) resolves at query/highlight time, not in a bare parse.
+# Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only
+# checks the banner/body split; `validate-injections` checks the dispatch.
 parse-corpus:
     ../test/parse-corpus.sh ghc-dump | tapview
+
+# End-to-end injection check: split each harvested dump stream into its
+# banner-delimited sections, classify each with injections.scm's own dispatch
+# table, and parse it with the dispatched member grammar (asserting no errors
+# beyond the documented known gaps). Needs the member parsers, so build them.
+validate-injections:
+    nix build ..#tree-sitter-ghc-core -o ../tree-sitter-ghc-core/result
+    nix build ..#tree-sitter-ghc-stg -o ../tree-sitter-ghc-stg/result
+    nix build ..#tree-sitter-ghc-cmm -o ../tree-sitter-ghc-cmm/result
+    ../test/validate-injections.sh | tapview
 
 # Ephemeral coverage check: generate a mixed multi-IL stream with GHC into a
 # temp dir, parse it, report errors, tear down (nothing committed; see
