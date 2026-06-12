@@ -1,25 +1,170 @@
 ================================
-Banner and atom
+Bare bindings: StgRhsCon and closure
 ================================
 
 ==================== Final STG: ====================
-foo
+$WNil = Nil! [];
+
+$WCons = \r [conrep conrep1] Cons [conrep conrep1];
 
 --------------------------------
 
 (source_file
   (banner)
-  (atom))
+  (binding
+    name: (variable)
+    rhs: (con_app_rhs
+      (constructor)
+      (stg_arg_list)))
+  (binding
+    name: (variable)
+    rhs: (closure
+      (update_flag)
+      (arg_list
+        (variable)
+        (variable))
+      body: (con_or_op_app
+        (constructor)
+        (stg_arg_list
+          (variable)
+          (variable))))))
 
 ================================
-Comment is an extra
+Signature, IdInfo, free-var closure
 ================================
 
--- foo bar
-foo
+==================== Final STG: ====================
+Foo.f :: forall {a}. a -> Maybe a
+[GblId, Arity=1, Unf=OtherCon []] =
+    {} \r [x] Foo.Just [x];
 
 --------------------------------
 
 (source_file
-  (comment)
-  (atom))
+  (banner)
+  (binding
+    name: (variable)
+    type: (forall_type
+      (inferred_tyvar
+        (tyvar
+          (variable)))
+      (function_type
+        (tyvar
+          (variable))
+        (type_apply
+          (constructor)
+          (tyvar
+            (variable)))))
+    (idinfo)
+    rhs: (closure
+      (free_vars)
+      (update_flag)
+      (arg_list
+        (variable))
+      body: (con_or_op_app
+        (constructor)
+        (stg_arg_list
+          (variable))))))
+
+================================
+Case with annotated alt binder and __DEFAULT
+================================
+
+==================== Final STG: ====================
+f = \r [ds] case ds of wild { Left e [Occ=Once1] -> e; __DEFAULT -> ds; };
+
+--------------------------------
+
+(source_file
+  (banner)
+  (binding
+    name: (variable)
+    rhs: (closure
+      (update_flag)
+      (arg_list
+        (variable))
+      body: (case
+        scrutinee: (variable)
+        binder: (variable)
+        (alternative
+          pattern: (constructor)
+          (annotated_binder
+            (variable)
+            (binder_annotation))
+          rhs: (variable))
+        (alternative
+          rhs: (variable))))))
+
+================================
+Rec block and tagged binders
+================================
+
+==================== CodeGenAnal STG: ====================
+Rec {
+(M.x, <TagDunno>) = {} \u [] M.x;
+end Rec }
+
+(M.f, <TagProper>) = {a, f} \r [(g, <TagDunno>)] M.g [eta];
+
+--------------------------------
+
+(source_file
+  (banner)
+  (rec_block
+    (binding
+      (tagged_binder
+        name: (variable)
+        (tag))
+      rhs: (closure
+        (free_vars)
+        (update_flag)
+        (arg_list)
+        body: (variable))))
+  (binding
+    (tagged_binder
+      name: (variable)
+      (tag))
+    rhs: (closure
+      (free_vars
+        (variable)
+        (variable))
+      (update_flag)
+      (arg_list
+        (tagged_binder
+          name: (variable)
+          (tag)))
+      body: (con_or_op_app
+        (variable)
+        (stg_arg_list
+          (variable))))))
+
+================================
+let with a cost-centred StgRhsCon binding
+================================
+
+==================== Final STG: ====================
+bar = \u [] let { sat [Occ=Once] :: T [LclId] = NO_CCS Mk! [x]; } in f sat;
+
+--------------------------------
+
+(source_file
+  (banner)
+  (binding
+    name: (variable)
+    rhs: (closure
+      (update_flag)
+      (arg_list)
+      body: (let
+        (binding
+          name: (variable)
+          (binder_annotation)
+          type: (constructor)
+          (idinfo)
+          rhs: (con_app_rhs
+            (cost_centre)
+            (constructor)
+            (stg_arg_list
+              (variable))))
+        body: (app
+          (variable)
+          (variable))))))

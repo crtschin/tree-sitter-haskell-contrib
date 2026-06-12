@@ -45,6 +45,15 @@ if [[ "$lang" == ghc-core ]]; then
         [[ "$first" == ====*"Tidy Core"* ]] || continue
         [[ "$(grep -c 'Result size of' "$f")" -le 1 ]] && printf '%s\n' "$f"
     done <<<"$matches" | LC_ALL=C sort
+elif [[ "$lang" == ghc-stg ]]; then
+    # A single STG dump section carries exactly one banner. Multi-section
+    # captures (e.g. Pre unarise + STG syntax, whose pre-unarise bindings omit
+    # the trailing `;` that otherwise delimits every STG binding) are the
+    # container grammar's domain, so keep only single-banner files.
+    while IFS= read -r f; do
+        [[ -z "$f" ]] && continue
+        [[ "$(grep -cE '^={4,}' "$f")" -eq 1 ]] && printf '%s\n' "$f"
+    done <<<"$matches" | LC_ALL=C sort
 else
     printf '%s\n' "$matches" | LC_ALL=C sort
 fi
