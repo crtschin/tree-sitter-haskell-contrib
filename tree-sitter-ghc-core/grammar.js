@@ -352,10 +352,12 @@ export default grammar({
 
     // Optional `pkg-ver:` package qualifier and `Module.Sub.` qualifier, then a
     // lower/underscore/$-led name. `#` may appear within (unboxed workers,
-    // c##_a#io); a trailing operator run covers method selectors like $c== / $c<$.
+    // c##_a#io); trailing operator/colon segments cover method selectors ($c==,
+    // $c<$) and operator-TyCon names ($tc:~:1). Such segments never include a
+    // space, so `::`/cons (always spaced in Core) are unaffected.
     variable: ($) =>
       token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*[-+*/<>=~!&|^%$]*/,
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*/,
       ),
     // Qualified upper-led data constructors / worker names (I#, GHC.Types.I#).
     constructor: ($) =>
@@ -369,6 +371,8 @@ export default grammar({
     special_con: ($) =>
       token(/([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(\))/),
 
-    comment: ($) => token(seq("--", /[^\n]*/)),
+    // A line comment, or a `-- RHS size: {..}` whose record wraps across lines
+    // (big dumps print thousand-separated counts, e.g. terms: 1,236).
+    comment: ($) => token(choice(seq("--", /[^\n]*/), /--[^{\n]*\{[^}]*\}/)),
   },
 });

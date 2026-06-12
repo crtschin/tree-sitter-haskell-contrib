@@ -1,14 +1,14 @@
 default: test
 
-# Run the inline unit tests for this grammar. The grammar currently models the
-# -dsuppress-all structural surface, so the harvested $GHC_SRC corpus (default
-# format: types + IdInfo + coercions) is not yet covered -- `parse-corpus` and
-# `gen-corpus` report progress toward it.
+# Run the inline unit tests, then parse every harvested Tidy Core .stderr in
+# $GHC_SRC. The harvest is a clean gate (0 ERROR/MISSING); leniency in capture
+# (coarse soup for IdInfo/coercions) is allowed but no errors are emitted.
 test: build
     tree-sitter test --lib-path result/parser --lang-name ghc_core
+    ../test/parse-corpus.sh ghc-core | tapview
 
-# Parse every harvested Tidy Core .stderr in $GHC_SRC (not yet a clean gate --
-# expect failures until type/IdInfo/coercion coverage lands).
+# Parse every harvested Tidy Core .stderr in $GHC_SRC (a clean gate, also run by
+# `test`). Single-pass Tidy Core only; multi-dump captures are the container's.
 parse-corpus:
     ../test/parse-corpus.sh ghc-core | tapview
 

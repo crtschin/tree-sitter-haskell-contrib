@@ -31,15 +31,19 @@ esac
 
 matches="$(grep -rlE "$banner" "$GHC_SRC/testsuite/tests" --include='*.stderr')"
 
-# ghc-core models pure Core dumps. Keep only files whose first non-blank line is
-# a `Tidy Core` banner. This drops multi-dump captures that lead with other
-# sections -- compile logs (`[N of M] Compiling`/warnings/TYPE SIGNATURES) and
-# Demand/Cpr-signature dumps -- which are the container grammar's domain.
+# ghc-core models a single Core dump. Keep only files whose first non-blank line
+# is a `Tidy Core` banner AND that contain at most one `Result size of` line.
+# This drops multi-dump captures -- compile logs (`[N of M] Compiling`/warnings/
+# TYPE SIGNATURES), Demand/Cpr-signature dumps, and second full Core passes
+# appended to the Tidy Core (e.g. CorePrep, which has its own `Result size`) --
+# all of which are the container grammar's domain. A trailing `Tidy Core rules`
+# appendix (no `Result size`) is kept and handled.
 if [[ "$lang" == ghc-core ]]; then
     while IFS= read -r f; do
         [[ -z "$f" ]] && continue
         first="$(grep -m1 -vE '^[[:space:]]*$' "$f")"
-        [[ "$first" == ====*"Tidy Core"* ]] && printf '%s\n' "$f"
+        [[ "$first" == ====*"Tidy Core"* ]] || continue
+        [[ "$(grep -c 'Result size of' "$f")" -le 1 ]] && printf '%s\n' "$f"
     done <<<"$matches" | LC_ALL=C sort
 else
     printf '%s\n' "$matches" | LC_ALL=C sort
