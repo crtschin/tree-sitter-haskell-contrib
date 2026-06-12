@@ -144,8 +144,17 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "SYMBOL",
-            "name": "banner"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "banner"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "dash_header"
+              }
+            ]
           },
           {
             "type": "REPEAT",
@@ -155,6 +164,17 @@
             }
           }
         ]
+      }
+    },
+    "dash_header": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "-{4,}[^\\n]*-{4,}"
+        }
       }
     },
     "banner": {
@@ -1682,6 +1702,10 @@
         {
           "type": "SYMBOL",
           "name": "constructor"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "special_con"
         },
         {
           "type": "SYMBOL",

@@ -73,11 +73,18 @@ export default grammar({
 
     _group: ($) => choice($.binding, $.rec_block),
 
-    // Any banner-delimited sections after the Tidy Core: `Tidy Core rules`,
-    // CorePrep, Demand signatures, Simplified expression, etc. Captured coarsely
-    // as balanced soup per section (leniency over structure); each section's soup
-    // stops at the next banner, which out-lexes a soup token by longest match.
-    trailing_sections: ($) => repeat1(seq($.banner, repeat($._soup))),
+    // Any header-delimited sections after the Tidy Core: `==== .. ====` banners
+    // (Tidy Core rules, CorePrep, ...) and `---- .. ----` markers (e.g. `------
+    // Local rules for imported ids --------`, which introduces bannerless rules).
+    // Captured coarsely as balanced soup per section (leniency over structure);
+    // each section's soup stops at the next header, which out-lexes a soup token
+    // by longest match.
+    trailing_sections: ($) =>
+      repeat1(seq(choice($.banner, $.dash_header), repeat($._soup))),
+
+    // ------ Local rules for imported ids -------- (4+ dashes both ends, so it
+    // out-precedences the `--` line comment).
+    dash_header: ($) => token(prec(2, /-{4,}[^\n]*-{4,}/)),
 
     // ==================== Tidy Core ====================
     banner: ($) => token(prec(1, /={4,}[^\n]*={4,}/)),
@@ -297,6 +304,7 @@ export default grammar({
     _type_atom: ($) =>
       choice(
         $.constructor,
+        $.special_con, // [] : (,) etc. as a type (also lets the type-munch GLR branch lex a qualified [] in one token)
         $.tyvar,
         $._type_literal,
         $.type_list,

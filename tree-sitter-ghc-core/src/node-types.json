@@ -452,6 +452,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -565,6 +569,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -621,6 +629,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -685,6 +697,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -786,6 +802,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -834,6 +854,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1073,6 +1097,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1352,6 +1380,10 @@
         {
           "type": "banner",
           "named": true
+        },
+        {
+          "type": "dash_header",
+          "named": true
         }
       ]
     }
@@ -1479,6 +1511,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -1523,6 +1559,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1574,6 +1614,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1632,6 +1676,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -1684,6 +1732,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1743,6 +1795,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1806,6 +1862,10 @@
         },
         {
           "type": "promoted_type",
+          "named": true
+        },
+        {
+          "type": "special_con",
           "named": true
         },
         {
@@ -1954,6 +2014,10 @@
           "named": true
         },
         {
+          "type": "special_con",
+          "named": true
+        },
+        {
           "type": "star",
           "named": true
         },
@@ -2083,6 +2147,10 @@
   },
   {
     "type": "constructor",
+    "named": true
+  },
+  {
+    "type": "dash_header",
     "named": true
   },
   {
