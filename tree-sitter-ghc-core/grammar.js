@@ -24,10 +24,10 @@
 // (paren/bare with their `:: t1 ~role# t2`), ticks (src<..>), and trailing
 // banner-delimited sections (Tidy Core rules / CorePrep / ...). The [IdInfo]
 // bracket, coercion bodies and trailing sections are modelled coarsely as
-// balanced delimiter soup -- leniency over structure. Drives ~93% of harvested
-// Tidy Core dumps to a clean parse; a few stubborn files (a GLR/lexer
-// interaction on qualified special-cons after a signature, bannerless SPEC
-// rules) still error. See README.md.
+// balanced delimiter soup -- leniency over structure. Drives ~98% of harvested
+// Tidy Core dumps to a clean parse; the last few error on a trailing CorePrep
+// section with internal blank lines and on operator-embedded compiler names
+// (`$tc:~:1`). See README.md.
 
 const sepBy1 = (sep, rule) => seq(rule, repeat(seq(sep, rule)));
 const sepBy = (sep, rule) => optional(sepBy1(sep, rule));
@@ -305,6 +305,7 @@ export default grammar({
       choice(
         $.constructor,
         $.special_con, // [] : (,) etc. as a type (also lets the type-munch GLR branch lex a qualified [] in one token)
+        $.operator, // a (qualified) symbolic op as a type atom -- lenient, and lets the type-munch GLR branch lex e.g. GHC.Prim.-# in one token
         $.tyvar,
         $._type_literal,
         $.type_list,

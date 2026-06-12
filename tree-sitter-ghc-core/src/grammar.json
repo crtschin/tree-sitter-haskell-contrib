@@ -1709,6 +1709,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "operator"
+        },
+        {
+          "type": "SYMBOL",
           "name": "tyvar"
         },
         {

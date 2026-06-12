@@ -448,6 +448,10 @@
           "named": true
         },
         {
+          "type": "operator",
+          "named": true
+        },
+        {
           "type": "promoted_type",
           "named": true
         },
@@ -565,6 +569,10 @@
           "named": true
         },
         {
+          "type": "operator",
+          "named": true
+        },
+        {
           "type": "promoted_type",
           "named": true
         },
@@ -625,6 +633,10 @@
         },
         {
           "type": "mult_arrow",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -693,6 +705,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -798,6 +814,10 @@
           "named": true
         },
         {
+          "type": "operator",
+          "named": true
+        },
+        {
           "type": "promoted_type",
           "named": true
         },
@@ -850,6 +870,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1093,6 +1117,10 @@
         },
         {
           "type": "ellipsis",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1507,6 +1535,10 @@
           "named": true
         },
         {
+          "type": "operator",
+          "named": true
+        },
+        {
           "type": "promoted_type",
           "named": true
         },
@@ -1555,6 +1587,10 @@
         },
         {
           "type": "ellipsis",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1610,6 +1646,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1672,6 +1712,10 @@
           "named": true
         },
         {
+          "type": "operator",
+          "named": true
+        },
+        {
           "type": "promoted_type",
           "named": true
         },
@@ -1728,6 +1772,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1791,6 +1839,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -1858,6 +1910,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -2007,6 +2063,10 @@
         },
         {
           "type": "function_type",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
