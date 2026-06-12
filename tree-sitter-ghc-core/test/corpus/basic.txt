@@ -1,25 +1,113 @@
 ================================
-Banner and atom
+Banner and result size
 ================================
 
 ==================== Tidy Core ====================
-foo
+Result size of Tidy Core = {terms: 1, types: 0, coercions: 0, joins: 0/0}
 
 --------------------------------
 
 (source_file
   (banner)
-  (atom))
+  (result_size))
 
 ================================
-Comment is an extra
+Literal and application bindings
 ================================
 
--- RHS size: {terms: 1}
-foo
+x = "main"#
+y = TrNameS x
 
 --------------------------------
 
 (source_file
-  (comment)
-  (atom))
+  (binding name: (variable) rhs: (literal))
+  (binding
+    name: (variable)
+    rhs: (application
+      (constructor)
+      (variable))))
+
+================================
+Lambda with case and constructor pattern
+================================
+
+f = \ x -> case x of { I# y -> y }
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (lambda
+      (variable)
+      (case
+        scrutinee: (variable)
+        (alternative
+          pattern: (pattern
+            (con_pattern
+              (constructor)
+              (variable)))
+          rhs: (variable))))))
+
+================================
+Case binder and default alternative
+================================
+
+g = case w of v { __DEFAULT -> v; 0# -> w }
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (case
+      scrutinee: (variable)
+      binder: (variable)
+      (alternative
+        pattern: (pattern)
+        rhs: (variable))
+      (alternative
+        pattern: (pattern
+          (literal))
+        rhs: (variable)))))
+
+================================
+Let with primop application
+================================
+
+h = let { z = +# a 1# } in z
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (let
+      (binding
+        name: (variable)
+        rhs: (application
+          (operator)
+          (variable)
+          (literal)))
+      body: (variable))))
+
+================================
+Recursive group and jump
+================================
+
+Rec {
+go = \ n -> jump go n
+end Rec }
+
+--------------------------------
+
+(source_file
+  (rec_block
+    (binding
+      name: (variable)
+      rhs: (lambda
+        (variable)
+        (jump
+          (variable)
+          (variable))))))
