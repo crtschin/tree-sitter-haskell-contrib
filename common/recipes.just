@@ -1,7 +1,8 @@
 # Per-grammar boilerplate recipes, shared by every grammar. A grammar's justfile
 # sets `lang` (e.g. "ghc_core") and `slug` (e.g. "ghc-core"), then
 # `import 'common/recipes.just'` (resolved via the dir's `common` symlink), and
-# adds its own bespoke recipes (test, parse-corpus, gen-corpus, ...).
+# adds its own bespoke recipes (parse-corpus, gen-corpus, ...). The IL grammars
+# (ghc-core/stg/cmm/dump) share their whole `test` flow via `_il-test` below.
 
 # Build the grammar via the nix flake (buildGrammar runs generate internally).
 build:
@@ -34,3 +35,19 @@ parse file: build
 # Show syntax highlighting for a file
 highlight file: generate
     tree-sitter highlight {{ file }}
+
+# IL-grammar test flow (ghc-core/stg/cmm/dump only; cabal has no gen-corpus).
+# Runs queries, the harvested-corpus gate, the ephemeral generated matrix, any
+# `extra` gate recipes (space-separated; ghc-dump passes validate-injections),
+# and the inline tests, each to completion. Exits non-zero if any failed. Needs
+# a built parser (build) and, for gen-corpus, a GHC compiler.
+_il-test *extra: build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    rc=0
+    ../test/check-queries.sh {{ slug }} | tapview || rc=1
+    ../test/parse-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/gen-corpus.sh {{ slug }} | tapview || rc=1
+    for r in {{ extra }}; do just "$r" || rc=1; done
+    tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
+    exit "$rc"

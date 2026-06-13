@@ -1,6 +1,10 @@
 lang := "cabal"
 slug := "cabal"
 
+# Run recipe lines under bash with pipefail so a gate script's non-zero exit
+# propagates through `| tapview` (the script, not tapview, decides pass/fail).
+set shell := ["bash", "-o", "pipefail", "-c"]
+
 # Shared build/check/fmt/clean/generate/parse/highlight recipes.
 import 'common/recipes.just'
 

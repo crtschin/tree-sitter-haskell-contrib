@@ -1,22 +1,18 @@
 lang := "ghc_cmm"
 slug := "ghc-cmm"
 
+# Run recipe lines under bash with pipefail so a gate script's non-zero exit
+# propagates through `| tapview` (the script, not tapview, decides pass/fail).
+set shell := ["bash", "-o", "pipefail", "-c"]
+
 # Shared build/check/fmt/clean/generate/parse/highlight recipes.
 import 'common/recipes.just'
 
 default: test
 
-# Run every suite to completion, keeping going past failures. Exit non-zero if
-# any failed.
-test: build
-    #!/usr/bin/env bash
-    set -uo pipefail
-    rc=0
-    ../test/check-queries.sh {{ slug }} | tapview || rc=1
-    ../test/parse-corpus.sh {{ slug }} | tapview || rc=1
-    ../test/gen-corpus.sh {{ slug }} | tapview || rc=1
-    tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
-    exit "$rc"
+# Full gate suite (queries, harvested-corpus gate, generated matrix, inline
+# tests); the shared flow is common/recipes.just `_il-test`.
+test: _il-test
 
 # Parse every harvested Cmm dump (`Output Cmm` / `Cmm produced by codegen`
 # banner) in $GHC_SRC. A clean gate (0 ERROR/MISSING), also run by `test`.

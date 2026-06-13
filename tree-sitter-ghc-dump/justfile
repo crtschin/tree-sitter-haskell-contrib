@@ -10,19 +10,10 @@ import 'common/recipes.just'
 
 default: test
 
-# Run every suite to completion (queries, dump-stream corpus, injection dispatch,
-# generated matrix, inline tests), keeping going past failures. Exit non-zero if
-# any failed.
-test: build
-    #!/usr/bin/env bash
-    set -uo pipefail
-    rc=0
-    ../test/check-queries.sh {{ slug }} | tapview || rc=1
-    ../test/parse-corpus.sh {{ slug }} | tapview || rc=1
-    just validate-injections || rc=1
-    ../test/gen-corpus.sh {{ slug }} | tapview || rc=1
-    tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
-    exit "$rc"
+# Full gate suite (queries, dump-stream corpus, generated matrix, inline tests)
+# plus the injection-dispatch gate; the shared flow is common/recipes.just
+# `_il-test`, with validate-injections passed as its extra gate.
+test: (_il-test "validate-injections")
 
 # Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only
 # checks the banner/body split. `validate-injections` checks the dispatch.
