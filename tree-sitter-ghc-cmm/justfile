@@ -7,7 +7,7 @@ import 'common/recipes.just'
 default: test
 
 # Run the inline unit tests and parse the Cmm-dump corpus for this grammar.
-test: build parse-corpus
+test: build check-queries parse-corpus
     tree-sitter test --lib-path result/parser --lang-name {{ lang }}
 
 # Parse every harvested Cmm dump (`Output Cmm` / `Cmm produced by codegen`

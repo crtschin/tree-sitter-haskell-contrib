@@ -11,6 +11,10 @@ build:
 check:
     nix build ..#tree-sitter-{{ slug }} --no-link
 
+# Validate every editor query (queries/*/*.scm) compiles against the grammar.
+check-queries: build
+    ../test/check-queries.sh {{ slug }} | tapview
+
 # Format the grammar file (mode: write|check)
 fmt mode="write":
     prettier --{{ mode }} grammar.js

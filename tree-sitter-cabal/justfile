@@ -7,7 +7,7 @@ import 'common/recipes.just'
 default: test
 
 # Run tests for this grammar
-test: build parse-corpus
+test: build check-queries parse-corpus
     tree-sitter test --lib-path result/parser --lang-name {{ lang }}
 
 # Parse every *.cabal file across the configured corpora.

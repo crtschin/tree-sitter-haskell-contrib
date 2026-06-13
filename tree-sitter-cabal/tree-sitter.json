@@ -10,6 +10,7 @@
         "cabal"
       ],
       "injection-regex": "^cabal$",
+      "highlights": "queries/helix/highlights.scm",
       "class-name": "TreeSitterCabal"
     }
   ],

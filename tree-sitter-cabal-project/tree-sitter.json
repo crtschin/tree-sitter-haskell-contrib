@@ -12,7 +12,7 @@
         "project"
       ],
       "injection-regex": "^cabal_project$",
-      "highlights": "queries/highlights.scm",
+      "highlights": "queries/helix/highlights.scm",
       "class-name": "TreeSitterCabalProject"
     }
   ],

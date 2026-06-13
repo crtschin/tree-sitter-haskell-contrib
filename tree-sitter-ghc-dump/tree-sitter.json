@@ -10,8 +10,8 @@
         "dump"
       ],
       "injection-regex": "^ghc[-_]?dump$",
-      "highlights": "queries/highlights.scm",
-      "injections": "queries/injections.scm",
+      "highlights": "queries/helix/highlights.scm",
+      "injections": "queries/helix/injections.scm",
       "class-name": "TreeSitterGhcDump"
     }
   ],

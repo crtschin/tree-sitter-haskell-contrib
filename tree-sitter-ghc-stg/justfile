@@ -7,7 +7,7 @@ import 'common/recipes.just'
 default: test
 
 # Run the inline unit tests and parse the STG-dump corpus for this grammar.
-test: build parse-corpus
+test: build check-queries parse-corpus
     tree-sitter test --lib-path result/parser --lang-name {{ lang }}
 
 # Parse every harvested single-section STG dump in $GHC_SRC (a clean gate, also

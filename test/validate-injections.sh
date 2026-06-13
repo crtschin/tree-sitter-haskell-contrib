@@ -16,7 +16,7 @@ set -uo pipefail
 : "${GHC_SRC:?GHC_SRC is unset (enter the dev shell)}"
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
-inj="$repo/tree-sitter-ghc-dump/queries/injections.scm"
+inj="$repo/tree-sitter-ghc-dump/queries/helix/injections.scm"
 
 # (banner-regex, member-language) dispatch table, read straight out of
 # injections.scm so it stays in lockstep. Paired per rule: a rule's `#match?`

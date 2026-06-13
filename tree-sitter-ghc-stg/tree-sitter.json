@@ -13,7 +13,7 @@
         "dump-stg-tags"
       ],
       "injection-regex": "^ghc[-_]?stg$",
-      "highlights": "queries/highlights.scm",
+      "highlights": "queries/helix/highlights.scm",
       "class-name": "TreeSitterGhcStg"
     }
   ],

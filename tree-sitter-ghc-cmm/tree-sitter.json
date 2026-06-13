@@ -13,7 +13,7 @@
         "dump-opt-cmm"
       ],
       "injection-regex": "^ghc[-_]?cmm$",
-      "highlights": "queries/highlights.scm",
+      "highlights": "queries/helix/highlights.scm",
       "class-name": "TreeSitterGhcCmm"
     }
   ],
