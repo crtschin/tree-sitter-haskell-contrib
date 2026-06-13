@@ -6,8 +6,8 @@ import 'common/recipes.just'
 
 default: test
 
-# Run every suite to completion (keep going past failures); exit non-zero if any
-# failed.
+# Run every suite to completion, keeping going past failures. Exit non-zero if
+# any failed.
 test: build
     #!/usr/bin/env bash
     set -uo pipefail

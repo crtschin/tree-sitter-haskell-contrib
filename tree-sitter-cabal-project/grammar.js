@@ -17,8 +17,8 @@ export default grammar({
   name: "cabal_project",
 
   // Order must match scanner/scanner.c's enum Token. _section_name is
-  // declared for enum alignment but not referenced (cabal-project has no
-  // section_name concept). _field_name is the hidden Unicode-fallback
+  // declared for enum alignment. cabal-project has no section_name concept,
+  // so the rule is unreferenced. _field_name is the hidden Unicode-fallback
   // external, used inside the field_name rule below.
   externals: ($) => [
     $._newline,
@@ -56,7 +56,7 @@ export default grammar({
     // ASCII fast path via $._word (also the grammar's word token) + Unicode
     // fallback via the scanner-emitted $._field_name. _word stays a terminal
     // so keyword extraction continues to win for stanza-header literals
-    // (`package`, `repository`, …); the scanner only fires when the name
+    // (`package`, `repository`, …). The scanner only fires when the name
     // contains a non-ASCII byte.
     field_name: ($) => choice($._word, $._field_name),
 
@@ -111,7 +111,7 @@ export default grammar({
     // Identifier covers names, enum-ish values (streaming, modular),
     // versionish hyphenated tokens (ghc-9.4), and dotted/slashy path
     // fragments (setup-test/, foo/bar). Allows `/`, `.`, and `-` so that
-    // path-like values lex as one token rather than getting split.
+    // path-like values lex as one token.
     identifier: ($) => token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-\/]*/)),
 
     // Path tokens: bare `.` / `..`, absolute paths, relative `./` and `../`

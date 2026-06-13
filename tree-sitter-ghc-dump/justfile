@@ -11,7 +11,7 @@ import 'common/recipes.just'
 default: test
 
 # Run every suite to completion (queries, dump-stream corpus, injection dispatch,
-# generated matrix, inline tests), keeping going past failures; exit non-zero if
+# generated matrix, inline tests), keeping going past failures. Exit non-zero if
 # any failed.
 test: build
     #!/usr/bin/env bash
@@ -25,7 +25,7 @@ test: build
     exit "$rc"
 
 # Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only
-# checks the banner/body split; `validate-injections` checks the dispatch.
+# checks the banner/body split. `validate-injections` checks the dispatch.
 parse-corpus:
     ../test/parse-corpus.sh {{ slug }} | tapview
 
@@ -40,7 +40,7 @@ validate-injections:
     ../test/validate-injections.sh | tapview
 
 # Ephemeral coverage check: generate a mixed multi-IL stream with GHC into a
-# temp dir, parse it, report errors, tear down (nothing committed; see
+# temp dir, parse it, report errors, tear down (nothing committed, see
 # test/gen-corpus.sh).
 gen-corpus: build
     ../test/gen-corpus.sh {{ slug }} | tapview

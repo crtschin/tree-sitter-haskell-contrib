@@ -46,9 +46,9 @@ static uint64_t stats_iter_entry_ws = 0; // pre-'\n' whitespace skip
 static uint64_t stats_iter_consume = 0;  // consume_blanks loop body
 static uint64_t stats_iter_comment = 0;  // comment skip char loop
 static uint16_t stats_max_depth = 0;
-// Times the NEWLINE branch's unwind_to actually popped levels (vs being a no-op).
-// High values mean the pre-queue logic is doing real work; near-zero means the
-// NEWLINE branch could skip the unwind_to call.
+// Times the NEWLINE branch's unwind_to actually popped levels. High values mean
+// the pre-queue logic is doing real work. Near-zero means the NEWLINE branch
+// could skip the unwind_to call.
 static uint64_t stats_newline_prequeued = 0;
 static bool stats_registered = false;
 
@@ -108,35 +108,35 @@ static void stats_dump(void) {
 #endif
 
 // Layout-sensitive scanner shared by tree-sitter-cabal and tree-sitter-cabal-project.
-// Cabal-syntax uses one lexer for both file formats. The .cabal vs .project distinction
+// Cabal-syntax uses one lexer for both file formats. The .cabal and .project distinction
 // is purely semantic.
 //
 // ABI constraint: both grammars must list all seven tokens in this exact order in their
 // `externals` arrays. Tree-sitter sizes valid_symbols by the count of declared externals,
 // indexed by position. Removing or reordering an entry shifts subsequent indices and
 // causes out-of-bounds reads in scanner_scan. Both grammars reference _field_name from a
-// `choice($._word_or_ascii_regex, $._field_name)` rule; cabal additionally references
+// `choice($._word_or_ascii_regex, $._field_name)` rule. Cabal additionally references
 // _section_name. cabal-project declares _section_name in its externals for enum
 // alignment but does not reference it in any rule, so its valid_symbols slot is never set.
 //
 // Indentation is measured in spaces. Blank lines reset the count to zero and are
 // skipped.
 //
-// Leniencies vs Cabal's own lexer (Distribution.Fields.Lexer). This scanner accepts
-// input Cabal would reject; the grammar still parses such files rather than failing
+// Leniencies beyond Cabal's own lexer (Distribution.Fields.Lexer). This scanner accepts
+// input Cabal would reject. The grammar still parses such files so editors do not fail
 // fast. Track here so the divergence is visible:
 //
 //   1. Tabs in indentation. Cabal rejects them. We advance to the next 8-space stop
 //      (consume_blanks) and treat tabs as horizontal whitespace before a newline
 //      (scanner_scan). Reason: real-world .cabal files in HLS/Cabal corpora contain
-//      stray tabs; rejecting would cause spurious parse failures in editors.
+//      stray tabs. Rejecting would cause spurious parse failures in editors.
 //   2. NBSP (U+00A0) in indentation. Cabal treats NBSP as an ordinary character. We
-//      count it as one space. Reason: paste-from-doc accidents; cheap to tolerate.
+//      count it as one space. Reason: paste-from-doc accidents, cheap to tolerate.
 //   3. CR (\r) anywhere. Cabal rejects bare CR. We skip silently so CRLF files parse
 //      identically to LF files.
 //   4. Comment indent. Cabal comments (`--`) are layout-transparent regardless of
-//      column. We follow that exactly; noted because it differs from Haskell's
-//      layout rule, which does respect comment columns in some positions.
+//      column. We follow that exactly. Haskell's layout rule does respect comment
+//      columns in some positions, so this is worth flagging.
 
 // NEWLINE     - End of a logical line. Fired when the next non-blank line has the same
 //               or a greater indent, or when DEDENT is not yet valid and must be
@@ -168,7 +168,7 @@ enum Token {
     // Hidden Unicode-fallback name externals. Both grammars wire FIELD_NAME
     // through a `choice(ASCII, $._field_name)` rule and route their visible
     // section_name / field_name nodes through it. SECTION_NAME is referenced
-    // only by the cabal grammar; cabal-project declares but doesn't use it.
+    // only by the cabal grammar. cabal-project declares but doesn't use it.
     SECTION_NAME,
     FIELD_NAME,
 };
@@ -178,7 +178,7 @@ typedef struct {
     // the sentinel 0 at the root level.
     //   indents.back()     == cur_indent_lvl  (column of the innermost open block)
     //   indents[size - 2]  == prev_indent_lvl (column before the last INDENT push),
-    //                         used by the INDENTED check; only defined when size >= 2.
+    //                         used by the INDENTED check, only defined when size >= 2.
     Array(uint16_t) indents;
     // DEDENTs queued for future calls. When the scanner emits NEWLINE but the next
     // line is already less indented, it pre-pops the stack and stores the deficit here.
@@ -217,7 +217,7 @@ static void scanner_destroy(void *payload) {
 }
 
 // Name-character predicates used by the section_name / field_name dispatch
-// in scanner_scan. The four ASCII clauses are the hot path; `>= 0x80` is
+// in scanner_scan. The four ASCII clauses are the hot path. `>= 0x80` is
 // what lets Unicode names parse without paying the DFA-bloat cost of a
 // Unicode regex (see the comment block on the dispatch itself).
 static inline bool is_name_start(int32_t c) {
@@ -311,9 +311,9 @@ static unsigned scanner_serialize(void *payload, char *buffer) {
 // Restore state from the buffer written by scanner_serialize. The buffer is
 // treated as untrusted input. Anything that violates the indent-stack invariants
 // the rest of the scanner relies on (non-empty, sentinel 0 at the bottom, strictly
-// increasing) causes a reset to fresh state, rather than corruption propagating
-// into unwind_to where it would pop past the sentinel and dereference past the
-// end of the indents array. A buffer shorter than the header is also reset.
+// increasing) causes a reset to fresh state. A corrupt stack would otherwise
+// propagate into unwind_to, where it would pop past the sentinel and dereference
+// past the end of the indents array. A buffer shorter than the header is also reset.
 static void scanner_deserialize(void *payload, const char *buffer, unsigned length) {
     Scanner *scanner = (Scanner *)payload;
     const unsigned char *buf = (const unsigned char *)buffer;
@@ -410,7 +410,7 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
     //     terminal (cabal's regex, cabal-project's $._word word token) and
     //     the hidden $._field_name / $._section_name external below.
     //   - For ASCII names we return false. The DFA picks among its
-    //     candidates with normal precedence — cabal's ci-regex aliases
+    //     candidates with normal precedence. Cabal's ci-regex aliases
     //     (`library`, `if`, …) beat the field_name regex by specificity,
     //     and cabal-project's keyword extraction routes `_word` through
     //     literal aliases (`package`, `repository`, …). Emitting
@@ -419,7 +419,7 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
     //     terminals stop at the first byte ≥ 0x80 and the parser would
     //     error. Unicode can sit anywhere in the name (`x-無`, `Fünfstück`),
     //     so we walk the whole body before deciding. The wasted advances
-    //     on pure-ASCII names cost ~17M Ir on the cabal corpus; the DFA
+    //     on pure-ASCII names cost ~17M Ir on the cabal corpus. The DFA
     //     savings from not having a Unicode range in the regex are ~105M Ir.
     //
     // `lookahead` is the codepoint, pre-decoded from UTF-8 by tree-sitter,
@@ -520,7 +520,7 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
         lexer->result_symbol = CONTINUATION;
         STATS_PATH(SP_CONTINUATION); return true;
     } else if (valid_symbols[INDENTED] && indent > prev_indent_lvl) {
-        // Deeper than prev (not cur), so a continuation line at the same column as the
+        // Deeper than prev, so a continuation line at the same column as the
         // first value line still passes.
         lexer->result_symbol = INDENTED;
         STATS_PATH(SP_INDENTED); return true;

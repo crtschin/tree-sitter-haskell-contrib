@@ -10,9 +10,10 @@
 
 import { sepBy } from "./combinators.mjs";
 
-// ==================== <phase> ==================== -- printed around every GHC
-// dump. The middle is required (>=1 char) so an all-`=` body line is not a
-// banner. Used by all four grammars (members + the ghc-dump container).
+// The phase banner ==================== <phase> ====================, printed
+// around every GHC dump. The middle is required (>=1 char) so an all-`=` body
+// line is not a banner. Used by all four grammars (members and the ghc-dump
+// container).
 export const banner = ($) => token(prec(1, /={4,}[^\n]+={4,}/));
 
 // Integer / float / char / string literals (Core and STG print these the same).
@@ -29,10 +30,11 @@ export function makeLiteralRules() {
 }
 
 // Qualified GHC names. variable: optional `pkg-ver:` package qualifier and
-// `Module.Sub.` qualifier, then a lower/underscore/$-led name; `#` within
-// (unboxed workers); trailing operator/colon segments cover method selectors
-// ($c==, $c<$) and operator-TyCon names ($tc:~:1). constructor: upper-led, with
-// trailing `:Upper` segments for class-dictionary cons (C:C, C:Show, D:R:FInt).
+// `Module.Sub.` qualifier, then a lower/underscore/$-led name. `#` may appear
+// within (unboxed workers). Trailing operator/colon segments cover method
+// selectors ($c==, $c<$) and operator-TyCon names ($tc:~:1). constructor:
+// upper-led, with trailing `:Upper` segments for class-dictionary cons (C:C,
+// C:Show, D:R:FInt).
 // operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
 // special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()), qualified.
 export function makeLexicalRules() {
@@ -76,7 +78,7 @@ export function makeTypeRules() {
     function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
     _type_op: ($) =>
       choice("->", "→", "⊸", "=>", "⇒", "~R#", $.mult_arrow, $.type_operator),
-    // Two shapes -- symbolic (possibly qualified) and colon-led. A lone `=` is
+    // Two shapes: symbolic (possibly qualified) and colon-led. A lone `=` is
     // never a type operator (it's the binding separator), so a `=`-led op needs
     // a second symbolic char (==#, =<<). Literal arrows win by string precedence.
     type_operator: ($) =>

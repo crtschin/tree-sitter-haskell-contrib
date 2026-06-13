@@ -14,7 +14,7 @@ import { banner } from "./common/grammar/haskell.mjs";
 //   ghc -ddump-simpl -ddump-stg-final -ddump-cmm
 // each introduced by a `==================== <pass> ====================`
 // banner. This grammar only splits that structure into (banner, body) sections
-// and leaves each body as one opaque node; queries/injections.scm dispatches a
+// and leaves each body as one opaque node. queries/injections.scm dispatches a
 // body to the matching member grammar (ghc_core / ghc_stg / ghc_cmm) by banner
 // text. Injection resolves at query/highlight time, so a bare parse keeps the
 // bodies opaque.

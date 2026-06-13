@@ -11,5 +11,5 @@
 (common           name: (section_name) @name) @definition.section
 (source_repository name: (section_name) @name) @definition.section
 
-; custom-setup has no name; tag with the section_type token.
+; custom-setup has no name, so tag with the section_type token.
 (custom_setup (section_type) @name) @definition.section

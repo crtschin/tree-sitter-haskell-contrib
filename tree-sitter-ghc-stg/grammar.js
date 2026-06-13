@@ -17,10 +17,10 @@ import {
 } from "./common/grammar/haskell.mjs";
 
 // Models the STG surface GHC's printer emits (compiler/GHC/Stg/Syntax.hs
-// pprStgExpr/pprStgRhs/pprGenStgBinding). Unlike Core, every STG binding --
-// top-level, Rec pair, and let -- ends with `;` (pprStgRhs <> semi), so the
-// semicolon self-delimits each binding and blank lines are ordinary whitespace.
-// That means STG needs no external layout scanner (cf. ghc-core's _item_sep).
+// pprStgExpr/pprStgRhs/pprGenStgBinding). Every STG binding (top-level, Rec
+// pair, and let) ends with `;` (pprStgRhs <> semi), so the semicolon
+// self-delimits each binding and blank lines are ordinary whitespace. STG needs
+// no external layout scanner (ghc-core uses _item_sep for this job).
 //
 // Coverage: phase banner, bindings (sig + [IdInfo], or tag-inference
 // (name, <Tag..>) binders), Rec groups, closures (cost-centre? free-vars?
@@ -28,8 +28,9 @@ import {
 // Con! [args]), top-level string literals, the expression grammar (StgApp,
 // StgConApp/StgOpApp's bracketed args, let/let-no-escape, case + alternatives),
 // the System FC type grammar (shared surface with Core), qualified names, and
-// literals. The [IdInfo] bracket is coarse balanced-delimiter soup -- leniency
-// over structure. Drives the harvested STG dumps to a clean parse. See README.md.
+// literals. The [IdInfo] bracket is coarse balanced-delimiter soup, a deliberate
+// leniency over structure. Drives the harvested STG dumps to a clean parse. See
+// README.md.
 
 export default grammar({
   name: "ghc_stg",
@@ -40,7 +41,7 @@ export default grammar({
 
   conflicts: ($) => [
     // After a signature's type, the next atom is either a type-application
-    // argument or the IdInfo bracket / `=`; let GLR explore (cf. ghc-core).
+    // argument or the IdInfo bracket / `=`. Let GLR explore (cf. ghc-core).
     [$._type, $.type_apply],
   ],
 
@@ -52,7 +53,7 @@ export default grammar({
     // ==================== Final STG: ==================== (shared)
     banner,
 
-    // Rec { b1; b2; end Rec } -- a recursive group; pairs are blank-line
+    // Rec { b1; b2; end Rec } is a recursive group. Pairs are blank-line
     // separated and each `;`-terminated like every STG binding.
     rec_block: ($) => seq("Rec", "{", repeat1($.binding), "end", "Rec", "}"),
 
@@ -66,8 +67,9 @@ export default grammar({
       ),
 
     // An untagged binder. The signature is suppressed in some dumps (Final STG
-    // often prints bare `name = rhs`); when present the optional pre-`::` bracket
-    // is an [InlPrag=..]/[Occ=..] note and a trailing bracket is the IdInfo. The
+    // often prints bare `name = rhs`). When present, the optional pre-`::`
+    // bracket is an [InlPrag=..]/[Occ=..] note and a trailing bracket is the
+    // IdInfo. The
     // bound Id can be upper-led (data-con worker/wrapper names like MkW_F), which
     // lexes as a constructor, so accept either.
     _binder_lhs: ($) =>
@@ -84,7 +86,7 @@ export default grammar({
       ),
 
     // Tag-inference passes (CodeGenAnal, post-unarise) print binders as
-    // (name, <Tag..>); these carry no signature or IdInfo. The name can be an
+    // (name, <Tag..>). These carry no signature or IdInfo. The name can be an
     // upper-led worker/wrapper Id (T24806.Tup2), which lexes as a constructor.
     tagged_binder: ($) =>
       seq(
@@ -108,7 +110,7 @@ export default grammar({
     _rhs: ($) => choice($.closure, $.con_app_rhs, $.literal),
 
     // cc? fvs? \upd [args] body. The free-var brace and cost-centre are
-    // suppressed in some passes; the body is one STG expression.
+    // suppressed in some passes. The body is one STG expression.
     closure: ($) =>
       seq(
         optional($.cost_centre),
@@ -119,7 +121,7 @@ export default grammar({
       ),
     // \r ReEntrant | \u Updatable | \s SingleEntry | \j JumpedTo (join point).
     update_flag: ($) => token(/\\[rusj]/),
-    // The free-var set prints comma-separated ({a1, f}, a DVarSet); the lambda
+    // The free-var set prints comma-separated ({a1, f}, a DVarSet). The lambda
     // arg list prints space-separated ([x y void], interppSP).
     free_vars: ($) => seq("{", sepBy(",", $._bndr), "}"),
     arg_list: ($) => seq("[", repeat($._bndr), "]"),
@@ -130,7 +132,8 @@ export default grammar({
 
     cost_centre: ($) => "NO_CCS",
 
-    // Con! [args] -- StgRhsCon's bang distinguishes it from an StgConApp.
+    // Con! [args] is an StgRhsCon. The `!` bang marks a saturated constructor
+    // binding.
     con_app_rhs: ($) =>
       seq(
         optional($.cost_centre),
@@ -156,23 +159,23 @@ export default grammar({
         $._stg_atom,
       ),
 
-    // <tickish> e  -- source notes (src<..>) from -g3, cost-centre/tick ticks;
-    // prefix an expression (compiler/GHC/Stg/Syntax.hs StgTick). Same surface as
-    // ghc-core's tick_expr.
+    // <tickish> e prefixes an expression with a source note (src<..>) from -g3,
+    // a cost-centre tick, and similar (compiler/GHC/Stg/Syntax.hs StgTick). Same
+    // surface as ghc-core's tick_expr.
     tick_expr: ($) => seq($.tickish, $._expr),
     tickish: ($) => token(/(src|tick|scc)<[^>]*>/),
 
-    // StgApp: f a b -- a function variable applied to space-separated atoms.
+    // StgApp: f a b is a function variable applied to space-separated atoms.
     app: ($) => prec.left(seq($.variable, repeat1($._stg_arg))),
 
-    // StgConApp / StgOpApp: Con [args] / (+#) [args] -- the args are bracketed.
+    // StgConApp / StgOpApp: Con [args] / (+#) [args]. The args are bracketed.
     con_or_op_app: ($) =>
       seq(
         choice($.constructor, $.special_con, $.variable, $.operator),
         $.stg_arg_list,
       ),
 
-    // A let binds one StgBinding -- either a single binding or a `Rec {..}`
+    // A let binds one StgBinding: either a single binding or a `Rec {..}`
     // group (let-no-escape bodies commonly wrap a recursive join-point group).
     let: ($) =>
       seq("let", "{", repeat1($._group), "}", "in", field("body", $._expr)),

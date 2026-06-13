@@ -1,6 +1,6 @@
 ; GHC Core dump highlighting (compiler/GHC/Core/Ppr.hs surface).
 
-; ---- names (generic; specialized further down, which overrides these) ----
+; ---- names (generic, specialized further down, which overrides these) ----
 (variable) @variable
 (tyvar) @type.parameter
 (constructor) @constructor

@@ -1,4 +1,4 @@
-; A proc is a function; its offset body is the inside.
+; A proc is a function. Its offset body is the inside.
 (proc) @function.around
 (proc (offset_body) @function.inside)
 

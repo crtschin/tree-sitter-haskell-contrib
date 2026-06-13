@@ -44,7 +44,7 @@
         # `cp -rL` dereferences into the build source, so the build is
         # self-contained and local `tree-sitter generate` resolves the same paths.
         # A grammar that needs a C scanner additionally names it via `scanner`
-        # (e.g. "cabal.c", "ghc-core.c"), materialized as src/scanner.c -- the
+        # (e.g. "cabal.c", "ghc-core.c"), materialized as src/scanner.c, the
         # declarative source of truth for which scanner it uses. stg/cmm/dump need
         # no scanner (scanner unset).
         buildTreeSitterPkg =
@@ -106,8 +106,8 @@
         # develop` and `nix flake check` runs them. Entries shell out to the
         # justfile, the single source of truth shared with CI (see
         # .github/workflows/test.yml). fmt + static checks are cheap, so they
-        # gate every commit; the slow grammar build + corpus parse gates pushes
-        # instead. Hooks assume the devShell is active (direnv `use flake`), so
+        # gate every commit. The slow grammar build + corpus parse gates pushes.
+        # Hooks assume the devShell is active (direnv `use flake`), so
         # tree-sitter/nixfmt/prettier and `nix` are on PATH for the recipes.
         pre-commit-check = git-hooks.lib.${system}.run {
           src = ./.;

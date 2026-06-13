@@ -1,6 +1,6 @@
 ; GHC STG dump highlighting (compiler/GHC/Stg/Syntax.hs surface).
 
-; ---- names (generic; specialized further down, which overrides these) ----
+; ---- names (generic, specialized further down, which overrides these) ----
 (variable) @variable
 (tyvar) @type.parameter
 (constructor) @constructor

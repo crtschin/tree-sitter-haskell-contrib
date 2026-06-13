@@ -9,16 +9,18 @@
 
 // Models the native Cmm dump surface GHC prints (compiler/GHC/Cmm/Node.hs,
 // Expr.hs, Ppr/). A -ddump-cmm pass prints EACH proc under its own repeated
-// banner, so a standalone dump is `(banner group)*`; the container strips the
-// banners and injects each `[..]` group body here, so banners are optional.
+// banner, so a standalone dump is `(banner group)*`. The container strips the
+// banners and injects each `[..]` group body here, so banners are optional. The
+// per-stage pipeline passes (-ddump-cmm-sink and similar) print ungrouped, so
+// source_file also accepts a bare proc, data section, or `{offset ..}` graph.
 //
 // Structure: a CmmGroup `[decl, ..]` of procs (`name() { info-table offset-body }`)
-// and data sections (`section ".." { .. }`); offset bodies are labelled basic
+// and data sections (`section ".." { .. }`). Offset bodies are labelled basic
 // blocks of statements (assign / goto / if-else-goto / call / const). The
 // expression sub-language has registers and local regs (`_c1::F64`), typed
 // memory access (`I64[Sp - 8]`, `I64![R1]`), machop calls (`%MO_F_Add_W64(..)`),
 // literals with a `:: width` ascription, and infix arithmetic/compare operators
-// (single left-assoc precedence -- a dump parser need not mirror MachOp
+// (single left-assoc precedence, since a dump parser need not mirror MachOp
 // precedence). The info-table block is coarse balanced-delimiter soup (its
 // HeapRep/srt metadata is leniency over structure). `//` line comments. Cmm
 // statements/blocks are `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
@@ -37,18 +39,18 @@ export default grammar({
 
   conflicts: ($) => [
     // A block label `name:` and an assignment lhs both start with an
-    // identifier; the disambiguating `:` vs `=`/`::` is one token past it, so
-    // GLR must explore both (continue this block's statements, or start the
-    // next labelled block).
+    // identifier. The disambiguating token (`:` for a label, `=`/`::` for an
+    // assignment) is one token past it, so GLR must explore both (continue this
+    // block's statements, or start the next labelled block).
     [$.block],
     // After `label:` an info-table's soup may start with `(`, which also opens
-    // a parenthesised assignment lhs; GLR explores both (only the soup
+    // a parenthesised assignment lhs. GLR explores both (only the soup
     // completes).
     [$.static_info],
   ],
 
   rules: {
-    // The codegen surface is `[ decl, .. ]` CmmGroups; the per-stage pipeline
+    // The codegen surface is `[ decl, .. ]` CmmGroups. The per-stage pipeline
     // dumps (-ddump-cmm-sink/-sp/-switch/-cbe/-cfg, -ddump-opt-cmm,
     // -ddump-cmm-info) print bare, ungrouped: a lone `{offset ..}` graph, a bare
     // proc, or a bare `section ..`. Accept all four at top level.
@@ -58,12 +60,12 @@ export default grammar({
     // ==================== Output Cmm ==================== (shared)
     banner,
 
-    // [ decl, decl, .. ] -- a CmmGroup of procs and data sections.
+    // [ decl, decl, .. ] is a CmmGroup of procs and data sections.
     cmm_group: ($) => seq("[", sepBy(",", $._decl), "]"),
     _decl: ($) => choice($.proc, $.data_section),
 
-    // name() { info-table offset-body } -- a CmmProc (the `// [regs]` live-set
-    // after `{` is a comment, an extra).
+    // name() { info-table offset-body } is a CmmProc. The `// [regs]` live-set
+    // after `{` is a comment (an extra).
     proc: ($) =>
       seq(
         field("name", $.identifier),
@@ -75,14 +77,14 @@ export default grammar({
         "}",
       ),
 
-    // { info_tbls: [..] stack_info: .. } -- coarse balanced soup (metadata:
+    // { info_tbls: [..] stack_info: .. } is coarse balanced soup (metadata:
     // HeapRep/StackRep, srt, arg_space). Modelled like ghc-core's [IdInfo].
     info_table: ($) => seq("{", repeat($._soup), "}"),
 
     // Balanced bracket/brace/paren soup (shared with ghc-core/ghc-stg).
     ...makeSoupRules(),
 
-    // {offset <block>* } -- the proc body, a sequence of labelled basic blocks.
+    // {offset <block>* } is the proc body, a sequence of labelled basic blocks.
     offset_body: ($) => seq("{offset", repeat($.block), "}"),
     block: ($) => seq($.label, repeat(choice($._statement, $.static_info))),
     label: ($) => seq(field("name", $.identifier), ":"),
@@ -92,8 +94,8 @@ export default grammar({
     // Coarse balanced soup (metadata), like the proc info-table.
     static_info: ($) => seq("label:", repeat($._soup)),
 
-    // section ".." { <block>* } -- a CmmData section (the name carries nested
-    // quotes, e.g. `""data" . M.f_closure"`, so it is taken as one token).
+    // section ".." { <block>* } is a CmmData section. The name carries nested
+    // quotes, e.g. `""data" . M.f_closure"`, so it is taken as one token.
     data_section: ($) =>
       seq("section", field("name", $.section_name), "{", repeat($.block), "}"),
     section_name: ($) => token(/"[^\n]*"/),
@@ -112,7 +114,7 @@ export default grammar({
         $.unwind,
       ),
 
-    // unwind <reg> = (Just <expr> | Nothing) [, ..] ;  (CmmUnwind, from -g3) --
+    // unwind <reg> = (Just <expr> | Nothing) [, ..] ; is CmmUnwind, from -g3.
     // DWARF unwind notes attaching a virtual CFA/stack value to a register.
     unwind: ($) =>
       seq("unwind", sepBy1(",", seq($._expr, "=", $._unwind_val)), ";"),
@@ -140,13 +142,13 @@ export default grammar({
         choice($._statement, seq("{", repeat($._statement), "}")),
       ),
 
-    // I8[] "Bindings" -- a static string / byte-array initialiser (CmmString)
-    // in a "cstring" section; unlike other statements it carries no `;`.
+    // I8[] "Bindings" is a static string or byte-array initialiser (CmmString)
+    // in a "cstring" section. It carries no trailing `;`.
     byte_array: ($) => seq($.cmm_type, "[", "]", $._string_lit),
     _string_lit: ($) => token(/"(\\.|[^"\\])*"/),
 
     // lhs = rhs ;  (CmmAssign / CmmStore). lhs is a register, local reg, or
-    // memory access -- accepted as a general expression for leniency.
+    // memory access, accepted as a general expression for leniency.
     assignment: ($) =>
       seq(field("lhs", $._expr), "=", field("rhs", $._expr), ";"),
 
@@ -192,19 +194,19 @@ export default grammar({
     _call_target: ($) => choice(seq("(", $._expr, ")"), $.identifier),
     returns_to: ($) => seq("returns", "to", field("target", $.identifier), ","),
 
-    // const <expr> ;  -- a static data word in a section.
+    // const <expr> ; is a static data word in a section.
     const_statement: ($) => seq("const", $._expr, ";"),
 
     // ---- expressions ----
 
     _expr: ($) => choice($._atom, $.binary_expr, $.machop_call, $.typed_expr),
 
-    // <expr> :: <width>  -- a literal/local-reg ascription; binds tighter than
+    // <expr> :: <width> is a literal/local-reg ascription. It binds tighter than
     // the infix operators (a + 1.0 :: W64 is a + (1.0 :: W64)).
     typed_expr: ($) => prec(3, seq($._expr, "::", $.cmm_type)),
 
-    // Single left-assoc precedence over all infix operators -- a dump parser
-    // need not reproduce MachOp precedence; it only has to parse without error.
+    // Single left-assoc precedence over all infix operators. A dump parser
+    // need not reproduce MachOp precedence. It only has to parse without error.
     binary_expr: ($) => prec.left(1, seq($._expr, $.binop, $._expr)),
     binop: ($) =>
       choice(
@@ -225,7 +227,7 @@ export default grammar({
         ">",
       ),
 
-    // %MO_F_Add_W64(a, b) -- a machine-op (or %MO_FF_Conv_..) applied call.
+    // %MO_F_Add_W64(a, b) is a machine-op (or %MO_FF_Conv_..) applied call.
     machop_call: ($) => seq($.machop, "(", sepBy(",", $._expr), ")"),
     machop: ($) => token(/%[A-Za-z_][A-Za-z0-9_]*/),
 
@@ -249,7 +251,7 @@ export default grammar({
         choice(
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*\(,+\)[A-Za-z0-9_$.'#]+/,
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*\[\][A-Za-z0-9_$.'#]+/,
-          // cons (:) constructor labels -- the tail (no space) keeps this off a
+          // cons (:) constructor labels. The tail (no space) keeps this off a
           // bare block-label `:` and the `::` ascription operator.
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*:[A-Za-z0-9_$.'#]+/,
         ),
@@ -260,7 +262,7 @@ export default grammar({
       seq($.cmm_type, optional("!"), "[", field("address", $._expr), "]"),
 
     // Stack-area references: a bare placeholder `<highSp>`, or an area tagged
-    // by a return label, `young<cR8>` (the prefix is glued; binops are spaced,
+    // by a return label, `young<cR8>` (the prefix is glued, binops are spaced,
     // so this never swallows an `a < b` comparison).
     special: ($) => token(/([A-Za-z_][A-Za-z0-9_$]*)?<[^>\n]*>/),
 

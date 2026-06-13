@@ -32,7 +32,7 @@ fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mod
 # Clean build artifacts in every grammar
 clean: cabal::clean cabal-project::clean ghc-core::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
 
-# Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite (needs a GHC compiler; ephemeral; also run by `test`).
+# Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a GHC compiler. Ephemeral. Also run by `test`.
 gen-corpus: ghc-core::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
 
 # Generate flamegraphs for the corpus-backed grammars.

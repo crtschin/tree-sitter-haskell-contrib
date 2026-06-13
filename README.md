@@ -2,9 +2,12 @@
 
 Tree-sitter grammars for Haskell-ecosystem file formats.
 
-- **tree-sitter-cabal** — `.cabal` package description files
-- **tree-sitter-cabal-project** — `cabal.project` / `*.project` workspace files
-- **tree-sitter-ghc-core** — GHC Core dumps (`-ddump-simpl` output) _(scaffold; grammar in progress)_
+- **tree-sitter-cabal**: `.cabal` package description files
+- **tree-sitter-cabal-project**: `cabal.project` and `*.project` workspace files
+- **tree-sitter-ghc-core**: GHC Core dumps (`-ddump-simpl` and the other Core passes)
+- **tree-sitter-ghc-stg**: GHC STG dumps (`-ddump-stg-final` and the other STG passes)
+- **tree-sitter-ghc-cmm**: GHC Cmm dumps (`-ddump-cmm` and the pipeline-stage passes)
+- **tree-sitter-ghc-dump**: container grammar that injects the per-IL grammars into multi-section dump files
 
 The `.cabal` grammar was initially forked from [magus/tree-sitter-cabal](https://gitlab.com/magus/tree-sitter-cabal/).
 
@@ -18,30 +21,42 @@ nix develop   # enter dev shell (provides tree-sitter, just, etc.)
 
 All commands run across every grammar via the top-level justfile.
 
-| Command         | Description                                   |
-|-----------------|-----------------------------------------------|
-| `just`          | Run all tests (default)                       |
-| `just test`     | Grammar unit tests + parse-corpus check       |
-| `just build`    | Generate parser and build shared library      |
-| `just check`    | Validate grammar without building             |
-| `just fmt`      | Format grammar files (prettier + nixfmt)      |
-| `just clean`    | Remove build artifacts                        |
+| Command            | Description                                                  |
+|--------------------|--------------------------------------------------------------|
+| `just`             | Run every grammar's full suite (default)                     |
+| `just test`        | Per grammar: query compile, parse-corpus, inline tests, and the GHC dump matrix. Runs all suites to completion, then fails if any failed |
+| `just build`       | Generate each parser and build its shared library            |
+| `just check`       | Validate every grammar without building                      |
+| `just fmt`         | Format grammar files and the flake (prettier and nixfmt)     |
+| `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite (needs a GHC compiler) |
+| `just clean`       | Remove build artifacts                                       |
 
-Per-grammar commands are available as `just cabal::<cmd>`, `just cabal-project::<cmd>`, and `just ghc-core::<cmd>`.
+Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one
+of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`. The
+cabal grammars also carry `flamegraph`, `bench`, `valgrind`, and `stats` targets
+for profiling the scanner over their corpora.
 
-For the cabal grammars, the `test` target also parses a corpus drawn from the
+## Testing
+
+The cabal grammars parse a corpus drawn from the
 [cabal](https://github.com/haskell/cabal) and
 [haskell-language-server](https://github.com/haskell/haskell-language-server)
-source trees, catching regressions the inline test cases miss. The ghc-core
-grammar has no external corpus yet; its `test` runs only the inline unit tests.
+source trees, catching regressions the inline test cases miss.
+
+The GHC grammars parse a harvested corpus of real dumps from the GHC test suite,
+gated to a clean parse. On top of that, `gen-corpus` compiles a handful of
+fixtures with GHC across a matrix of dump and display flags, parses every
+resulting dump, and tears the dumps down afterward. Cells outside a grammar's
+modelled scope (analysis dumps that are not the IL, exotic display formats) are
+marked as expected failures so a new regression still trips the gate.
 
 ## References
 
 - [Tree-sitter: Creating parsers](https://tree-sitter.github.io/tree-sitter/creating-parsers)
 - [Cabal: .cabal file reference](https://cabal.readthedocs.io/en/stable/cabal-package.html)
 - [Cabal: cabal.project reference](https://cabal.readthedocs.io/en/stable/cabal-project.html)
-- [GHC: dumping intermediate output (`-ddump-simpl`)](https://downloads.haskell.org/ghc/latest/docs/users_guide/debugging.html)
+- [GHC: dumping intermediate output](https://downloads.haskell.org/ghc/latest/docs/users_guide/debugging.html)
 
-------------------------------------------------------
+---
 
 Disclaimer: co-produced with a coding agent.

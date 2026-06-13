@@ -12,9 +12,10 @@ export const PREDICATE_PRECEDENCE = {
 // both cabal and cabal-project grammars. Spread the result into the grammar's
 // `rules` object.
 //
-// `extraArgChoices` — rule names (strings, looked up off `$`) appended to the
-// `predicate_arg` choice list. cabal-project passes `["path"]`; cabal omits
-// it (no `path` token; `identifier` covers realistic condition arg shapes).
+// `extraArgChoices`: rule names (strings, looked up off `$`) appended to the
+// `predicate_arg` choice list. cabal-project passes `["path"]`. cabal omits
+// it because it has no `path` token. `identifier` covers realistic condition
+// arg shapes.
 export function makePredicateRules({ extraArgChoices = [] } = {}) {
   return {
     _predicate_expr: ($) =>

@@ -1,6 +1,6 @@
 (stanza) @function.around
 
-; The body has no wrapper node; approximate `.inside` with all non-header
+; The body has no wrapper node, so approximate `.inside` with all non-header
 ; children. Helix aggregates same-name captures within a match into one range.
 (stanza header: (_) (_) @function.inside)
 

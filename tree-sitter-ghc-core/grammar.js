@@ -8,26 +8,26 @@
 // @ts-check
 
 // Models the System FC surface GHC's Core printer emits (compiler/GHC/Core/Ppr.hs,
-// compiler/GHC/Iface/Type.hs). Expressions are fully brace/keyword-delimited; the
-// top-level layout (each binding / type signature / Rec marker starts in column
+// compiler/GHC/Iface/Type.hs). Expressions are fully brace/keyword-delimited. The
+// top-level layout (each binding, type signature, or Rec marker starts in column
 // 0, continuations are indented) is recovered by the external scanner's
 // _item_sep token (src/scanner.c), which also bounds a multi-line type signature
 // from the binding line that follows it.
 //
 // Coverage (plan layers A-D): bindings with optional type signatures and the
-// [IdInfo] bracket, Rec groups, the expression grammar (lambda -- `\` or `/` --,
+// [IdInfo] bracket, Rec groups, the expression grammar (lambda head `\` or `/`,
 // application incl. @type / @~coercion args, let/letrec/join/joinrec, jump, case
 // + alternatives + tuple patterns, literals), qualified and package-qualified
 // names, a type grammar (forall incl. inferred {a}, contexts, arrows incl.
 // multiplicity, application, lists/tuples/kinds/promotion/equality, infix type
 // operators, `*` kind, `...`), occurrence-annotated binders, casts and coercions
 // (paren/bare with their `:: t1 ~role# t2`), ticks (src<..>), and trailing
-// banner-delimited sections (Tidy Core rules / CorePrep / ...). The [IdInfo]
+// banner-delimited sections (Tidy Core rules, CorePrep, and so on). The [IdInfo]
 // bracket, coercion bodies and trailing sections are modelled coarsely as
-// balanced delimiter soup -- leniency over structure. Drives ~98% of harvested
-// Tidy Core dumps to a clean parse; the last few error on a trailing CorePrep
-// section with internal blank lines and on operator-embedded compiler names
-// (`$tc:~:1`). See README.md.
+// balanced delimiter soup, a deliberate leniency over structure. Drives ~98% of
+// harvested Tidy Core dumps to a clean parse. The last few error on a trailing
+// CorePrep section with internal blank lines and on operator-embedded compiler
+// names (`$tc:~:1`). See README.md.
 
 import { sepBy1, sepBy } from "./common/grammar/combinators.mjs";
 import { makeSoupRules } from "./common/grammar/soup.mjs";
@@ -48,16 +48,17 @@ export default grammar({
   word: ($) => $.variable,
 
   // After a signature's type, the next `variable` is either a type-application
-  // argument or the binding name on the next line. Let GLR explore both; the
+  // argument or the binding name on the next line. Let GLR explore both. The
   // over-munch branch dies because the binding then can't complete.
   conflicts: ($) => [
     [$._type, $.type_apply],
-    // A leading banner may attach to the header or start a trailing section;
-    // either parses cleanly, so let GLR pick.
+    // A leading banner may attach to the header or start a trailing section.
+    // Either parses cleanly, so let GLR pick.
     [$.source_file, $.trailing_sections],
     // A `[..]` before a `(` is an IdInfo bracket on an operator binding
-    // (`[GblId] (+++) = ..`) or trailing-rule soup (`"r" [1] (@a)..`); GLR's
-    // viability picks (a rule's `(@a)` is not a paren_operator).
+    // (`[GblId] (+++) = ..`) or trailing-rule soup (`"r" [1] (@a)..`). GLR's
+    // viability picks the right one (a rule's `(@a)` does not form a
+    // paren_operator).
     [$.idinfo, $._soup],
   ],
 
@@ -66,8 +67,8 @@ export default grammar({
     // stderr, or be blank-separated, as in -ddump-to-file output), then the
     // binding groups, which ARE blank-separated by _item_sep (that separator
     // also bounds each binding's RHS expression), then any trailing sections.
-    // The corpus selector keeps only files that lead with a Tidy Core banner;
-    // multi-dump captures that lead with other sections (Demand/Cpr signatures,
+    // The corpus selector keeps only files that lead with a Tidy Core banner.
+    // Multi-dump captures that lead with other sections (Demand/Cpr signatures,
     // compile logs) are excluded as the container grammar's domain.
     source_file: ($) =>
       seq(
@@ -86,8 +87,8 @@ export default grammar({
     // Any header-delimited sections after the Tidy Core: `==== .. ====` banners
     // (Tidy Core rules, CorePrep, ...) and `---- .. ----` markers (e.g. `------
     // Local rules for imported ids --------`, which introduces bannerless rules).
-    // Captured coarsely as balanced soup per section (leniency over structure);
-    // each section's soup stops at the next header, which out-lexes a soup token
+    // Captured coarsely as balanced soup per section (leniency over structure).
+    // Each section's soup stops at the next header, which out-lexes a soup token
     // by longest match.
     trailing_sections: ($) =>
       repeat1(seq(choice($.banner, $.dash_header), repeat($._soup))),
@@ -102,16 +103,16 @@ export default grammar({
     // Result size of Tidy Core
     //   = {terms: 182, types: 90, coercions: 0, joins: 4/8}
     // (A pass description containing its own `{..}`, e.g. Float out(FOS {..}),
-    // isn't handled here yet -- a -ddump-float-out-only concern.)
+    // isn't handled here yet, a -ddump-float-out-only concern.)
     result_size: ($) => token(/Result size of[^{]*\{[^}]*\}/),
 
-    // Rec bindings are blank-line separated (ITEM_SEP); `Rec {` abuts the first
+    // Rec bindings are blank-line separated (ITEM_SEP). `Rec {` abuts the first
     // and `end Rec }` abuts the last (single newlines, no ITEM_SEP).
     rec_block: ($) =>
       seq("Rec", "{", sepBy1($._item_sep, $.binding), "end", "Rec", "}"),
 
     // A binding, optionally preceded by its type signature (a single newline
-    // away -- same binding group, no ITEM_SEP). The binders are join-point
+    // away, in the same binding group, no ITEM_SEP). The binders are join-point
     // parameters (empty for ordinary bindings). A multi-line signature type is
     // bounded by where the binding `name` parses (GLR), since no token separates
     // them.
@@ -129,12 +130,12 @@ export default grammar({
       seq($._def_name, optional($.binder_annotation), "::", $._type),
 
     // A defined name: an ordinary id, or an operator printed in prefix form
-    // ((+++), (.)) -- GHC parenthesises operator-named top-level binders.
+    // ((+++), (.)). GHC parenthesises operator-named top-level binders.
     _def_name: ($) => choice($.variable, $.paren_operator),
     paren_operator: ($) => seq("(", $.operator, ")"),
 
     // The [IdInfo] bracket (GblId, Arity=N, Str=<..>, Cpr=.., Unf=Unf{..Tmpl=e},
-    // RULES: ..). Modelled coarsely as balanced delimiter soup for now; the
+    // RULES: ..). Modelled coarsely as balanced delimiter soup for now. The
     // Tmpl= template is real Core to be recursed into in a later pass.
     idinfo: ($) => prec.dynamic(1, seq("[", repeat($._soup), "]")),
 
@@ -175,14 +176,15 @@ export default grammar({
     // e `cast` co  (compiler/GHC/Core/Ppr.hs ppr_expr Cast).
     cast: ($) => prec.left(seq($._atom, "`cast`", $.coercion)),
 
-    // <tickish> e  -- source notes (src<..>) from -g3, cost-centre ticks, etc.
+    // <tickish> e prefixes an expression with a source note (src<..>) from -g3,
+    // a cost-centre tick, and similar (compiler/GHC/Core/Ppr.hs ppr_expr Tick).
     tick_expr: ($) => seq($.tickish, $._expr),
     tickish: ($) => token(/(src|tick|scc)<[^>]*>/),
 
-    // A coercion: `(co :: t1 ~role# t2)` unsuppressed, or a bare atom -- the
+    // A coercion: `(co :: t1 ~role# t2)` unsuppressed, or a bare atom: the
     // suppressed `<Co:N>` (optionally with its `:: type`) or a Refl `<ty>_N`.
     // The body is coarse balanced soup for now (Sym/Sub/Trans/axioms/SelCo/
-    // forall-co/function-co); angle brackets are atoms, not delimiters (the
+    // forall-co/function-co). Angle brackets are treated as atoms (the
     // function-coercion arrow `->_R` carries a lone `>`), so only () and [] nest.
     coercion: ($) =>
       choice(
@@ -220,7 +222,7 @@ export default grammar({
     type_arg: ($) => seq("@", $._type_atom),
     coercion_arg: ($) => seq("@~", $.coercion),
 
-    // GHC prints the lambda head as `\`; some (newer) dumps render it `/`.
+    // GHC prints the lambda head as `\`. Some newer dumps render it `/`.
     lambda: ($) => seq(choice("\\", "/"), repeat1($._binder), "->", $._expr),
 
     jump: ($) => seq("jump", $.variable, repeat($._arg)),
@@ -271,7 +273,7 @@ export default grammar({
     // A line comment, or a `-- RHS size: {..}` whose count record wraps across
     // lines (big dumps print thousand-separated counts, e.g. terms: 1,236). The
     // wrapped body is bounded to record chars (word/space/.,:/) so it can never
-    // run past its `}` into a binding's braces. (Core-specific; STG/Cmm differ.)
+    // run past its `}` into a binding's braces. (Specific to Core.)
     comment: ($) =>
       token(choice(seq("--", /[^\n]*/), /--[^{\n]*\{[\s\w.,:/]*\}/)),
   },

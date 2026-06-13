@@ -3,9 +3,9 @@
 # section in the harvested dump streams, classify the banner with the SAME
 # (regex -> language) table that queries/injections.scm uses, then parse the
 # section body with the dispatched member grammar and assert no ERROR/MISSING.
-# This is exactly what an editor's injection does at highlight time, checked
-# deterministically -- no GHC compiler, just $GHC_SRC (a flake input) and the
-# built member parsers.
+# This is what an editor's injection does at highlight time, checked
+# deterministically. No GHC compiler is needed, only $GHC_SRC (a flake input)
+# and the built member parsers.
 #
 # The dispatch table is read straight out of injections.scm, so this stays in
 # lockstep with the real query. Sections whose banner matches no rule (Demand
@@ -67,9 +67,9 @@ declare -A banner_of=() # body file -> its banner
 n=0
 for f in "${files[@]}"; do
     # fid is the file's path under testsuite/tests/ with slashes -> underscores,
-    # so it is unique across the suite (many dirs share basename `should_compile`,
-    # which a basename-only id would collide -- clobbering section temp files and
-    # cross-suppressing known gaps).
+    # so it is unique across the suite. Many dirs share basename `should_compile`,
+    # which a basename-only id would collide on, clobbering section temp files and
+    # cross-suppressing known gaps.
     rel="${f#"$GHC_SRC"/}"
     rel="${rel#testsuite/tests/}"
     fid="${rel%.stderr}"
@@ -96,7 +96,7 @@ for f in "${files[@]}"; do
 done
 
 # Sections that an in-scope member grammar does not parse, with the reason. Each
-# is a variant/appendix dump outside the member's modelled surface; an editor
+# is a variant/appendix dump outside the member's modelled surface. An editor
 # leaves it un-highlighted. <fileid>_<section-index> -> reason.
 declare -A known_gaps=(
     [simplCore_should_compile_T23083_1]="CorePrep is a second Core pass; ghc-core models Tidy Core"

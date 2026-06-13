@@ -59,7 +59,7 @@ for root in "${roots[@]}"; do
         skip=0
         for d in "${deny[@]}"; do
             # Unquoted $d on the RHS of [[ == ]] enables glob pattern
-            # matching; '*' matches any sequence including '/'.
+            # matching. '*' matches any sequence including '/'.
             if [[ "$rel" == $d ]]; then skip=1; break; fi
         done
         [[ $skip -eq 0 ]] && printf '%s\n' "$f"

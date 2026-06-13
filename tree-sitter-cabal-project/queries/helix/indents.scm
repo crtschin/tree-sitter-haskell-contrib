@@ -9,7 +9,7 @@
 ] @indent @extend
 
 ; Multi-line field values. `_indent` is a hidden external here, so we
-; detect multi-line values via the predicate instead of structurally.
+; detect multi-line values via the predicate. The structure does not mark them.
 ((field (field_value) @v) @indent
   (#not-one-line? @v)
   (#set! "scope" "tail"))

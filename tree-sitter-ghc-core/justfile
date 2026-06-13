@@ -7,8 +7,8 @@ import 'common/recipes.just'
 default: test
 
 # Run every suite to completion (queries, harvested-corpus gate, generated
-# matrix, inline tests), keeping going past failures; exit non-zero if any
-# failed. The harvest is a clean gate (0 ERROR/MISSING); leniency in capture
+# matrix, inline tests), keeping going past failures. Exit non-zero if any
+# failed. The harvest is a clean gate (0 ERROR/MISSING). Leniency in capture
 # (coarse soup for IdInfo/coercions) is allowed but no errors are emitted.
 test: build
     #!/usr/bin/env bash
@@ -21,12 +21,12 @@ test: build
     exit "$rc"
 
 # Parse every harvested Tidy Core .stderr in $GHC_SRC (a clean gate, also run by
-# `test`). Single-pass Tidy Core only; multi-dump captures are the container's.
+# `test`). Single-pass Tidy Core only. Multi-dump captures are the container's.
 parse-corpus:
     ../test/parse-corpus.sh {{ slug }} | tapview
 
 # Generate the comprehensive dump-flag matrix with GHC into a temp dir, parse
-# each as a TAP suite, and tear it down (nothing committed; see
-# test/gen-corpus.sh). Needs a GHC compiler; run by `test`.
+# each as a TAP suite, and tear it down (nothing committed, see
+# test/gen-corpus.sh). Needs a GHC compiler. Run by `test`.
 gen-corpus: build
     ../test/gen-corpus.sh {{ slug }} | tapview

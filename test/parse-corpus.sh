@@ -28,7 +28,7 @@ if [[ $n -eq 0 ]]; then
     exit 1
 fi
 
-# Single-pass batch parse; capture any per-file failure lines.
+# Single-pass batch parse. Capture any per-file failure lines.
 parse_output=$(tree-sitter parse --quiet "${files[@]}" 2>&1) || true
 
 declare -A error_for=()

@@ -1,6 +1,6 @@
 ; GHC Cmm dump highlighting (compiler/GHC/Cmm/Node.hs / Expr.hs surface).
 
-; ---- names (generic; specialized below) ----
+; ---- names (generic, specialized below) ----
 (identifier) @variable
 (con_label) @constructor
 

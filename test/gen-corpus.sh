@@ -4,7 +4,7 @@
 # everything. NOTHING is committed: the dumps live in a `mktemp` directory that
 # is removed on exit, so a rerun always starts from a clean slate (rewrite on
 # rerun + guaranteed cleanup). This is the on-demand coverage check for grammar
-# development -- it is deliberately NOT part of `just test`/CI, which would
+# development. It is deliberately NOT part of `just test`/CI, which would
 # otherwise need a GHC compiler.
 #
 # Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`
@@ -28,17 +28,17 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 # One `nix shell` amortises the slow GHC closure realisation across every
-# compile. The quoted heredoc runs inside it; $GEN_* come from the environment.
+# compile. The quoted heredoc runs inside it. $GEN_* come from the environment.
 GEN_TMP="$tmp" GEN_REPO="$repo" GEN_LANG="$lang" \
     nix shell --inputs-from "$repo" nixpkgs#ghc --command bash -s <<'GEN'
 set -uo pipefail
 cd "$GEN_REPO"
 
-# Compile one fixture with the given dump flags; -ddump-to-file routes each pass
+# Compile one fixture with the given dump flags. -ddump-to-file routes each pass
 # to its own <sub>/<Module>.dump-<pass> file. Each cell gets a distinct
 # -outputdir (GHC aliases dumpdir to it), so different format cells don't
 # overwrite each other's <Module>.dump-simpl. Failures (a fixture that rejects a
-# flag combo) are tolerated -- coverage is best-effort per cell.
+# flag combo) are tolerated. Coverage is best-effort per cell.
 emit() { # emit <out-subdir> <ghc-flags...>
     local sub="$1"; shift
     local hs
@@ -51,7 +51,7 @@ emit() { # emit <out-subdir> <ghc-flags...>
 # Each IL grammar sets `passes` (every dump flag of that IL, emitted at the
 # default format in one compile per fixture) and a `formats` display matrix
 # applied to `fmt_pass` (one representative pass). The shared loop below runs
-# them. ghc-dump is special (a multi-IL stream). Inapplicable cells just produce
+# them. ghc-dump is special (a multi-IL stream). Inapplicable cells produce
 # no dump (the parse step only sees files that were generated).
 case "$GEN_LANG" in
     ghc-core)
@@ -153,7 +153,7 @@ if [[ ! -e "$parser_dir" ]]; then
     exit 1
 fi
 
-# Single-pass batch parse; capture each file's failure detail line (same parse
+# Single-pass batch parse. Capture each file's failure detail line (same parse
 # output shape parse-corpus.sh consumes).
 parse_out="$(tree-sitter parse --quiet --lib-path "$parser_dir" --lang-name "$ts_lang" "${files[@]}" 2>&1)"
 declare -A error_for=()
@@ -166,11 +166,11 @@ while IFS= read -r line; do
 done <<<"$parse_out"
 
 # Known long-tail gaps (<format-cell>/<Module>.dump-<pass> labels): cells whose
-# generated dump is outside the grammar's modelled scope -- a non-Tidy-Core pass
-# (CorePrep, a Float-out pass header, a multi-iteration dump), an analysis dump
-# in a non-IL format (Cmm CAFEnv), or an exotic -dppr/-fprint display format.
-# Emitted as TAP `# TODO` so they stay visible without failing the gate; a NEW
-# failure outside this set still fails.
+# generated dump is outside the grammar's modelled scope. That covers a
+# non-Tidy-Core pass (CorePrep, a Float-out pass header, a multi-iteration
+# dump), an analysis dump in a non-IL format (Cmm CAFEnv), or an exotic
+# -dppr/-fprint display format. Emitted as TAP `# TODO` so they stay visible
+# without failing the gate. A NEW failure outside this set still fails.
 declare -A xfail=()
 case "$lang" in
 ghc-core)

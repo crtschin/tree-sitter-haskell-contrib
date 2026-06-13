@@ -6,8 +6,8 @@ import 'common/recipes.just'
 
 default: test
 
-# Run every suite to completion (keep going past failures); exit non-zero if any
-# failed.
+# Run every suite to completion, keeping going past failures. Exit non-zero if
+# any failed.
 test: build
     #!/usr/bin/env bash
     set -uo pipefail
@@ -19,11 +19,11 @@ test: build
     exit "$rc"
 
 # Parse every harvested Cmm dump (`Output Cmm` / `Cmm produced by codegen`
-# banner) in $GHC_SRC -- a clean gate (0 ERROR/MISSING), also run by `test`.
+# banner) in $GHC_SRC. A clean gate (0 ERROR/MISSING), also run by `test`.
 parse-corpus:
     ../test/parse-corpus.sh {{ slug }} | tapview
 
 # Ephemeral coverage check: generate Cmm dumps with GHC into a temp dir, parse
-# them, report errors, tear down (nothing committed; see test/gen-corpus.sh).
+# them, report errors, tear down (nothing committed, see test/gen-corpus.sh).
 gen-corpus: build
     ../test/gen-corpus.sh {{ slug }} | tapview

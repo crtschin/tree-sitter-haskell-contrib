@@ -32,7 +32,7 @@ export default grammar({
     $._indented,
     $._continuation,
     // Hidden Unicode externals. The scanner emits these only when a name
-    // contains a non-ASCII byte; visible `section_name` / `field_name`
+    // contains a non-ASCII byte. Visible `section_name` / `field_name`
     // rules wrap them via `choice` with the ASCII regex. See the dispatch
     // comment in scanner.c.
     $._section_name,
@@ -42,7 +42,7 @@ export default grammar({
   word: ($) => $.identifier,
 
   // Flatten the 23-alternative _value_token wrapper rule into its callsite
-  // (field_value). The wrapper is hidden anyway; inlining shrinks the parse
+  // (field_value). The wrapper is hidden. Inlining shrinks the parse
   // table without altering the AST.
   inline: ($) => [$._value_token],
 
@@ -150,7 +150,7 @@ export default grammar({
 
     // ASCII fast path via DFA + Unicode fallback via scanner-emitted
     // `_section_name`. ci-regex aliases for section_type keywords win at
-    // top-level by specificity; the scanner only fires when the name
+    // top-level by specificity. The scanner only fires when the name
     // contains a non-ASCII byte, so ASCII keywords are never preempted.
     section_name: ($) => choice(/\w*[a-zA-Z]\w*(-\w+)*/, $._section_name),
 

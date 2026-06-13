@@ -17,7 +17,7 @@ deny_args+=(--deny 'Cabal-tests/tests/ParserTests/ipi/*')
 # Warning/regression fixtures that exercise upstream cabal's lenient parser.
 # They are intentionally not valid cabal syntax under the modern grammar we model.
 #   decreasing-indentation: field/section indent decreases mid-block.
-#   subsection: uses 'iff' (typo) instead of 'if'.
+#   subsection: writes 'iff', a typo for the 'if' keyword.
 #   tab: stanzas written with brace-delimited bodies and tab layout.
 #   trailingfield: top-level field after sections have begun.
 #   unknownsection: declares a section type 'z' the grammar doesn't know.

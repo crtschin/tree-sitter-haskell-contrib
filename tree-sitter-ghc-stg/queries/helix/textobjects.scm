@@ -1,4 +1,4 @@
-; A binding is a function-like definition; its rhs is the inside.
+; A binding is a function-like definition. Its rhs is the inside.
 (binding) @function.around
 (binding rhs: (_) @function.inside)
 
