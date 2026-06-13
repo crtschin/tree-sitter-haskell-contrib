@@ -1,55 +1,31 @@
+lang := "cabal"
+slug := "cabal"
+
+# Shared build/check/fmt/clean/generate/parse/highlight recipes.
+import 'common/recipes.just'
+
 default: test
 
 # Run tests for this grammar
 test: build parse-corpus
-    tree-sitter test --lib-path result/parser --lang-name cabal
+    tree-sitter test --lib-path result/parser --lang-name {{ lang }}
 
 # Parse every *.cabal file across the configured corpora.
 parse-corpus:
-    ../test/parse-corpus.sh cabal | tapview
+    ../test/parse-corpus.sh {{ slug }} | tapview
 
-# Build the grammar via the nix flake (buildGrammar runs generate internally).
-build:
-    nix build ..#tree-sitter-cabal
-
-# Check grammar for errors
-check:
-    nix build ..#tree-sitter-cabal --no-link
-
-# Format the grammar file (mode: write|check)
-fmt mode="write":
-    prettier --{{ mode }} grammar.js
-
-# Clean build artifacts
-clean:
-    rm -rf cabal.so result
-
-# Generate src/parser.c locally (needed by highlight and stats).
-generate:
-    mkdir -p common && cp ../common/utils.mjs common/utils.mjs
-    tree-sitter generate
-
-# Parse a file and print AST
-parse file: build
-    tree-sitter parse --lib-path result/parser --lang-name cabal {{ file }}
-
-# Show syntax highlighting for a file
-highlight file: generate
-    tree-sitter highlight {{ file }}
-
-# Profile parsing the cabal corpus and emit flamegraph-cabal.svg at the repo root.
+# Profile parsing the corpus and emit flamegraph-{{ slug }}.svg at the repo root.
 flamegraph:
-    ../test/flamegraph-corpus.sh cabal ../flamegraph-cabal.svg
+    ../test/flamegraph-corpus.sh {{ slug }} ../flamegraph-{{ slug }}.svg
 
-# Benchmark parsing the cabal corpus with hyperfine.
+# Benchmark parsing the corpus with hyperfine.
 bench:
-    ../test/bench-corpus.sh cabal
+    ../test/bench-corpus.sh {{ slug }}
 
-# Profile parsing the cabal corpus under valgrind (tool = callgrind |
-# cachegrind | memcheck | massif). Emits valgrind-cabal.{out,txt} at the
-# repo root.
+# Profile parsing the corpus under valgrind (tool = callgrind | cachegrind |
+# memcheck | massif). Emits valgrind-{{ slug }}.{out,txt} at the repo root.
 valgrind tool="callgrind":
-    ../test/valgrind-corpus.sh cabal ../valgrind-cabal --tool={{ tool }}
+    ../test/valgrind-corpus.sh {{ slug }} ../valgrind-{{ slug }} --tool={{ tool }}
 
 # Parse the corpus with -DSCANNER_STATS so the scanner emits a one-line
 # [scanner-stats] call-rate report on stderr. Uses `tree-sitter parse
@@ -58,6 +34,6 @@ valgrind tool="callgrind":
 stats: generate
     #!/usr/bin/env bash
     set -euo pipefail
-    mapfile -t files < <(../test/cabal-files.sh)
+    mapfile -t files < <(../test/{{ slug }}-files.sh)
     CFLAGS="-DSCANNER_STATS" tree-sitter parse --quiet --rebuild "${files[@]}" >/dev/null
     tree-sitter parse --quiet --rebuild "${files[0]}" >/dev/null 2>&1
