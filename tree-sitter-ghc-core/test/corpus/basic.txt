@@ -330,3 +330,45 @@ Result size of Tidy Core
     name: (paren_operator
       (operator))
     rhs: (operator)))
+
+================================
+Multiple pass sections, unicode glyphs, simplifier stats
+================================
+
+==================== Float out(FOS {Lam = Just 0}) ====================
+Result size of Float out
+  = {terms: 2, types: 1, coercions: 0, joins: 0/0}
+
+f ∷ Int → Int
+f = \ (x ∷ Int) → x
+
+==================== Simplifier iteration=1 ====================
+  Total ticks: 5
+Result size of Simplifier iteration=1
+  = {terms: 1, types: 0, coercions: 0, joins: 0/0}
+
+g = f
+
+--------------------------------
+
+(source_file
+  (banner)
+  (result_size)
+  (binding
+    signature: (type_signature
+      (variable)
+      (function_type
+        (constructor)
+        (constructor)))
+    name: (variable)
+    rhs: (lambda
+      (typed_binder
+        (variable)
+        (constructor))
+      (variable)))
+  (banner)
+  (simplifier_stats)
+  (result_size)
+  (binding
+    name: (variable)
+    rhs: (variable)))

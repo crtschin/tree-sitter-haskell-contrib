@@ -112,7 +112,10 @@ export function makeTypeRules() {
     star: ($) => "*",
     ellipsis: ($) => "...",
 
-    tyvar: ($) => $.variable,
+    // CorePrep and some debug dumps print a tyvar with a scope annotation,
+    // `a_ahh[sk:1]`. The `:N` keeps the token off a list type `[a]`.
+    tyvar: ($) => seq($.variable, optional($.scope_annotation)),
+    scope_annotation: ($) => token(/\[[a-z]+:[0-9]+\]/),
 
     _type_literal: ($) => choice(token(/[0-9]+/), token(/"(\\.|[^"\\])*"/)),
 

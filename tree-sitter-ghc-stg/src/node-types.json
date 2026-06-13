@@ -1394,9 +1394,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "scope_annotation",
+          "named": true
+        },
         {
           "type": "variable",
           "named": true
@@ -1594,6 +1598,10 @@
   },
   {
     "type": "operator",
+    "named": true
+  },
+  {
+    "type": "scope_annotation",
     "named": true
   },
   {

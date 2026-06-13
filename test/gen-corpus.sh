@@ -174,23 +174,17 @@ done <<<"$parse_out"
 declare -A xfail=()
 case "$lang" in
 ghc-core)
-    for c in \
-        passes/Bindings.dump-cse passes/Bindings.dump-float-in \
-        passes/Bindings.dump-float-out passes/Bindings.dump-late-cc \
-        passes/Bindings.dump-occur-anal passes/Bindings.dump-simpl-iterations \
-        passes/Coerce.dump-cse passes/Coerce.dump-float-in \
-        passes/Coerce.dump-float-out passes/Coerce.dump-late-cc \
-        passes/Coerce.dump-occur-anal passes/Coerce.dump-prep \
-        passes/Coerce.dump-simpl-iterations passes/Ticks.dump-cse \
-        passes/Ticks.dump-float-in passes/Ticks.dump-float-out \
-        passes/Ticks.dump-late-cc passes/Ticks.dump-occur-anal \
-        passes/Ticks.dump-simpl-iterations \
-        ppr-debug/Bindings.dump-simpl ppr-debug/Coerce.dump-simpl \
-        ppr-debug/Ticks.dump-simpl unicode/Bindings.dump-simpl \
-        unicode/Coerce.dump-simpl unicode/Ticks.dump-simpl \
-        case-as-let/Bindings.dump-simpl case-as-let/Coerce.dump-simpl \
+    for c in passes/Bindings.dump-late-cc passes/Coerce.dump-late-cc \
+        passes/Ticks.dump-late-cc; do
+        xfail["$c"]="LateCC packs bindings with no blank lines, so the _item_sep scanner cannot separate them"
+    done
+    for c in ppr-debug/Bindings.dump-simpl ppr-debug/Coerce.dump-simpl \
+        ppr-debug/Ticks.dump-simpl; do
+        xfail["$c"]="exotic -dppr-debug display format (debug uniques/annotations)"
+    done
+    for c in case-as-let/Bindings.dump-simpl case-as-let/Coerce.dump-simpl \
         case-as-let/Ticks.dump-simpl; do
-        xfail["$c"]="out-of-scope Core pass / exotic display format (ghc-core targets single-pass Tidy Core)"
+        xfail["$c"]="exotic -dppr-case-as-let display form"
     done
     ;;
 ghc-cmm)

@@ -1338,8 +1338,32 @@
       "value": "..."
     },
     "tyvar": {
-      "type": "SYMBOL",
-      "name": "variable"
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "variable"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "scope_annotation"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "scope_annotation": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "\\[[a-z]+:[0-9]+\\]"
+      }
     },
     "_type_literal": {
       "type": "CHOICE",

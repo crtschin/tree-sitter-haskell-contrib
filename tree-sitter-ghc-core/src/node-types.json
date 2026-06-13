@@ -175,6 +175,10 @@
         "required": true,
         "types": [
           {
+            "type": "constructor",
+            "named": true
+          },
+          {
             "type": "paren_operator",
             "named": true
           },
@@ -1335,6 +1339,10 @@
           "named": true
         },
         {
+          "type": "simplifier_stats",
+          "named": true
+        },
+        {
           "type": "trailing_sections",
           "named": true
         }
@@ -1983,9 +1991,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "scope_annotation",
+          "named": true
+        },
         {
           "type": "variable",
           "named": true
@@ -2282,6 +2294,14 @@
   },
   {
     "type": "result_size",
+    "named": true
+  },
+  {
+    "type": "scope_annotation",
+    "named": true
+  },
+  {
+    "type": "simplifier_stats",
     "named": true
   },
   {
