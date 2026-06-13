@@ -74,7 +74,11 @@ export default grammar({
       seq(
         field("name", choice($.variable, $.constructor)),
         optional(
-          seq(optional($.binder_annotation), "::", field("type", $._type)),
+          seq(
+            optional($.binder_annotation),
+            choice("::", "∷"),
+            field("type", $._type),
+          ),
         ),
         optional($.idinfo),
       ),
@@ -148,8 +152,15 @@ export default grammar({
         $.let,
         $.let_no_escape,
         $.case,
+        $.tick_expr,
         $._stg_atom,
       ),
+
+    // <tickish> e  -- source notes (src<..>) from -g3, cost-centre/tick ticks;
+    // prefix an expression (compiler/GHC/Stg/Syntax.hs StgTick). Same surface as
+    // ghc-core's tick_expr.
+    tick_expr: ($) => seq($.tickish, $._expr),
+    tickish: ($) => token(/(src|tick|scc)<[^>]*>/),
 
     // StgApp: f a b -- a function variable applied to space-separated atoms.
     app: ($) => prec.left(seq($.variable, repeat1($._stg_arg))),

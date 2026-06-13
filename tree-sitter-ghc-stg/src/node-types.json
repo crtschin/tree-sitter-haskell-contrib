@@ -62,6 +62,10 @@
             "named": true
           },
           {
+            "type": "tick_expr",
+            "named": true
+          },
+          {
             "type": "variable",
             "named": true
           }
@@ -334,6 +338,10 @@
             "named": true
           },
           {
+            "type": "tick_expr",
+            "named": true
+          },
+          {
             "type": "variable",
             "named": true
           }
@@ -389,6 +397,10 @@
           },
           {
             "type": "special_con",
+            "named": true
+          },
+          {
+            "type": "tick_expr",
             "named": true
           },
           {
@@ -867,6 +879,10 @@
             "named": true
           },
           {
+            "type": "tick_expr",
+            "named": true
+          },
+          {
             "type": "variable",
             "named": true
           }
@@ -926,6 +942,10 @@
           },
           {
             "type": "special_con",
+            "named": true
+          },
+          {
+            "type": "tick_expr",
             "named": true
           },
           {
@@ -1124,6 +1144,61 @@
       "types": [
         {
           "type": "tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tick_expr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "app",
+          "named": true
+        },
+        {
+          "type": "case",
+          "named": true
+        },
+        {
+          "type": "con_or_op_app",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "let",
+          "named": true
+        },
+        {
+          "type": "let_no_escape",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "special_con",
+          "named": true
+        },
+        {
+          "type": "tick_expr",
+          "named": true
+        },
+        {
+          "type": "tickish",
+          "named": true
+        },
+        {
+          "type": "variable",
           "named": true
         }
       ]
@@ -1534,6 +1609,10 @@
     "named": true
   },
   {
+    "type": "tickish",
+    "named": true
+  },
+  {
     "type": "type_operator",
     "named": true
   },
@@ -1571,6 +1650,10 @@
   },
   {
     "type": "∀",
+    "named": false
+  },
+  {
+    "type": "∷",
     "named": false
   },
   {

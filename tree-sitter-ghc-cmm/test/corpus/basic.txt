@@ -166,3 +166,40 @@ Inline static info table (pre-codegen statics)
         (label
           name: (identifier))
         (static_info)))))
+
+================================
+Bare offset graph with unwind (pipeline-stage dump)
+================================
+
+==================== Sink assignments ====================
+
+{offset
+  c1: // global
+      unwind Sp = Just Sp;
+      R1 = R1 + 2;
+      call (P64[Sp])(R1) args: 8, res: 0, upd: 8;
+}
+
+--------------------------------
+
+(source_file
+  (banner)
+  (offset_body
+    (block
+      (label
+        name: (identifier))
+      (comment)
+      (unwind
+        (identifier)
+        (identifier))
+      (assignment
+        lhs: (identifier)
+        rhs: (binary_expr
+          (identifier)
+          (binop)
+          (literal)))
+      (call
+        target: (mem_access
+          (cmm_type)
+          address: (identifier))
+        (identifier)))))

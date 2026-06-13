@@ -66,8 +66,12 @@ export function makeTypeRules() {
         ),
       ),
     _forall_binder: ($) => choice($.tyvar, $.kinded_tyvar, $.inferred_tyvar),
-    kinded_tyvar: ($) => seq("(", $.tyvar, "::", $._type, ")"),
-    inferred_tyvar: ($) => seq("{", $.tyvar, optional(seq("::", $._type)), "}"),
+    kinded_tyvar: ($) => seq("(", $.tyvar, $._dcolon, $._type, ")"),
+    inferred_tyvar: ($) =>
+      seq("{", $.tyvar, optional(seq($._dcolon, $._type)), "}"),
+
+    // `::` and its -fprint-unicode-syntax glyph.
+    _dcolon: ($) => choice("::", "∷"),
 
     function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
     _type_op: ($) =>
@@ -116,7 +120,11 @@ export function makeTypeRules() {
       seq(
         "(",
         optional(
-          seq($._type, repeat(seq(",", $._type)), optional(seq("::", $._type))),
+          seq(
+            $._type,
+            repeat(seq(",", $._type)),
+            optional(seq($._dcolon, $._type)),
+          ),
         ),
         ")",
       ),

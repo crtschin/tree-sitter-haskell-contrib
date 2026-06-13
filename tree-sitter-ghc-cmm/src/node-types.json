@@ -188,6 +188,10 @@
         {
           "type": "switch",
           "named": true
+        },
+        {
+          "type": "unwind",
+          "named": true
         }
       ]
     }
@@ -759,6 +763,18 @@
         {
           "type": "cmm_group",
           "named": true
+        },
+        {
+          "type": "data_section",
+          "named": true
+        },
+        {
+          "type": "offset_body",
+          "named": true
+        },
+        {
+          "type": "proc",
+          "named": true
         }
       ]
     }
@@ -861,6 +877,10 @@
         {
           "type": "switch",
           "named": true
+        },
+        {
+          "type": "unwind",
+          "named": true
         }
       ]
     }
@@ -879,6 +899,53 @@
         },
         {
           "type": "cmm_type",
+          "named": true
+        },
+        {
+          "type": "con_label",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "machop_call",
+          "named": true
+        },
+        {
+          "type": "mem_access",
+          "named": true
+        },
+        {
+          "type": "parens",
+          "named": true
+        },
+        {
+          "type": "special",
+          "named": true
+        },
+        {
+          "type": "typed_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "unwind",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "binary_expr",
           "named": true
         },
         {
@@ -1009,6 +1076,14 @@
     "named": false
   },
   {
+    "type": "Just",
+    "named": false
+  },
+  {
+    "type": "Nothing",
+    "named": false
+  },
+  {
     "type": "True",
     "named": false
   },
@@ -1115,6 +1190,10 @@
   },
   {
     "type": "to",
+    "named": false
+  },
+  {
+    "type": "unwind",
     "named": false
   },
   {

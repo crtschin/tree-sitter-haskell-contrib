@@ -156,8 +156,17 @@
                   ]
                 },
                 {
-                  "type": "STRING",
-                  "value": "::"
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "::"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "∷"
+                    }
+                  ]
                 },
                 {
                   "type": "FIELD",
@@ -630,9 +639,33 @@
         },
         {
           "type": "SYMBOL",
+          "name": "tick_expr"
+        },
+        {
+          "type": "SYMBOL",
           "name": "_stg_atom"
         }
       ]
+    },
+    "tick_expr": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "tickish"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_expr"
+        }
+      ]
+    },
+    "tickish": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "(src|tick|scc)<[^>]*>"
+      }
     },
     "app": {
       "type": "PREC_LEFT",
@@ -1031,8 +1064,8 @@
           "name": "tyvar"
         },
         {
-          "type": "STRING",
-          "value": "::"
+          "type": "SYMBOL",
+          "name": "_dcolon"
         },
         {
           "type": "SYMBOL",
@@ -1062,8 +1095,8 @@
               "type": "SEQ",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "::"
+                  "type": "SYMBOL",
+                  "name": "_dcolon"
                 },
                 {
                   "type": "SYMBOL",
@@ -1079,6 +1112,19 @@
         {
           "type": "STRING",
           "value": "}"
+        }
+      ]
+    },
+    "_dcolon": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "::"
+        },
+        {
+          "type": "STRING",
+          "value": "∷"
         }
       ]
     },
@@ -1400,8 +1446,8 @@
                       "type": "SEQ",
                       "members": [
                         {
-                          "type": "STRING",
-                          "value": "::"
+                          "type": "SYMBOL",
+                          "name": "_dcolon"
                         },
                         {
                           "type": "SYMBOL",

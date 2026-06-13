@@ -1523,8 +1523,8 @@
           "name": "tyvar"
         },
         {
-          "type": "STRING",
-          "value": "::"
+          "type": "SYMBOL",
+          "name": "_dcolon"
         },
         {
           "type": "SYMBOL",
@@ -1554,8 +1554,8 @@
               "type": "SEQ",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "::"
+                  "type": "SYMBOL",
+                  "name": "_dcolon"
                 },
                 {
                   "type": "SYMBOL",
@@ -1571,6 +1571,19 @@
         {
           "type": "STRING",
           "value": "}"
+        }
+      ]
+    },
+    "_dcolon": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "::"
+        },
+        {
+          "type": "STRING",
+          "value": "∷"
         }
       ]
     },
@@ -1892,8 +1905,8 @@
                       "type": "SEQ",
                       "members": [
                         {
-                          "type": "STRING",
-                          "value": "::"
+                          "type": "SYMBOL",
+                          "name": "_dcolon"
                         },
                         {
                           "type": "SYMBOL",

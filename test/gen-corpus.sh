@@ -48,6 +48,11 @@ emit() { # emit <out-subdir> <ghc-flags...>
     done
 }
 
+# Each IL grammar sets `passes` (every dump flag of that IL, emitted at the
+# default format in one compile per fixture) and a `formats` display matrix
+# applied to `fmt_pass` (one representative pass). The shared loop below runs
+# them. ghc-dump is special (a multi-IL stream). Inapplicable cells just produce
+# no dump (the parse step only sees files that were generated).
 case "$GEN_LANG" in
     ghc-core)
         passes="-ddump-ds -ddump-ds-preopt -ddump-simpl -ddump-simpl-iterations \
@@ -55,9 +60,7 @@ case "$GEN_LANG" in
                 -ddump-float-out -ddump-float-in -ddump-liberate-case \
                 -ddump-worker-wrapper -ddump-call-arity -ddump-exitify \
                 -ddump-occur-anal -ddump-static-argument-transformation -ddump-rules"
-        # All Core-emitting passes at the default format (one compile per fixture).
-        emit passes $passes
-        # The simpl pass across the full display-format matrix.
+        fmt_pass="-ddump-simpl"
         formats=(
             "default:"
             "suppress-all:-dsuppress-all"
@@ -74,17 +77,42 @@ case "$GEN_LANG" in
             "case-as-let:-dppr-case-as-let"
             "ticks:-g3"
         )
-        for fmt in "${formats[@]}"; do
-            emit "${fmt%%:*}" -ddump-simpl ${fmt#*:}
-        done
         ;;
     ghc-stg)
-        emit passes -ddump-stg-final -ddump-stg-from-core
-        emit suppress-uniques -ddump-stg-final -dsuppress-uniques
+        passes="-ddump-stg-from-core -ddump-stg-unarised -ddump-stg-final \
+                -ddump-stg-cg -ddump-stg-tags"
+        fmt_pass="-ddump-stg-final"
+        formats=(
+            "default:"
+            "suppress-all:-dsuppress-all"
+            "suppress-uniques:-dsuppress-uniques"
+            "suppress-idinfo:-dsuppress-idinfo"
+            "suppress-modprefix:-dsuppress-module-prefixes"
+            "suppress-tyapps:-dsuppress-type-applications"
+            "suppress-stg-free-vars:-dsuppress-stg-free-vars"
+            "suppress-stg-exts:-dsuppress-stg-exts"
+            "suppress-stg-reps:-dsuppress-stg-reps"
+            "explicit-foralls-kinds:-fprint-explicit-foralls -fprint-explicit-kinds"
+            "explicit-runtimereps:-fprint-explicit-runtime-reps"
+            "unicode:-fprint-unicode-syntax"
+            "ppr-debug:-dppr-debug"
+            "ticks:-g3"
+        )
         ;;
     ghc-cmm)
-        emit passes -ddump-cmm -ddump-cmm-from-stg
-        emit suppress-uniques -ddump-cmm -dsuppress-uniques
+        passes="-ddump-cmm -ddump-cmm-from-stg -ddump-cmm-raw -ddump-cmm-verbose \
+                -ddump-cmm-cfg -ddump-cmm-cbe -ddump-cmm-switch -ddump-cmm-proc \
+                -ddump-cmm-sp -ddump-cmm-sink -ddump-cmm-caf -ddump-cmm-procmap \
+                -ddump-cmm-info -ddump-cmm-cps -ddump-cmm-opt -ddump-opt-cmm"
+        fmt_pass="-ddump-cmm"
+        # Cmm has no Haskell types/coercions, so only the IL-agnostic formats.
+        formats=(
+            "default:"
+            "suppress-all:-dsuppress-all"
+            "suppress-uniques:-dsuppress-uniques"
+            "ppr-debug:-dppr-debug"
+            "ticks:-g3"
+        )
         ;;
     ghc-dump)
         # The container consumes a multi-IL stream: several -ddump passes to
@@ -96,6 +124,15 @@ case "$GEN_LANG" in
         done
         ;;
 esac
+
+# Shared emit for the IL grammars: every pass at default format, then the
+# representative pass across the display-format matrix.
+if [[ -n "${passes:-}" ]]; then
+    emit passes $passes
+    for fmt in "${formats[@]}"; do
+        emit "${fmt%%:*}" "$fmt_pass" ${fmt#*:}
+    done
+fi
 GEN
 
 # Drop GHC's wall-clock timestamp line (a -ddump-to-file artifact absent from
@@ -130,12 +167,13 @@ done <<<"$parse_out"
 
 # Known long-tail gaps (<format-cell>/<Module>.dump-<pass> labels): cells whose
 # generated dump is outside the grammar's modelled scope -- a non-Tidy-Core pass
-# (CorePrep, a Float-out pass header, a multi-iteration dump) or an exotic
-# -dppr/-fprint display format. Emitted as TAP `# TODO` so they stay visible
-# without failing the gate; a NEW failure outside this set still fails. Only
-# ghc-core has any (the single-pass IL grammars cover their matrices cleanly).
+# (CorePrep, a Float-out pass header, a multi-iteration dump), an analysis dump
+# in a non-IL format (Cmm CAFEnv), or an exotic -dppr/-fprint display format.
+# Emitted as TAP `# TODO` so they stay visible without failing the gate; a NEW
+# failure outside this set still fails.
 declare -A xfail=()
-if [[ "$lang" == ghc-core ]]; then
+case "$lang" in
+ghc-core)
     for c in \
         passes/Bindings.dump-cse passes/Bindings.dump-float-in \
         passes/Bindings.dump-float-out passes/Bindings.dump-late-cc \
@@ -154,7 +192,24 @@ if [[ "$lang" == ghc-core ]]; then
         case-as-let/Ticks.dump-simpl; do
         xfail["$c"]="out-of-scope Core pass / exotic display format (ghc-core targets single-pass Tidy Core)"
     done
-fi
+    ;;
+ghc-cmm)
+    for c in passes/Bindings.dump-cmm-caf passes/Coerce.dump-cmm-caf \
+        passes/Ticks.dump-cmm-caf; do
+        xfail["$c"]="CAFEnv analysis dump, not Cmm syntax ([(label,{set})] tuple-lists)"
+    done
+    for c in ppr-debug/Bindings.dump-cmm ppr-debug/Coerce.dump-cmm \
+        ppr-debug/Ticks.dump-cmm; do
+        xfail["$c"]="exotic -dppr-debug display format (debug uniques/annotations)"
+    done
+    ;;
+ghc-stg)
+    for c in ppr-debug/Bindings.dump-stg-final ppr-debug/Coerce.dump-stg-final \
+        ppr-debug/Ticks.dump-stg-final; do
+        xfail["$c"]="exotic -dppr-debug display format (debug uniques/annotations)"
+    done
+    ;;
+esac
 
 exit_code=0
 i=0

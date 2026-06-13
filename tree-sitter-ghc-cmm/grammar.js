@@ -24,7 +24,7 @@
 // statements/blocks are `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
 // needed. Drives the harvested Cmm dumps to a clean parse. See README.md.
 
-import { sepBy } from "./common/grammar/combinators.mjs";
+import { sepBy, sepBy1 } from "./common/grammar/combinators.mjs";
 import { makeSoupRules } from "./common/grammar/soup.mjs";
 import { banner } from "./common/grammar/haskell.mjs";
 
@@ -48,7 +48,12 @@ export default grammar({
   ],
 
   rules: {
-    source_file: ($) => repeat(choice($.banner, $.cmm_group)),
+    // The codegen surface is `[ decl, .. ]` CmmGroups; the per-stage pipeline
+    // dumps (-ddump-cmm-sink/-sp/-switch/-cbe/-cfg, -ddump-opt-cmm,
+    // -ddump-cmm-info) print bare, ungrouped: a lone `{offset ..}` graph, a bare
+    // proc, or a bare `section ..`. Accept all four at top level.
+    source_file: ($) =>
+      repeat(choice($.banner, $.cmm_group, $._decl, $.offset_body)),
 
     // ==================== Output Cmm ==================== (shared)
     banner,
@@ -104,7 +109,14 @@ export default grammar({
         $.const_statement,
         $.byte_array,
         $.switch,
+        $.unwind,
       ),
+
+    // unwind <reg> = (Just <expr> | Nothing) [, ..] ;  (CmmUnwind, from -g3) --
+    // DWARF unwind notes attaching a virtual CFA/stack value to a register.
+    unwind: ($) =>
+      seq("unwind", sepBy1(",", seq($._expr, "=", $._unwind_val)), ";"),
+    _unwind_val: ($) => choice("Nothing", seq("Just", $._expr)),
 
     // switch [lo .. hi] <expr> { case N : <body> default: <body> } (CmmSwitch,
     // pre-codegen). A case body is a statement or a `{ statement* }` block.
@@ -262,7 +274,7 @@ export default grammar({
     // and CLabels, which embed `#` from data-con worker names
     // (GHC.Types.I#_con_info, T24264.fun1_info, stg_gc_fun).
     identifier: ($) =>
-      token(/[A-Za-z_$][A-Za-z0-9_$#]*(\.[A-Za-z_$][A-Za-z0-9_$'#]*)*/),
+      token(/[A-Za-z_$][A-Za-z0-9_$'#]*(\.[A-Za-z_$][A-Za-z0-9_$'#]*)*/),
 
     comment: ($) => token(seq("//", /[^\n]*/)),
   },
