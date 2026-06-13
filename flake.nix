@@ -38,25 +38,27 @@
           overlays = [ ];
         };
 
-        # Grammars sharing the C scanner symlink src/scanner.c (-> the repo-root
-        # ./scanner/scanner.c) and the common grammar helpers (./common) to it.
-        # Nix's import of ./${pname} doesn't reach outside that subtree, so we
-        # materialize those into real files before handing the source to
-        # buildGrammar. `useScanner` / `useCommon` opt a grammar out when it
-        # carries neither (e.g. ghc-core).
+        # All C scanners live under ./common/scanners; a grammar that needs one
+        # names it via `scanner` (e.g. "cabal.c", "ghc-core.c") and we materialize
+        # it as src/scanner.c. `useCommon` likewise materializes ./common (the
+        # shared grammar.js helpers). Each grammar's checked-in src/scanner.c is a
+        # symlink into ./common/scanners for local builds; this cp makes the build
+        # source self-contained and is the declarative source of truth for which
+        # scanner a grammar uses. ghc-core uses its own layout scanner; stg/cmm/
+        # dump need none (scanner unset).
         buildTreeSitterPkg =
           {
             pname,
             language,
-            useScanner ? true,
+            scanner ? null,
             useCommon ? true,
           }:
           let
             composedSrc = pkgs.runCommand "${pname}-src" { } ''
               cp -rL ${./.}/${pname} $out
               chmod -R +w $out
-              ${pkgs.lib.optionalString useScanner ''
-                cp ${./scanner/scanner.c} $out/src/scanner.c
+              ${pkgs.lib.optionalString (scanner != null) ''
+                cp ${./common/scanners}/${scanner} $out/src/scanner.c
               ''}
               ${pkgs.lib.optionalString useCommon ''
                 mkdir -p $out/common
@@ -74,38 +76,37 @@
         treeSitterCabal = buildTreeSitterPkg {
           pname = "tree-sitter-cabal";
           language = "cabal";
+          scanner = "cabal.c";
         };
 
         treeSitterCabalProject = buildTreeSitterPkg {
           pname = "tree-sitter-cabal-project";
           language = "cabal_project";
+          scanner = "cabal.c";
         };
 
         treeSitterGhcCore = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-core";
           language = "ghc_core";
-          useScanner = false;
+          scanner = "ghc-core.c";
           useCommon = false;
         };
 
         treeSitterGhcStg = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-stg";
           language = "ghc_stg";
-          useScanner = false;
           useCommon = false;
         };
 
         treeSitterGhcCmm = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-cmm";
           language = "ghc_cmm";
-          useScanner = false;
           useCommon = false;
         };
 
         treeSitterGhcDump = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-dump";
           language = "ghc_dump";
-          useScanner = false;
           useCommon = false;
         };
 

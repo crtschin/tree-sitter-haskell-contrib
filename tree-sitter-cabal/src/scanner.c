@@ -1,1 +1,1 @@
-../../scanner/scanner.c
+../../common/scanners/cabal.c
