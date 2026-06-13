@@ -47,4 +47,3 @@ zig-out/
 *.zip
 *.jar
 node_modules
-common/

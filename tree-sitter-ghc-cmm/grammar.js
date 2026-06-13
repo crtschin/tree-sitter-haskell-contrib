@@ -24,8 +24,9 @@
 // statements/blocks are `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
 // needed. Drives the harvested Cmm dumps to a clean parse. See README.md.
 
-const sepBy1 = (sep, rule) => seq(rule, repeat(seq(sep, rule)));
-const sepBy = (sep, rule) => optional(sepBy1(sep, rule));
+import { sepBy } from "./common/grammar/combinators.mjs";
+import { makeSoupRules } from "./common/grammar/soup.mjs";
+import { banner } from "./common/grammar/haskell.mjs";
 
 export default grammar({
   name: "ghc_cmm",
@@ -49,8 +50,8 @@ export default grammar({
   rules: {
     source_file: ($) => repeat(choice($.banner, $.cmm_group)),
 
-    // ==================== Output Cmm ====================
-    banner: ($) => token(prec(1, /={4,}[^\n]+={4,}/)),
+    // ==================== Output Cmm ==================== (shared)
+    banner,
 
     // [ decl, decl, .. ] -- a CmmGroup of procs and data sections.
     cmm_group: ($) => seq("[", sepBy(",", $._decl), "]"),
@@ -73,14 +74,8 @@ export default grammar({
     // HeapRep/StackRep, srt, arg_space). Modelled like ghc-core's [IdInfo].
     info_table: ($) => seq("{", repeat($._soup), "}"),
 
-    _soup: ($) =>
-      choice(
-        $._soup_token,
-        seq("(", repeat($._soup), ")"),
-        seq("{", repeat($._soup), "}"),
-        seq("[", repeat($._soup), "]"),
-      ),
-    _soup_token: ($) => token(/[^\s()\[\]{}]+/),
+    // Balanced bracket/brace/paren soup (shared with ghc-core/ghc-stg).
+    ...makeSoupRules(),
 
     // {offset <block>* } -- the proc body, a sequence of labelled basic blocks.
     offset_body: ($) => seq("{offset", repeat($.block), "}"),

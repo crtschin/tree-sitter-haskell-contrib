@@ -38,20 +38,20 @@
           overlays = [ ];
         };
 
-        # All C scanners live under ./common/scanners; a grammar that needs one
-        # names it via `scanner` (e.g. "cabal.c", "ghc-core.c") and we materialize
-        # it as src/scanner.c. `useCommon` likewise materializes ./common (the
-        # shared grammar.js helpers). Each grammar's checked-in src/scanner.c is a
-        # symlink into ./common/scanners for local builds; this cp makes the build
-        # source self-contained and is the declarative source of truth for which
-        # scanner a grammar uses. ghc-core uses its own layout scanner; stg/cmm/
-        # dump need none (scanner unset).
+        # Shared code lives under ./common: grammar.js helpers (./common/grammar,
+        # ./common/utils.mjs) and C scanners (./common/scanners). Every grammar
+        # reaches them through a checked-in `common` symlink (-> ../common) that
+        # `cp -rL` dereferences into the build source, so the build is
+        # self-contained and local `tree-sitter generate` resolves the same paths.
+        # A grammar that needs a C scanner additionally names it via `scanner`
+        # (e.g. "cabal.c", "ghc-core.c"), materialized as src/scanner.c -- the
+        # declarative source of truth for which scanner it uses. stg/cmm/dump need
+        # no scanner (scanner unset).
         buildTreeSitterPkg =
           {
             pname,
             language,
             scanner ? null,
-            useCommon ? true,
           }:
           let
             composedSrc = pkgs.runCommand "${pname}-src" { } ''
@@ -59,10 +59,6 @@
               chmod -R +w $out
               ${pkgs.lib.optionalString (scanner != null) ''
                 cp ${./common/scanners}/${scanner} $out/src/scanner.c
-              ''}
-              ${pkgs.lib.optionalString useCommon ''
-                mkdir -p $out/common
-                cp ${./common/utils.mjs} $out/common/utils.mjs
               ''}
             '';
           in
@@ -89,25 +85,21 @@
           pname = "tree-sitter-ghc-core";
           language = "ghc_core";
           scanner = "ghc-core.c";
-          useCommon = false;
         };
 
         treeSitterGhcStg = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-stg";
           language = "ghc_stg";
-          useCommon = false;
         };
 
         treeSitterGhcCmm = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-cmm";
           language = "ghc_cmm";
-          useCommon = false;
         };
 
         treeSitterGhcDump = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-dump";
           language = "ghc_dump";
-          useCommon = false;
         };
 
         # git-hooks.nix wires the generated git hooks into .git/hooks on `nix

@@ -1523,7 +1523,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[A-Z][A-Za-z0-9_'#]*"
+        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*"
       }
     },
     "operator": {

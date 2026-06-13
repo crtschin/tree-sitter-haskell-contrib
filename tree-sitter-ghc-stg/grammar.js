@@ -7,6 +7,15 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+import { sepBy } from "./common/grammar/combinators.mjs";
+import { makeSoupRules } from "./common/grammar/soup.mjs";
+import {
+  banner,
+  makeLexicalRules,
+  makeLiteralRules,
+  makeTypeRules,
+} from "./common/grammar/haskell.mjs";
+
 // Models the STG surface GHC's printer emits (compiler/GHC/Stg/Syntax.hs
 // pprStgExpr/pprStgRhs/pprGenStgBinding). Unlike Core, every STG binding --
 // top-level, Rec pair, and let -- ends with `;` (pprStgRhs <> semi), so the
@@ -21,9 +30,6 @@
 // the System FC type grammar (shared surface with Core), qualified names, and
 // literals. The [IdInfo] bracket is coarse balanced-delimiter soup -- leniency
 // over structure. Drives the harvested STG dumps to a clean parse. See README.md.
-
-const sepBy1 = (sep, rule) => seq(rule, repeat(seq(sep, rule)));
-const sepBy = (sep, rule) => optional(sepBy1(sep, rule));
 
 export default grammar({
   name: "ghc_stg",
@@ -43,8 +49,8 @@ export default grammar({
 
     _group: ($) => choice($.binding, $.rec_block),
 
-    // ==================== Final STG: ====================
-    banner: ($) => token(prec(1, /={4,}[^\n]+={4,}/)),
+    // ==================== Final STG: ==================== (shared)
+    banner,
 
     // Rec { b1; b2; end Rec } -- a recursive group; pairs are blank-line
     // separated and each `;`-terminated like every STG binding.
@@ -91,14 +97,7 @@ export default grammar({
     idinfo: ($) => prec.dynamic(1, seq("[", repeat($._soup), "]")),
     binder_annotation: ($) => prec.dynamic(1, seq("[", repeat($._soup), "]")),
 
-    _soup: ($) =>
-      choice(
-        $._soup_token,
-        seq("(", repeat($._soup), ")"),
-        seq("{", repeat($._soup), "}"),
-        seq("[", repeat($._soup), "]"),
-      ),
-    _soup_token: ($) => token(/[^\s()\[\]{}]+/),
+    ...makeSoupRules(),
 
     // A binding's RHS: a closure (StgRhsClosure), a saturated constructor
     // (StgRhsCon, marked by `!`), or a top-level string literal ("..."#).
@@ -203,111 +202,11 @@ export default grammar({
     _stg_atom: ($) =>
       choice($.variable, $.literal, $.constructor, $.special_con),
 
-    // ---- literals ----
-
-    literal: ($) =>
-      choice($._int_lit, $._float_lit, $._char_lit, $._string_lit),
-
-    _int_lit: ($) => token(/-?[0-9]+#*/),
-    _float_lit: ($) => token(/-?[0-9]+\.[0-9]+#*/),
-    _char_lit: ($) => token(/'(\\.|[^'\\])'#*/),
-    _string_lit: ($) => token(/"(\\.|[^"\\])*"#*/),
-
-    // ---- types (compiler/GHC/Iface/Type.hs, shared surface with ghc-core) ----
-
-    _type: ($) => choice($.forall_type, $.function_type, $._type_btype),
-
-    forall_type: ($) =>
-      prec.right(
-        seq(
-          choice("forall", "∀"),
-          repeat1($._forall_binder),
-          choice(".", "->", "→"),
-          $._type,
-        ),
-      ),
-    _forall_binder: ($) => choice($.tyvar, $.kinded_tyvar, $.inferred_tyvar),
-    kinded_tyvar: ($) => seq("(", $.tyvar, "::", $._type, ")"),
-    inferred_tyvar: ($) => seq("{", $.tyvar, optional(seq("::", $._type)), "}"),
-
-    function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
-    _type_op: ($) =>
-      choice("->", "→", "⊸", "=>", "⇒", "~R#", $.mult_arrow, $.type_operator),
-    // A lone `=` is never a type operator -- it's the binding separator, which
-    // in STG abuts the signature type (`name :: ty = rhs`). So a `=`-led operator
-    // must carry a second symbolic char (==#, =<<); other single ops are fine.
-    type_operator: ($) =>
-      token(
-        choice(
-          /([A-Z][A-Za-z0-9_']*\.)*([-+*/<>~!&|^%][-+*/<>=~!&|^%]*|=[-+*/<>=~!&|^%]+)#*/,
-          /:[-+*/<>=~!&|^%][-+*/<>=~!&|^%:]*/,
-        ),
-      ),
-    mult_arrow: ($) => seq("%", $._type_atom, choice("->", "→")),
-
-    _type_btype: ($) => choice($.type_apply, $._type_atom),
-    type_apply: ($) =>
-      prec.left(seq($._type_btype, choice($._type_atom, $.kind_app))),
-    kind_app: ($) => seq("@", $._type_atom),
-
-    _type_atom: ($) =>
-      choice(
-        $.constructor,
-        $.special_con,
-        $.operator,
-        $.tyvar,
-        $._type_literal,
-        $.type_list,
-        $.type_paren_form,
-        $.unboxed_type,
-        $.promoted_type,
-        $.star,
-        $.ellipsis,
-      ),
-    star: ($) => "*",
-    ellipsis: ($) => "...",
-
-    tyvar: ($) => $.variable,
-
-    _type_literal: ($) => choice(token(/[0-9]+/), token(/"(\\.|[^"\\])*"/)),
-
-    type_list: ($) => seq("[", sepBy(",", $._type), "]"),
-
-    type_paren_form: ($) =>
-      seq(
-        "(",
-        optional(
-          seq($._type, repeat(seq(",", $._type)), optional(seq("::", $._type))),
-        ),
-        ")",
-      ),
-
-    unboxed_type: ($) =>
-      seq(
-        "(#",
-        optional(seq($._type, repeat(seq(choice(",", "|"), $._type)))),
-        "#)",
-      ),
-
-    promoted_type: ($) =>
-      seq(
-        "'",
-        choice($.constructor, $.special_con, $.type_list, $.type_paren_form),
-      ),
-
-    // ---- lexical (shared surface with ghc-core) ----
-
-    variable: ($) =>
-      token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*/,
-      ),
-    constructor: ($) =>
-      token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*/,
-      ),
-    operator: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.]+#*/),
-    special_con: ($) =>
-      token(/([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(\))/),
+    // Literals, the System-FC type grammar, and qualified-name lexical tokens
+    // are shared with ghc-core (common/grammar/haskell.mjs).
+    ...makeLiteralRules(),
+    ...makeTypeRules(),
+    ...makeLexicalRules(),
 
     comment: ($) => token(seq("--", /[^\n]*/)),
   },

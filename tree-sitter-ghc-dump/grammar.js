@@ -8,6 +8,8 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+import { banner } from "./common/grammar/haskell.mjs";
+
 // GHC can emit several intermediate-language dumps into one stream, e.g.
 //   ghc -ddump-simpl -ddump-stg-final -ddump-cmm
 // each introduced by a `==================== <pass> ====================`
@@ -28,9 +30,9 @@ export default grammar({
 
     section: ($) => seq($.banner, optional($.body)),
 
-    // ==================== Tidy Core ====================
-    // Wins over `_line` on a banner line via token precedence (equal length).
-    banner: ($) => token(prec(1, /={4,}[^\n]+={4,}/)),
+    // ==================== Tidy Core ==================== (shared). Wins over
+    // `_line` on a banner line via token precedence (equal length).
+    banner,
 
     // Everything up to the next banner, as a single node so injections.scm can
     // hand the whole range to a member grammar.

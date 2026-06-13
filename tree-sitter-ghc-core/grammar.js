@@ -29,8 +29,14 @@
 // section with internal blank lines and on operator-embedded compiler names
 // (`$tc:~:1`). See README.md.
 
-const sepBy1 = (sep, rule) => seq(rule, repeat(seq(sep, rule)));
-const sepBy = (sep, rule) => optional(sepBy1(sep, rule));
+import { sepBy1, sepBy } from "./common/grammar/combinators.mjs";
+import { makeSoupRules } from "./common/grammar/soup.mjs";
+import {
+  banner,
+  makeLexicalRules,
+  makeLiteralRules,
+  makeTypeRules,
+} from "./common/grammar/haskell.mjs";
 
 export default grammar({
   name: "ghc_core",
@@ -90,8 +96,8 @@ export default grammar({
     // out-precedences the `--` line comment).
     dash_header: ($) => token(prec(2, /-{4,}[^\n]*-{4,}/)),
 
-    // ==================== Tidy Core ====================
-    banner: ($) => token(prec(1, /={4,}[^\n]+={4,}/)),
+    // ==================== Tidy Core ==================== (shared)
+    banner,
 
     // Result size of Tidy Core
     //   = {terms: 182, types: 90, coercions: 0, joins: 4/8}
@@ -143,15 +149,8 @@ export default grammar({
 
     binder_annotation: ($) => prec.dynamic(1, seq("[", repeat($._soup), "]")),
 
-    // Balanced bracket/brace/paren soup with arbitrary non-delimiter tokens.
-    _soup: ($) =>
-      choice(
-        $._soup_token,
-        seq("(", repeat($._soup), ")"),
-        seq("{", repeat($._soup), "}"),
-        seq("[", repeat($._soup), "]"),
-      ),
-    _soup_token: ($) => token(/[^\s()\[\]{}]+/),
+    // Balanced bracket/brace/paren soup (shared with ghc-stg/ghc-cmm).
+    ...makeSoupRules(),
 
     // Lambda-bound type variables: @a, @{a} (inferred), (@ a).
     type_binder: ($) =>
@@ -263,134 +262,16 @@ export default grammar({
         seq("(#", sepBy(",", $._binder), "#)"),
       ),
 
-    literal: ($) =>
-      choice($._int_lit, $._float_lit, $._char_lit, $._string_lit),
+    // Literals, the System-FC type grammar, and qualified-name lexical tokens
+    // are shared with ghc-stg (common/grammar/haskell.mjs).
+    ...makeLiteralRules(),
+    ...makeTypeRules(),
+    ...makeLexicalRules(),
 
-    _int_lit: ($) => token(/-?[0-9]+#*/),
-    _float_lit: ($) => token(/-?[0-9]+\.[0-9]+#*/),
-    _char_lit: ($) => token(/'(\\.|[^'\\])'#*/),
-    _string_lit: ($) => token(/"(\\.|[^"\\])*"#*/),
-
-    // ---- types (compiler/GHC/Iface/Type.hs) ----
-
-    _type: ($) => choice($.forall_type, $.function_type, $._type_btype),
-
-    forall_type: ($) =>
-      prec.right(
-        seq(
-          choice("forall", "∀"),
-          repeat1($._forall_binder),
-          choice(".", "->", "→"),
-          $._type,
-        ),
-      ),
-    _forall_binder: ($) => choice($.tyvar, $.kinded_tyvar, $.inferred_tyvar),
-    kinded_tyvar: ($) => seq("(", $.tyvar, "::", $._type, ")"),
-    // Inferred-visibility binders: forall {a} {a :: k}. ...
-    inferred_tyvar: ($) => seq("{", $.tyvar, optional(seq("::", $._type)), "}"),
-
-    function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
-    _type_op: ($) =>
-      choice("->", "→", "⊸", "=>", "⇒", "~R#", $.mult_arrow, $.type_operator),
-    // Infix type operators: type-level + (Nat), :~:, qualified GHC.Prim.~#, etc.
-    // Two shapes -- symbolic (possibly qualified) and colon-led -- the latter
-    // requiring a non-colon char so it never swallows the `::` separator.
-    // Literal arrows -> / => still win by string precedence. A lone `=` is never
-    // a type operator (it's the binding separator), so a `=`-led op needs a
-    // second symbolic char (==#, =<<).
-    type_operator: ($) =>
-      token(
-        choice(
-          /([A-Z][A-Za-z0-9_']*\.)*([-+*/<>~!&|^%][-+*/<>=~!&|^%]*|=[-+*/<>=~!&|^%]+)#*/,
-          /:[-+*/<>=~!&|^%][-+*/<>=~!&|^%:]*/,
-        ),
-      ),
-    mult_arrow: ($) => seq("%", $._type_atom, choice("->", "→")),
-
-    _type_btype: ($) => choice($.type_apply, $._type_atom),
-    type_apply: ($) =>
-      prec.left(seq($._type_btype, choice($._type_atom, $.kind_app))),
-    kind_app: ($) => seq("@", $._type_atom),
-
-    _type_atom: ($) =>
-      choice(
-        $.constructor,
-        $.special_con, // [] : (,) etc. as a type (also lets the type-munch GLR branch lex a qualified [] in one token)
-        $.operator, // a (qualified) symbolic op as a type atom -- lenient, and lets the type-munch GLR branch lex e.g. GHC.Prim.-# in one token
-        $.tyvar,
-        $._type_literal,
-        $.type_list,
-        $.type_paren_form,
-        $.unboxed_type,
-        $.promoted_type,
-        $.star, // the `*` kind (e.g. forall (t :: * -> *). ..)
-        $.ellipsis, // `...` -- an elided type, e.g. a coercion type under -dsuppress-coercion-types
-      ),
-    star: ($) => "*",
-    ellipsis: ($) => "...",
-
-    tyvar: ($) => $.variable,
-
-    _type_literal: ($) => choice(token(/[0-9]+/), token(/"(\\.|[^"\\])*"/)),
-
-    type_list: ($) => seq("[", sepBy(",", $._type), "]"),
-
-    // Covers (), (t), (t, u, ...) and the kind signature (t :: k).
-    type_paren_form: ($) =>
-      seq(
-        "(",
-        optional(
-          seq($._type, repeat(seq(",", $._type)), optional(seq("::", $._type))),
-        ),
-        ")",
-      ),
-
-    // (# t, ... #) unboxed tuple and (# t | ... #) unboxed sum.
-    unboxed_type: ($) =>
-      seq(
-        "(#",
-        optional(seq($._type, repeat(seq(choice(",", "|"), $._type)))),
-        "#)",
-      ),
-
-    promoted_type: ($) =>
-      seq(
-        "'",
-        choice($.constructor, $.special_con, $.type_list, $.type_paren_form),
-      ),
-
-    // ---- lexical ----
-
-    // Optional `pkg-ver:` package qualifier and `Module.Sub.` qualifier, then a
-    // lower/underscore/$-led name. `#` may appear within (unboxed workers,
-    // c##_a#io); trailing operator/colon segments cover method selectors ($c==,
-    // $c<$) and operator-TyCon names ($tc:~:1). Such segments never include a
-    // space, so `::`/cons (always spaced in Core) are unaffected.
-    variable: ($) =>
-      token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*/,
-      ),
-    // Qualified upper-led data constructors / worker names (I#, GHC.Types.I#).
-    // Trailing `:Upper` segments cover class-dictionary constructors (C:C,
-    // C:Show, D:R:FInt); requiring an upper-led tail keeps `::` and the spaced
-    // cons operator out.
-    constructor: ($) =>
-      token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*/,
-      ),
-    // Symbolic primops used in prefix position (+#, *#, ==#, ># ...).
-    operator: ($) => token(/([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.]+#*/),
-    // Built-in / parenthesised constructors, optionally module-qualified:
-    // [] : (,) (,,) () (##) (#,#) and GHC.Types.[] etc.
-    special_con: ($) =>
-      token(/([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(\))/),
-
-    // A line comment, or a `-- RHS size: {..}` whose record wraps across lines
-    // (big dumps print thousand-separated counts, e.g. terms: 1,236).
     // A line comment, or a `-- RHS size: {..}` whose count record wraps across
     // lines (big dumps print thousand-separated counts, e.g. terms: 1,236). The
     // wrapped body is bounded to record chars (word/space/.,:/) so it can never
-    // run past its `}` into a binding's braces.
+    // run past its `}` into a binding's braces. (Core-specific; STG/Cmm differ.)
     comment: ($) =>
       token(choice(seq("--", /[^\n]*/), /--[^{\n]*\{[\s\w.,:/]*\}/)),
   },
