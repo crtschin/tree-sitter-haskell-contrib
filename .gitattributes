@@ -1,5 +1,14 @@
 * text=auto eol=lf
 
+# Regenerated parser tables across every grammar: treat as binary so a
+# `tree-sitter generate` does not spew thousands of diff lines. They are
+# machine-generated, never reviewed line-by-line, and never hand-merged. Set
+# here (not in the per-grammar .gitattributes, which `tree-sitter init`
+# overwrites) so the rule survives a regenerate.
+tree-sitter-*/src/parser.c binary
+tree-sitter-*/src/grammar.json binary
+tree-sitter-*/src/node-types.json binary
+
 # Generated source files
 src/*.json linguist-generated
 src/parser.c linguist-generated
