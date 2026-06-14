@@ -194,3 +194,35 @@ f ∷ GHC.Types.Int =
         (app
           (variable)
           (variable))))))
+
+================================
+Multi-line string literal (GHC string-gap continuation)
+================================
+
+lvl =
+    "Context.hs|HsModule {hsmodName,\n\
+    \hsmodDecls}"#;
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (literal)))
+
+================================
+Typed unboxed literal and char escape (shared lexer)
+================================
+
+lvl = 0#Word64;
+ch = '\NUL'#;
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (literal))
+  (binding
+    name: (variable)
+    rhs: (literal)))

@@ -275,6 +275,108 @@
         {
           "type": "SYMBOL",
           "name": "rec_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "expr_statement"
+        }
+      ]
+    },
+    "expr_statement": {
+      "type": "PREC_DYNAMIC",
+      "value": -1,
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "lambda"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "let"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "case"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "case_as_let"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "jump"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "tick_expr"
+          },
+          {
+            "type": "PREC_LEFT",
+            "value": 0,
+            "content": {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_stmt_head"
+                },
+                {
+                  "type": "REPEAT",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_arg"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "_stmt_head": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "variable"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "constructor"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "con_operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator_name"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "special_con"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "parens"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "tuple"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "unboxed_tuple"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "foreign_call"
         }
       ]
     },
@@ -492,6 +594,10 @@
         {
           "type": "SYMBOL",
           "name": "paren_operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator_name"
         }
       ]
     },
@@ -503,8 +609,21 @@
           "value": "("
         },
         {
-          "type": "SYMBOL",
-          "name": "operator"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "operator"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "con_operator"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "operator_name"
+            }
+          ]
         },
         {
           "type": "STRING",
@@ -975,6 +1094,14 @@
         },
         {
           "type": "SYMBOL",
+          "name": "con_operator"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "operator_name"
+        },
+        {
+          "type": "SYMBOL",
           "name": "literal"
         },
         {
@@ -995,9 +1122,93 @@
         },
         {
           "type": "SYMBOL",
+          "name": "foreign_call"
+        },
+        {
+          "type": "SYMBOL",
           "name": "id_annotation"
         }
       ]
+    },
+    "con_operator": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*:[-+*/<>=~!&|^%.][-+*/<>=~!&|^%.:]*(\\{[^}]*\\})?"
+      }
+    },
+    "operator_name": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "@[-+*/<>=!&|^%.?][-+*/<>=~!&|^%.?:@\\\\]*[0-9]*"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\\\[-+*/<>=~!&|^%.?:@\\\\]+[0-9]*"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[-+*/<>=!&|^%.?~:][-+*/<>=!&|^%.?~:]+[0-9]+"
+          }
+        ]
+      }
+    },
+    "foreign_call": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_ffi_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "target",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "variable"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "constructor"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_dcolon"
+        },
+        {
+          "type": "FIELD",
+          "name": "type",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_type"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "_ffi_keyword": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "__ffi_[a-z_]+"
+      }
     },
     "id_annotation": {
       "type": "PREC_DYNAMIC",
@@ -1544,6 +1755,10 @@
             {
               "type": "SYMBOL",
               "name": "special_con"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "con_operator"
             }
           ]
         },
@@ -1665,28 +1880,28 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "-?[0-9]+#*"
+        "value": "-?[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)"
       }
     },
     "_float_lit": {
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "-?[0-9]+\\.[0-9]+#*"
+        "value": "-?[0-9]+\\.[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)"
       }
     },
     "_char_lit": {
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "'(\\\\.|[^'\\\\])'#*"
+        "value": "'(\\\\.[^']*|[^'\\\\])'#*"
       }
     },
     "_string_lit": {
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "\"(\\\\.|[^\"\\\\])*\"#*"
+        "value": "\"(\\\\[\\s\\S]|[^\"\\\\])*\"#*"
       }
     },
     "tick_expr": {
@@ -2315,7 +2530,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*(\\{[^}]*\\})?"
+        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:?]+[A-Za-z0-9_'$#]*)*(\\{[^}]*\\})?"
       }
     },
     "constructor": {
@@ -2329,14 +2544,14 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*[-+*/<>=!&|^%.]+#*(\\{[^}]*\\})?"
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\\{[^}]*\\})?"
       }
     },
     "special_con": {
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*(\\[\\]|:|\\(,+\\)|\\(#+\\)|\\(#(,+)#\\)|\\(\\))(\\{[^}]*\\})?"
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*(\\[\\]|:|\\(,+\\)|\\(#+\\)|\\(#(,+)#\\)|\\(#[ _]*\\|[ _|]*#\\)|\\(\\))(\\{[^}]*\\})?"
       }
     },
     "comment": {
@@ -2397,11 +2612,23 @@
       "_later_section"
     ],
     [
+      "coercion"
+    ],
+    [
       "idinfo",
       "_soup"
     ],
     [
-      "coercion"
+      "_soup",
+      "id_annotation"
+    ],
+    [
+      "_def_name",
+      "_stmt_head"
+    ],
+    [
+      "paren_operator",
+      "_atom"
     ]
   ],
   "precedences": [],

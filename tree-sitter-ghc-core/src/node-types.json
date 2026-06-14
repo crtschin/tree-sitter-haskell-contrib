@@ -34,7 +34,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -59,6 +67,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -121,7 +133,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -134,6 +154,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -191,6 +215,10 @@
             "named": true
           },
           {
+            "type": "operator_name",
+            "named": true
+          },
+          {
             "type": "paren_operator",
             "named": true
           },
@@ -221,7 +249,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -246,6 +282,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -351,7 +391,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -376,6 +424,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -493,7 +545,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -518,6 +578,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -577,7 +641,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -602,6 +674,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -659,7 +735,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -672,6 +756,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -788,6 +876,10 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
           "named": true
         },
@@ -814,6 +906,97 @@
     "type": "debug_binder",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "expr_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "case",
+          "named": true
+        },
+        {
+          "type": "case_as_let",
+          "named": true
+        },
+        {
+          "type": "coercion_arg",
+          "named": true
+        },
+        {
+          "type": "con_operator",
+          "named": true
+        },
+        {
+          "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
+          "named": true
+        },
+        {
+          "type": "id_annotation",
+          "named": true
+        },
+        {
+          "type": "jump",
+          "named": true
+        },
+        {
+          "type": "lambda",
+          "named": true
+        },
+        {
+          "type": "let",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
+          "named": true
+        },
+        {
+          "type": "parens",
+          "named": true
+        },
+        {
+          "type": "special_con",
+          "named": true
+        },
+        {
+          "type": "tick_expr",
+          "named": true
+        },
+        {
+          "type": "tuple",
+          "named": true
+        },
+        {
+          "type": "type_arg",
+          "named": true
+        },
+        {
+          "type": "unboxed_tuple",
+          "named": true
+        },
+        {
+          "type": "variable",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "forall_type",
@@ -880,6 +1063,84 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "foreign_call",
+    "named": true,
+    "fields": {
+      "target": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "variable",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "forall_type",
+            "named": true
+          },
+          {
+            "type": "function_type",
+            "named": true
+          },
+          {
+            "type": "operator",
+            "named": true
+          },
+          {
+            "type": "promoted_type",
+            "named": true
+          },
+          {
+            "type": "special_con",
+            "named": true
+          },
+          {
+            "type": "star",
+            "named": true
+          },
+          {
+            "type": "type_apply",
+            "named": true
+          },
+          {
+            "type": "type_list",
+            "named": true
+          },
+          {
+            "type": "type_paren_form",
+            "named": true
+          },
+          {
+            "type": "tyvar",
+            "named": true
+          },
+          {
+            "type": "unboxed_type",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1039,7 +1300,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1052,6 +1321,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -1161,7 +1434,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1186,6 +1467,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -1248,7 +1533,15 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -1273,6 +1566,10 @@
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "operator_name",
             "named": true
           },
           {
@@ -1400,7 +1697,15 @@
       "required": true,
       "types": [
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         }
       ]
@@ -1431,6 +1736,10 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
           "named": true
         },
@@ -1440,6 +1749,10 @@
         },
         {
           "type": "forall_type",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1468,6 +1781,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -1608,6 +1925,10 @@
           "named": true
         },
         {
+          "type": "expr_statement",
+          "named": true
+        },
+        {
           "type": "rec_block",
           "named": true
         },
@@ -1651,7 +1972,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1676,6 +2005,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -1753,7 +2086,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1778,6 +2119,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -2166,6 +2511,10 @@
           "named": true
         },
         {
+          "type": "operator_name",
+          "named": true
+        },
+        {
           "type": "paren_operator",
           "named": true
         },
@@ -2323,7 +2672,15 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -2348,6 +2705,10 @@
         },
         {
           "type": "operator",
+          "named": true
+        },
+        {
+          "type": "operator_name",
           "named": true
         },
         {
@@ -2546,6 +2907,10 @@
     "extra": true
   },
   {
+    "type": "con_operator",
+    "named": true
+  },
+  {
     "type": "constructor",
     "named": true
   },
@@ -2599,6 +2964,10 @@
   },
   {
     "type": "operator",
+    "named": true
+  },
+  {
+    "type": "operator_name",
     "named": true
   },
   {

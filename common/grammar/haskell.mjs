@@ -22,10 +22,21 @@ export function makeLiteralRules() {
     literal: ($) =>
       choice($._int_lit, $._float_lit, $._char_lit, $._string_lit),
 
-    _int_lit: ($) => token(/-?[0-9]+#*/),
-    _float_lit: ($) => token(/-?[0-9]+\.[0-9]+#*/),
-    _char_lit: ($) => token(/'(\\.|[^'\\])'#*/),
-    _string_lit: ($) => token(/"(\\.|[^"\\])*"#*/),
+    // Unboxed numeric literals carry `#`/`##` (Int#/Word#) and, in some dumps, a
+    // glued type tag (`0#Word64`, `97#Word8`, `0#Int64`). The tag only follows a
+    // `#`, so a bare `0` never absorbs a trailing word.
+    _int_lit: ($) => token(/-?[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)/),
+    _float_lit: ($) => token(/-?[0-9]+\.[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)/),
+    // A char escape may be multi-char: numeric (`'\2048'`, `'\65536'`) or named
+    // (`'\NUL'`). `\\.` takes the backslash + first escape char (covers `'\''`,
+    // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
+    _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
+    // A backslash escapes any char *including a newline*: GHC prints long string
+    // literals with a string gap (`..\n\` <newline> `   \..`), the `\`-whitespace-`\`
+    // continuation. `.` doesn't match a newline, so `\\.` would stop at the gap's
+    // opening `\<newline>`; `\\[\s\S]` spans it. Plain `[^"\\]` already covers the
+    // interior newlines and indentation between the two gap backslashes.
+    _string_lit: ($) => token(/"(\\[\s\S]|[^"\\])*"#*/),
   };
 }
 
@@ -60,17 +71,26 @@ export function makeLexicalRules() {
   return {
     variable: ($) =>
       token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:]+[A-Za-z0-9_'$#]*)*(\{[^}]*\})?/,
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:?]+[A-Za-z0-9_'$#]*)*(\{[^}]*\})?/,
       ),
     constructor: ($) =>
       token(
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*(\{[^}]*\})?/,
       ),
+    // A symbolic operator. `:` is allowed only after the first char (a leading
+    // `:` is a data constructor; see con_operator), so `>::`, `|>:` lex as one
+    // operator while a bare `::` stays the dcolon.
     operator: ($) =>
-      token(/([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.]+#*(\{[^}]*\})?/),
+      token(
+        /([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\{[^}]*\})?/,
+      ),
+    // Built-in/parenthesised cons, plus the unboxed-sum injection con printed
+    // with `_` slot markers and `|` separators (`(# _| #)`, `(# |_ #)`,
+    // `(# _|| #)`). The sum alt needs a `|` to stay off the unit `(##)` and the
+    // tuple con `(#,#)`; spaces inside are part of the token.
     special_con: ($) =>
       token(
-        /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(\))(\{[^}]*\})?/,
+        /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,
       ),
   };
 }

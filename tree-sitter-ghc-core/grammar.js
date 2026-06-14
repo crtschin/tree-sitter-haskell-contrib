@@ -58,14 +58,21 @@ export default grammar({
     [$._later_section, $.trailing_sections],
     [$.source_file, $._later_section],
     [$._later_section],
-    // A `[..]` before a `(` is an IdInfo bracket on an operator binding
-    // (`[GblId] (+++) = ..`) or trailing-rule soup (`"r" [1] (@a)..`). GLR's
-    // viability picks the right one (a rule's `(@a)` does not form a
-    // paren_operator).
-    [$.idinfo, $._soup],
     // A `:: type` after a bare coercion inside `(..)` could close the coercion's
     // own optional ascription or the enclosing parens ascription. Let GLR pick.
     [$.coercion],
+    // A `[..]` is an IdInfo bracket on an operator binding (`[GblId] (+++) = ..`),
+    // an occurrence's id_annotation in a bare expr_statement, or trailing-rule
+    // soup (`"r" [1] (@a)..`) - all balanced bracket soup. GLR's viability picks.
+    [$.idinfo, $._soup],
+    [$._soup, $.id_annotation],
+    // A group's head may begin a binding (`name ..  = ..`) or a bare expression
+    // statement (the `Simplified expression` section). They share the leading
+    // name/atom; the `=` decides, so GLR explores both.
+    [$._def_name, $._stmt_head],
+    // A parenthesised operator is either a binder name `(:|) = ..` or a
+    // parenthesised atom (in a bare expression or an argument).
+    [$.paren_operator, $._atom],
   ],
 
   rules: {
@@ -111,7 +118,43 @@ export default grammar({
     // `Total ticks: N` line needs a rule.
     simplifier_stats: ($) => token(/Total ticks:[^\n]*/),
 
-    _group: ($) => choice($.binding, $.rec_block),
+    _group: ($) => choice($.binding, $.rec_block, $.expr_statement),
+
+    // The `==== Simplified expression ====` dump (-ddump-simpl-expr, also emitted
+    // for some TH splices) prints a section whose body is a single bare CoreExpr
+    // with no `name =`. Its head is a variable/constructor/paren/keyword form,
+    // never a bare literal or `[..]` bracket - those would be a rule's `"name"`
+    // string or an [IdInfo]/soup bracket, so excluding them keeps a trailing
+    // rules/CorePrep section as soup. A bare expr and a binding still share a
+    // leading run; the negative dynamic precedence makes GLR keep the binding
+    // whenever a `=` follows, so a bare expr only wins in an expression-only
+    // section.
+    expr_statement: ($) =>
+      prec.dynamic(
+        -1,
+        choice(
+          $.lambda,
+          $.let,
+          $.case,
+          $.case_as_let,
+          $.jump,
+          $.tick_expr,
+          prec.left(seq($._stmt_head, repeat($._arg))),
+        ),
+      ),
+    _stmt_head: ($) =>
+      choice(
+        $.variable,
+        $.constructor,
+        $.operator,
+        $.con_operator,
+        $.operator_name,
+        $.special_con,
+        $.parens,
+        $.tuple,
+        $.unboxed_tuple,
+        $.foreign_call,
+      ),
 
     // Any header-delimited sections after the Tidy Core: `==== .. ====` banners
     // (Tidy Core rules, CorePrep, ...) and `---- .. ----` markers (e.g. `------
@@ -161,8 +204,10 @@ export default grammar({
     // A defined name: an ordinary id, a data-con wrapper (an upper-led name like
     // Coerce.GB, bound by CorePrep), or an operator printed in prefix form
     // ((+++), (.)). GHC parenthesises operator-named top-level binders.
-    _def_name: ($) => choice($.variable, $.constructor, $.paren_operator),
-    paren_operator: ($) => seq("(", $.operator, ")"),
+    _def_name: ($) =>
+      choice($.variable, $.constructor, $.paren_operator, $.operator_name),
+    paren_operator: ($) =>
+      seq("(", choice($.operator, $.con_operator, $.operator_name), ")"),
 
     // The [IdInfo] bracket (GblId, Arity=N, Str=<..>, Cpr=.., Unf=Unf{..Tmpl=e},
     // RULES: ..). Modelled coarsely as balanced delimiter soup for now. The
@@ -248,13 +293,59 @@ export default grammar({
         $.variable,
         $.constructor,
         $.operator,
+        $.con_operator,
+        $.operator_name,
         $.literal,
         $.special_con,
         $.parens,
         $.tuple,
         $.unboxed_tuple,
+        $.foreign_call,
         $.id_annotation,
       ),
+
+    // A `:`-led data-constructor operator (:|, :*:, :%, :=>, :~:), printed in
+    // prefix form by Core (`:| a b`). The required second symbol char keeps the
+    // `::` ascription out (its second char is `:`). Shared shape with the type
+    // grammar's colon-led type_operator.
+    con_operator: ($) =>
+      token(
+        /([A-Z][A-Za-z0-9_']*\.)*:[-+*/<>=~!&|^%.][-+*/<>=~!&|^%.:]*(\{[^}]*\})?/,
+      ),
+
+    // GHC mangles some operator-named binders to symbolic names printed bare or
+    // parenthesised, with a trailing-digit occurrence disambiguator. Three shapes
+    // the plain `operator`/`con_operator` tokens can't take:
+    //   - `@`-led (`@?6`, `@?==2`, `(@.)`): a `@` + operator char is never a
+    //     `@type`/`@kind` application (those lead with a letter/`(`/`*`); the
+    //     first char excludes `~` so `@~coercion` stays intact.
+    //   - `\`-led (`\\1`): `\` is an operator char too; requiring a second symbol
+    //     char keeps a lambda's lone `\` out.
+    //   - any operator run (>=2 symbol chars) glued to digits (`>*<1`): the >=2
+    //     guard keeps a negative literal `-1` off this token.
+    operator_name: ($) =>
+      token(
+        choice(
+          /@[-+*/<>=!&|^%.?][-+*/<>=~!&|^%.?:@\\]*[0-9]*/,
+          /\\[-+*/<>=~!&|^%.?:@\\]+[0-9]*/,
+          /[-+*/<>=!&|^%.?~:][-+*/<>=!&|^%.?~:]+[0-9]+/,
+        ),
+      ),
+
+    // A C foreign call printed as an applied primitive:
+    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..` (Core/Ppr FCallId). The
+    // target carries the package-qualified C symbol; the `:: ty` is its full
+    // (often unboxed-tuple-returning) System-FC type.
+    foreign_call: ($) =>
+      seq(
+        "{",
+        $._ffi_keyword,
+        field("target", choice($.variable, $.constructor)),
+        $._dcolon,
+        field("type", $._type),
+        "}",
+      ),
+    _ffi_keyword: ($) => token(/__ffi_[a-z_]+/),
 
     // [gid..] / [lid..] -- an occurrence's IdInfo, printed inline under
     // -dppr-debug. Coarse balanced soup, like the binding [IdInfo].
@@ -319,7 +410,10 @@ export default grammar({
       choice($.literal, "__DEFAULT", $.con_pattern, $.tuple_pattern),
 
     con_pattern: ($) =>
-      seq(choice($.constructor, $.special_con), repeat($._binder)),
+      seq(
+        choice($.constructor, $.special_con, $.con_operator),
+        repeat($._binder),
+      ),
 
     // Tuple patterns: (a, b), (# a, b #).
     tuple_pattern: ($) =>

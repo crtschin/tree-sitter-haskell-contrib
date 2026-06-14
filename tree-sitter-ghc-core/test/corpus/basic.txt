@@ -424,3 +424,169 @@ f{v r1} = (g{v r2} Just GHC.Types.Many{(w) d 65I} [gid] :: GHC.Types.Int{tc 3u})
         (constructor)
         (id_annotation))
       (constructor))))
+
+================================
+Multi-line string literal (GHC string-gap continuation)
+================================
+
+lvl1
+  = "Context.hs|HsModule {hsmodName,\n\
+    \hsmodDecls}"#
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (literal)))
+
+================================
+Typed unboxed literals and char escapes
+================================
+
+f = case x of { 0#Word64 -> 'a'; 1#Int64 -> '\NUL'# }
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (case
+      scrutinee: (variable)
+      (alternative
+        pattern: (pattern (literal))
+        rhs: (literal))
+      (alternative
+        pattern: (pattern (literal))
+        rhs: (literal)))))
+
+================================
+Colon-led and unboxed-sum constructor patterns
+================================
+
+f =
+  case x of {
+    :| a b -> a;
+    (# _| #) c -> c
+  }
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (case
+      scrutinee: (variable)
+      (alternative
+        pattern: (pattern
+          (con_pattern
+            (con_operator)
+            (variable)
+            (variable)))
+        rhs: (variable))
+      (alternative
+        pattern: (pattern
+          (con_pattern
+            (special_con)
+            (variable)))
+        rhs: (variable)))))
+
+================================
+Operator-named binders (mangled bare, @-led, colon-tail)
+================================
+
+lvl = PushCallStack @?6 @?2 d
+
+(>::) = f x
+
+h = g (=~) >*<1
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (application
+      (constructor)
+      (operator_name)
+      (operator_name)
+      (variable)))
+  (binding
+    name: (paren_operator
+      (operator))
+    rhs: (application
+      (variable)
+      (variable)))
+  (binding
+    name: (variable)
+    rhs: (application
+      (variable)
+      (parens
+        (operator))
+      (operator_name))))
+
+================================
+Foreign call expression
+================================
+
+f =
+  case {__ffi_static_ccall_unsafe ghc-internal:rts_getThreadId :: State# RealWorld -> (# State# RealWorld, Word64# #)} realWorld# of {
+    __DEFAULT -> r
+  }
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (case
+      scrutinee: (application
+        (foreign_call
+          target: (variable)
+          type: (function_type
+            (type_apply
+              (constructor)
+              (constructor))
+            (unboxed_type
+              (type_apply
+                (constructor)
+                (constructor))
+              (constructor))))
+        (variable))
+      (alternative
+        pattern: (pattern)
+        rhs: (variable)))))
+
+================================
+Simplified expression section (bare expression body)
+================================
+
+==================== Simplified expression ====================
+
+quoteExp __i (mkNameG_tc x)
+
+--------------------------------
+
+(source_file
+  (banner)
+  (expr_statement
+    (variable)
+    (variable)
+    (parens
+      (application
+        (variable)
+        (variable)))))
+
+================================
+Trailing rules section stays soup
+================================
+
+==================== Tidy Core rules ====================
+"USPEC f @Int"
+    forall (@e) ($dEq :: Eq e). f @e = \1 ww
+
+--------------------------------
+
+(source_file
+  (trailing_sections
+    (banner)))
