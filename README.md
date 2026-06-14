@@ -41,14 +41,11 @@ for profiling the scanner over their corpora.
 The cabal grammars parse a corpus drawn from the
 [cabal](https://github.com/haskell/cabal) and
 [haskell-language-server](https://github.com/haskell/haskell-language-server)
-source trees, catching regressions the inline test cases miss.
+source trees
 
-The GHC grammars parse a harvested corpus of real dumps from the GHC test suite,
-gated to a clean parse. On top of that, `gen-corpus` compiles a handful of
-fixtures with GHC across a matrix of dump and display flags, parses every
-resulting dump, and tears the dumps down afterward. Cells outside a grammar's
-modelled scope (analysis dumps that are not the IL, exotic display formats) are
-marked as expected failures so a new regression still trips the gate.
+The GHC grammars parse a harvested corpus of real dumps from the GHC test suite.
+On top of that, `gen-corpus` compiles a handful of fixtures with GHC across a
+matrix of dump and display flags.
 
 ## References
 
