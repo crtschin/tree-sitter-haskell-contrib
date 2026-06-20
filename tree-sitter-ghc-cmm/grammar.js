@@ -71,13 +71,18 @@ export default grammar({
     caf_env: ($) => seq("[", sepBy(",", $.caf_entry), "]"),
     caf_entry: ($) =>
       seq("(", field("label", $.identifier), ",", $.caf_set, ")"),
-    caf_set: ($) => seq("{", sepBy(",", $.identifier), "}"),
+    // A reachable closure may be a CLabel (Classes.$fEqColour_$c/=_closure), not
+    // just a plain block-closure identifier.
+    caf_set: ($) =>
+      seq("{", sepBy(",", choice($.con_label, $.identifier)), "}"),
 
     // name() { info-table offset-body } is a CmmProc. The `// [regs]` live-set
     // after `{` is a comment (an extra).
     proc: ($) =>
       seq(
-        field("name", $.identifier),
+        // A proc for an operator-named method or a dictionary constructor has a
+        // CLabel name (Classes.$fEqColour_$c/=_entry, Families.C:Container_entry).
+        field("name", choice($.con_label, $.identifier)),
         "(",
         ")",
         "{",
@@ -96,7 +101,9 @@ export default grammar({
     // {offset <block>* } is the proc body, a sequence of labelled basic blocks.
     offset_body: ($) => seq("{offset", repeat($.block), "}"),
     block: ($) => seq($.label, repeat(choice($._statement, $.static_info))),
-    label: ($) => seq(field("name", $.identifier), ":"),
+    // A data-section label may be a CLabel (Classes.$fEqColour_$c/=_closure:),
+    // so it admits con_label as well as a plain block-label identifier.
+    label: ($) => seq(field("name", choice($.con_label, $.identifier)), ":"),
 
     // Pre-codegen statics print an inline info-table after the closure label:
     // `label: X rep: HeapRep static { Con {..} } srt: Y CCS_DONT_CARE [..]`.
@@ -117,11 +124,39 @@ export default grammar({
         $.goto,
         $.cond_branch,
         $.call,
+        $.foreign_call_statement,
         $.const_statement,
         $.byte_array,
         $.switch,
         $.unwind,
       ),
+
+    // The pre-codegen high-level CmmForeignCall (in -ddump-cmm-from-stg and the
+    // passes run before lowering): `foreign call "conv" [hints] tgt(...) returns
+    // to L args: ([..]) ress: ([..]) ret_args: N ret_off: N;`. The callee args
+    // print as a `(...)` placeholder; the real argument and result registers are
+    // the `args:`/`ress:` lists. Distinct from the lowered `call "ccall" ..`.
+    foreign_call_statement: ($) =>
+      seq(
+        "foreign",
+        "call",
+        optional($.call_convention),
+        optional($.call_hints),
+        field("target", $._call_target),
+        $._fc_args_placeholder,
+        optional(seq("returns", "to", field("returns_to", $.identifier))),
+        "args:",
+        $._fc_reg_list,
+        "ress:",
+        $._fc_reg_list,
+        "ret_args:",
+        $._int_lit,
+        "ret_off:",
+        $._int_lit,
+        ";",
+      ),
+    _fc_args_placeholder: ($) => token(/\(\.\.\.\)/),
+    _fc_reg_list: ($) => seq("(", "[", sepBy(",", $._expr), "]", ")"),
 
     // unwind <reg> = (Just <expr> | Nothing) [, ..] ; is CmmUnwind, from -g3.
     // DWARF unwind notes attaching a virtual CFA/stack value to a register.
@@ -157,9 +192,37 @@ export default grammar({
     _string_lit: ($) => token(/"(\\.|[^"\\])*"/),
 
     // lhs = rhs ;  (CmmAssign / CmmStore). lhs is a register, local reg, or
-    // memory access, accepted as a general expression for leniency.
+    // memory access, accepted as a general expression for leniency. The rhs may
+    // be a foreign call -- `(_c1::F64) = call "ccall" .. sqrt(..)` -- which is
+    // not an ordinary expression (it is kept out of `_expr` so a bare `call`
+    // statement stays unambiguous), so it is admitted explicitly here.
     assignment: ($) =>
-      seq(field("lhs", $._expr), "=", field("rhs", $._expr), ";"),
+      seq(
+        field("lhs", $._expr),
+        "=",
+        field("rhs", choice($._expr, $.foreign_call)),
+        ";",
+      ),
+
+    // (results) = call ["conv"] [arg hints:.. result hints:..] target(args) is a
+    // CmmUnsafeForeignCall: a C ccall or a MachOp helper (MO_SuspendThread). It
+    // carries no `args:/res:/upd:` trailer, the one thing that distinguishes it
+    // from the `call` statement, so it appears only as an assignment rhs.
+    foreign_call: ($) =>
+      seq(
+        "call",
+        optional($.call_convention),
+        optional($.call_hints),
+        field("target", $._call_target),
+        "(",
+        sepBy(",", $._expr),
+        ")",
+      ),
+    call_convention: ($) => token(/"[a-z]+"/),
+    // arg hints:  [PtrHint, PtrHint]  result hints:  [PtrHint]. A long hint list
+    // wraps across lines, so the bracket bodies must admit newlines.
+    call_hints: ($) =>
+      token(/arg hints:\s*\[[^\]]*\]\s*result hints:\s*\[[^\]]*\]/),
 
     goto: ($) => seq("goto", field("target", $.identifier), ";"),
 
@@ -200,7 +263,8 @@ export default grammar({
         $._int_lit,
         ";",
       ),
-    _call_target: ($) => choice(seq("(", $._expr, ")"), $.identifier),
+    _call_target: ($) =>
+      choice(seq("(", $._expr, ")"), $.con_label, $.identifier),
     returns_to: ($) => seq("returns", "to", field("target", $.identifier), ","),
 
     // const <expr> ; is a static data word in a section.
@@ -260,9 +324,29 @@ export default grammar({
         choice(
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*\(,+\)[A-Za-z0-9_$.'#]+/,
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*\[\][A-Za-z0-9_$.'#]+/,
-          // cons (:) constructor labels. The tail (no space) keeps this off a
-          // bare block-label `:` and the `::` ascription operator.
-          /([A-Za-z_$][A-Za-z0-9_$']*\.)*:[A-Za-z0-9_$.'#]+/,
+          // :-led con labels: cons `:_con_info`, and operator cons
+          // `:*:_con_info` / `:+:_con_info`. The first tail char is a non-colon
+          // symbol or name char, so the `::` ascription is never swallowed.
+          /([A-Za-z_$][A-Za-z0-9_$']*\.)*:[-+*/<>=~&|^%.A-Za-z0-9_$'#][-+*/<>=~&|^%.:A-Za-z0-9_$'#]*/,
+          // Labels with one+ `:Upper` segments: dictionary cons (C:Eq_con_info),
+          // package:module-qualified labels (main:Ffi_init__fexports), and
+          // Typeable TyCon-binding labels ($tc'C:Collection3_bytes). The start
+          // may be `$`/lower-led; the `:` must abut an uppercase (so a block
+          // label `foo:` and the `::` ascription are never swallowed).
+          /([A-Za-z_$][A-Za-z0-9_$']*\.)*[A-Za-z_$][A-Za-z0-9_$']*(:[A-Z][A-Za-z0-9_$']*)+[A-Za-z0-9_$.'#]*/,
+          // method-selector labels with an operator name: $fNumInt_$c*_info,
+          // $fEqDouble_$c/=_closure. The embedded operator run must be followed
+          // by a letter/_ so that a `label+2` offset (operator then digit) is
+          // left to split as a `+`/`-` binop instead of being glued in. `.` is
+          // NOT an operator char here -- it only separates module qualifiers
+          // (the prefix) -- else a plain `Mod.name` would match as name+`.`name.
+          /([A-Za-z_$][A-Za-z0-9_$']*\.)*[A-Za-z_$][A-Za-z0-9_$'#]*([-+*/<>=~&|^%]+[A-Za-z_$#][A-Za-z0-9_$'#]*)+[A-Za-z0-9_$.'#]*/,
+          // operator-led method label, qualified (GHC.Internal.Num.*_info) or
+          // bare after -dsuppress-all strips the `$fInst_$c` prefix (*_info,
+          // /=_info). The required trailing name char keeps a spaced binop
+          // (`a * b`) out; `.` stays a qualifier separator (the prefix), never an
+          // operator char, so a plain `Mod.name` is not mistaken for a label.
+          /([A-Za-z_$][A-Za-z0-9_$']*\.)*[-+*/<>=~&|^%]+[A-Za-z_$#][A-Za-z0-9_$'#]*[A-Za-z0-9_$.'#]*/,
         ),
       ),
 

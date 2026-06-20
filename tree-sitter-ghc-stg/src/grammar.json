@@ -560,6 +560,10 @@
             {
               "type": "SYMBOL",
               "name": "special_con"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "con_operator"
             }
           ]
         },
@@ -611,6 +615,10 @@
         {
           "type": "SYMBOL",
           "name": "special_con"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "con_operator"
         }
       ]
     },
@@ -624,6 +632,10 @@
         {
           "type": "SYMBOL",
           "name": "con_or_op_app"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "foreign_call"
         },
         {
           "type": "SYMBOL",
@@ -654,8 +666,17 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "SYMBOL",
-            "name": "variable"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "variable"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "operator"
+              }
+            ]
           },
           {
             "type": "REPEAT1",
@@ -683,6 +704,10 @@
             },
             {
               "type": "SYMBOL",
+              "name": "con_operator"
+            },
+            {
+              "type": "SYMBOL",
               "name": "variable"
             },
             {
@@ -696,6 +721,47 @@
           "name": "stg_arg_list"
         }
       ]
+    },
+    "foreign_call": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_ffi_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "target",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "variable"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "constructor"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_dcolon"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stg_arg_list"
+        }
+      ]
+    },
+    "_ffi_keyword": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "__ffi_[a-z_]+"
+      }
     },
     "let": {
       "type": "SEQ",
@@ -875,6 +941,10 @@
         {
           "type": "SYMBOL",
           "name": "special_con"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "con_operator"
         }
       ]
     },
@@ -896,8 +966,19 @@
         {
           "type": "SYMBOL",
           "name": "special_con"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "con_operator"
         }
       ]
+    },
+    "con_operator": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*:[-+*/<>=~&|^%.][-+*/<>=~&|^%.:]*(\\{[^}]*\\})?"
+      }
     },
     "literal": {
       "type": "CHOICE",
@@ -1318,8 +1399,17 @@
       ]
     },
     "star": {
-      "type": "STRING",
-      "value": "*"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "*"
+        },
+        {
+          "type": "STRING",
+          "value": "★"
+        }
+      ]
     },
     "ellipsis": {
       "type": "STRING",
@@ -1595,7 +1685,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*(\\[\\]|:|\\(,+\\)|\\(#+\\)|\\(#(,+)#\\)|\\(#[ _]*\\|[ _|]*#\\)|\\(\\))(\\{[^}]*\\})?"
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*(\\[\\]|:|\\(,+\\)|\\(#[ #]*#\\)|\\(#(,+)#\\)|\\(#[ _]*\\|[ _|]*#\\)|\\(\\))(\\{[^}]*\\})?"
       }
     },
     "comment": {

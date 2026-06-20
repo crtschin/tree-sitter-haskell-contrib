@@ -1948,6 +1948,11 @@
     }
   },
   {
+    "type": "star",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "tick_expr",
     "named": true,
     "fields": {},
@@ -2826,6 +2831,10 @@
     "named": false
   },
   {
+    "type": "*",
+    "named": false
+  },
+  {
     "type": ",",
     "named": false
   },
@@ -2991,10 +3000,6 @@
     "named": true
   },
   {
-    "type": "star",
-    "named": true
-  },
-  {
     "type": "tickish",
     "named": true
   },
@@ -3044,6 +3049,10 @@
   },
   {
     "type": "⊸",
+    "named": false
+  },
+  {
+    "type": "★",
     "named": false
   }
 ]

@@ -138,14 +138,20 @@ export default grammar({
     con_app_rhs: ($) =>
       seq(
         optional($.cost_centre),
-        choice($.constructor, $.special_con),
+        choice($.constructor, $.special_con, $.con_operator),
         "!",
         $.stg_arg_list,
       ),
 
     stg_arg_list: ($) => seq("[", repeat($._stg_arg), "]"),
     _stg_arg: ($) =>
-      choice($.variable, $.literal, $.constructor, $.special_con),
+      choice(
+        $.variable,
+        $.literal,
+        $.constructor,
+        $.special_con,
+        $.con_operator,
+      ),
 
     // ---- expressions (compiler/GHC/Stg/Syntax.hs pprStgExpr) ----
 
@@ -153,6 +159,7 @@ export default grammar({
       choice(
         $.app,
         $.con_or_op_app,
+        $.foreign_call,
         $.let,
         $.let_no_escape,
         $.case,
@@ -160,15 +167,37 @@ export default grammar({
         $._stg_atom,
       ),
 
-    // StgApp: f a b is a function variable applied to space-separated atoms.
-    app: ($) => prec.left(seq($.variable, repeat1($._stg_arg))),
+    // StgApp: f a b is a function applied to space-separated atoms. The head is
+    // usually a variable but may be an operator-named Id (a class method printed
+    // symbolically, e.g. `GHC.Internal.Num.* d a b`).
+    app: ($) =>
+      prec.left(seq(choice($.variable, $.operator), repeat1($._stg_arg))),
 
     // StgConApp / StgOpApp: Con [args] / (+#) [args]. The args are bracketed.
     con_or_op_app: ($) =>
       seq(
-        choice($.constructor, $.special_con, $.variable, $.operator),
+        choice(
+          $.constructor,
+          $.special_con,
+          $.con_operator,
+          $.variable,
+          $.operator,
+        ),
         $.stg_arg_list,
       ),
+
+    // StgOpApp over a foreign call (StgFCallOp): the FCall op prints as
+    // `__ffi_static_ccall_<safety> pkg:sym ::` and the StgOpApp appends its
+    // bracketed value args. Unlike Core's FCallId there is no `{}` wrapper and
+    // no result type between the `::` and the args.
+    foreign_call: ($) =>
+      seq(
+        $._ffi_keyword,
+        field("target", choice($.variable, $.constructor)),
+        $._dcolon,
+        $.stg_arg_list,
+      ),
+    _ffi_keyword: ($) => token(/__ffi_[a-z_]+/),
 
     // A let binds one StgBinding: either a single binding or a `Rec {..}`
     // group (let-no-escape bodies commonly wrap a recursive join-point group).
@@ -206,10 +235,31 @@ export default grammar({
         ";",
       ),
     _alt_con: ($) =>
-      choice("__DEFAULT", $.literal, $.constructor, $.special_con),
+      choice(
+        "__DEFAULT",
+        $.literal,
+        $.constructor,
+        $.special_con,
+        $.con_operator,
+      ),
 
     _stg_atom: ($) =>
-      choice($.variable, $.literal, $.constructor, $.special_con),
+      choice(
+        $.variable,
+        $.literal,
+        $.constructor,
+        $.special_con,
+        $.con_operator,
+      ),
+
+    // A `:`-led data-constructor operator (:|, :*:, :~:), qualified or bare.
+    // The required non-colon second char keeps `::` (the dcolon) out. Unlike
+    // ghc-core's con_operator, `!` is excluded: an StgRhsCon prints `Con! [args]`
+    // with the bang abutting the con, so `:!`/`:*:!` must split as con + `!`.
+    con_operator: ($) =>
+      token(
+        /([A-Z][A-Za-z0-9_']*\.)*:[-+*/<>=~&|^%.][-+*/<>=~&|^%.:]*(\{[^}]*\})?/,
+      ),
 
     // Literals, the tickish prefix, the System-FC type grammar, and
     // qualified-name lexical tokens are shared with ghc-core

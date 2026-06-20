@@ -58,6 +58,10 @@
             "named": true
           },
           {
+            "type": "foreign_call",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           },
@@ -174,6 +178,10 @@
           "named": true
         },
         {
+          "type": "foreign_call_statement",
+          "named": true
+        },
+        {
           "type": "goto",
           "named": true
         },
@@ -260,6 +268,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "con_label",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -540,6 +552,228 @@
     }
   },
   {
+    "type": "foreign_call",
+    "named": true,
+    "fields": {
+      "target": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "(",
+            "named": false
+          },
+          {
+            "type": ")",
+            "named": false
+          },
+          {
+            "type": "binary_expr",
+            "named": true
+          },
+          {
+            "type": "con_label",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "machop_call",
+            "named": true
+          },
+          {
+            "type": "mem_access",
+            "named": true
+          },
+          {
+            "type": "parens",
+            "named": true
+          },
+          {
+            "type": "special",
+            "named": true
+          },
+          {
+            "type": "typed_expr",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "binary_expr",
+          "named": true
+        },
+        {
+          "type": "call_convention",
+          "named": true
+        },
+        {
+          "type": "call_hints",
+          "named": true
+        },
+        {
+          "type": "con_label",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "machop_call",
+          "named": true
+        },
+        {
+          "type": "mem_access",
+          "named": true
+        },
+        {
+          "type": "parens",
+          "named": true
+        },
+        {
+          "type": "special",
+          "named": true
+        },
+        {
+          "type": "typed_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "foreign_call_statement",
+    "named": true,
+    "fields": {
+      "returns_to": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "target": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "(",
+            "named": false
+          },
+          {
+            "type": ")",
+            "named": false
+          },
+          {
+            "type": "binary_expr",
+            "named": true
+          },
+          {
+            "type": "con_label",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "literal",
+            "named": true
+          },
+          {
+            "type": "machop_call",
+            "named": true
+          },
+          {
+            "type": "mem_access",
+            "named": true
+          },
+          {
+            "type": "parens",
+            "named": true
+          },
+          {
+            "type": "special",
+            "named": true
+          },
+          {
+            "type": "typed_expr",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "binary_expr",
+          "named": true
+        },
+        {
+          "type": "call_convention",
+          "named": true
+        },
+        {
+          "type": "call_hints",
+          "named": true
+        },
+        {
+          "type": "con_label",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "machop_call",
+          "named": true
+        },
+        {
+          "type": "mem_access",
+          "named": true
+        },
+        {
+          "type": "parens",
+          "named": true
+        },
+        {
+          "type": "special",
+          "named": true
+        },
+        {
+          "type": "typed_expr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "goto",
     "named": true,
     "fields": {
@@ -568,6 +802,10 @@
         "multiple": false,
         "required": true,
         "types": [
+          {
+            "type": "con_label",
+            "named": true
+          },
           {
             "type": "identifier",
             "named": true
@@ -766,6 +1004,10 @@
         "required": true,
         "types": [
           {
+            "type": "con_label",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           }
@@ -928,6 +1170,10 @@
         },
         {
           "type": "const_statement",
+          "named": true
+        },
+        {
+          "type": "foreign_call_statement",
           "named": true
         },
         {
@@ -1172,6 +1418,14 @@
     "named": false
   },
   {
+    "type": "call_convention",
+    "named": true
+  },
+  {
+    "type": "call_hints",
+    "named": true
+  },
+  {
     "type": "case",
     "named": false
   },
@@ -1201,6 +1455,10 @@
     "named": false
   },
   {
+    "type": "foreign",
+    "named": false
+  },
+  {
     "type": "goto",
     "named": false
   },
@@ -1226,6 +1484,18 @@
   },
   {
     "type": "res:",
+    "named": false
+  },
+  {
+    "type": "ress:",
+    "named": false
+  },
+  {
+    "type": "ret_args:",
+    "named": false
+  },
+  {
+    "type": "ret_off:",
     "named": false
   },
   {

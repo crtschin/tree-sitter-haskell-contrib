@@ -12,6 +12,10 @@
             "named": false
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "constructor",
             "named": true
           },
@@ -38,11 +42,19 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "con_or_op_app",
             "named": true
           },
           {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -119,11 +131,19 @@
       "required": true,
       "types": [
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
           "named": true
         },
         {
           "type": "literal",
+          "named": true
+        },
+        {
+          "type": "operator",
           "named": true
         },
         {
@@ -314,11 +334,19 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "con_or_op_app",
             "named": true
           },
           {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -376,11 +404,19 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "con_or_op_app",
             "named": true
           },
           {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -442,6 +478,10 @@
       "required": true,
       "types": [
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "constructor",
           "named": true
         },
@@ -468,6 +508,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "con_operator",
+          "named": true
+        },
         {
           "type": "constructor",
           "named": true
@@ -553,6 +597,36 @@
         },
         {
           "type": "unboxed_type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "foreign_call",
+    "named": true,
+    "fields": {
+      "target": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "variable",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "stg_arg_list",
           "named": true
         }
       ]
@@ -788,11 +862,19 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "con_or_op_app",
             "named": true
           },
           {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -854,11 +936,19 @@
             "named": true
           },
           {
+            "type": "con_operator",
+            "named": true
+          },
+          {
             "type": "con_or_op_app",
             "named": true
           },
           {
             "type": "constructor",
+            "named": true
+          },
+          {
+            "type": "foreign_call",
             "named": true
           },
           {
@@ -1026,6 +1116,11 @@
     }
   },
   {
+    "type": "star",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "stg_arg_list",
     "named": true,
     "fields": {},
@@ -1033,6 +1128,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "con_operator",
+          "named": true
+        },
         {
           "type": "constructor",
           "named": true
@@ -1099,11 +1198,19 @@
           "named": true
         },
         {
+          "type": "con_operator",
+          "named": true
+        },
+        {
           "type": "con_or_op_app",
           "named": true
         },
         {
           "type": "constructor",
+          "named": true
+        },
+        {
+          "type": "foreign_call",
           "named": true
         },
         {
@@ -1433,6 +1540,10 @@
     "named": false
   },
   {
+    "type": "*",
+    "named": false
+  },
+  {
     "type": ",",
     "named": false
   },
@@ -1494,6 +1605,10 @@
     "extra": true
   },
   {
+    "type": "con_operator",
+    "named": true
+  },
+  {
     "type": "constructor",
     "named": true
   },
@@ -1539,10 +1654,6 @@
   },
   {
     "type": "special_con",
-    "named": true
-  },
-  {
-    "type": "star",
     "named": true
   },
   {
@@ -1599,6 +1710,10 @@
   },
   {
     "type": "⊸",
+    "named": false
+  },
+  {
+    "type": "★",
     "named": false
   }
 ]

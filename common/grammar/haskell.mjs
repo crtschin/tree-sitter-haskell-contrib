@@ -86,11 +86,13 @@ export function makeLexicalRules() {
       ),
     // Built-in/parenthesised cons, plus the unboxed-sum injection con printed
     // with `_` slot markers and `|` separators (`(# _| #)`, `(# |_ #)`,
-    // `(# _|| #)`). The sum alt needs a `|` to stay off the unit `(##)` and the
-    // tuple con `(#,#)`; spaces inside are part of the token.
+    // `(# _|| #)`). The nullary unboxed tuple prints `(##)` or, in unarised STG
+    // (e.g. a ccall returning `(# State# #)` voided to nothing), with a space as
+    // `(# #)`; `\(#[ #]*#\)` covers both. The sum alt needs a `|` to stay off
+    // the unit and the tuple con `(#,#)`; spaces inside are part of the token.
     special_con: ($) =>
       token(
-        /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#+\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,
+        /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#[ #]*#\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,
       ),
   };
 }
@@ -157,7 +159,8 @@ export function makeTypeRules() {
         $.star,
         $.ellipsis,
       ),
-    star: ($) => "*",
+    // `*` is the lifted-type kind; `-fprint-unicode-syntax` prints it as `★`.
+    star: ($) => choice("*", "★"),
     ellipsis: ($) => "...",
 
     // CorePrep and some debug dumps print a tyvar with a scope annotation,
