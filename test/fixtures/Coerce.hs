@@ -27,3 +27,18 @@ data G a where
 evalG :: G a -> a
 evalG (GI n) = n
 evalG (GB b) = b
+
+-- Richer GADT: a typed expression AST. Each alternative refines the index `a`,
+-- so `eval` threads equality coercions (eq evidence / casts) through Core that
+-- the two-constructor G never produces.
+data Expr a where
+  IntLit :: Int -> Expr Int
+  BoolLit :: Bool -> Expr Bool
+  Add :: Expr Int -> Expr Int -> Expr Int
+  If :: Expr Bool -> Expr a -> Expr a -> Expr a
+
+eval :: Expr a -> a
+eval (IntLit n) = n
+eval (BoolLit b) = b
+eval (Add x y) = eval x + eval y
+eval (If c t e) = if eval c then eval t else eval e
