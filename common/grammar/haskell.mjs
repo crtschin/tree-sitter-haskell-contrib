@@ -47,12 +47,24 @@ export function makeLiteralRules() {
 // `_expr` lists $.tick_expr and spreads makeTickRules(). token(prec(1)) makes a
 // keyword-led `<..>` win the equal-length lex tie against $.variable, whose
 // operator-suffix class (kept for $c<$ / $c>>= selectors) would otherwise munch
-// the `<..>` into the name. `break<..>`'s trailing (vars) parses as a following
-// atom; the token covers only the angle part.
+// the `<..>` into the name. A `Breakpoint` always prints its free-variable list
+// `(v,..)` (possibly empty `()`) glued to the angle part; that paren run belongs
+// to the tick, not the wrapped body, so the break form folds it in. Leaving it
+// as a following atom mis-attaches when the body is a non-atom (a `case`/`let`):
+// the `(vars)` fills the body slot and the real body has nowhere to go.
 export function makeTickRules() {
   return {
     tick_expr: ($) => seq($.tickish, $._expr),
-    tickish: ($) => token(prec(1, /(src|scctick|tick|scc|hpc|break)<[^>]*>/)),
+    tickish: ($) =>
+      token(
+        prec(
+          1,
+          choice(
+            /(src|scctick|tick|scc|hpc)<[^>]*>/,
+            /break<[^>]*>(\([^)]*\))?/,
+          ),
+        ),
+      ),
   };
 }
 

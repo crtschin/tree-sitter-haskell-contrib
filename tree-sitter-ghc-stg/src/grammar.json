@@ -1048,8 +1048,17 @@
         "type": "PREC",
         "value": 1,
         "content": {
-          "type": "PATTERN",
-          "value": "(src|scctick|tick|scc|hpc|break)<[^>]*>"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "(src|scctick|tick|scc|hpc)<[^>]*>"
+            },
+            {
+              "type": "PATTERN",
+              "value": "break<[^>]*>(\\([^)]*\\))?"
+            }
+          ]
         }
       }
     },
