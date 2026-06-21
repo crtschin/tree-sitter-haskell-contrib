@@ -179,9 +179,6 @@ mods=()
 for hs in "$repo"/test/fixtures/*.hs; do mods+=("$(basename "$hs" .hs)"); done
 case "$lang" in
 ghc-core)
-    for m in "${mods[@]}"; do
-        xfail["passes/$m.dump-late-cc"]="LateCC packs bindings with no blank lines, so the _item_sep scanner cannot separate them"
-    done
     # FFI's foreign call carries -dppr-debug FCallId decoration (glued {v ..}
     # unique tags + [gid[ForeignCall]]) the coarse foreign_call rule doesn't model.
     xfail["ppr-debug/Ffi.dump-simpl"]="heavily-decorated -dppr-debug developer format (foreign-call FCallId with glued unique tags + [gid[ForeignCall]])"

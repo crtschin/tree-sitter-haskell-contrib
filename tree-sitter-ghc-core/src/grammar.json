@@ -548,6 +548,18 @@
             "type": "SYMBOL",
             "name": "_expr"
           }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": ";"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -2638,6 +2650,9 @@
     [
       "paren_operator",
       "_atom"
+    ],
+    [
+      "binding"
     ]
   ],
   "precedences": [],

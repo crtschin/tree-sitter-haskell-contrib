@@ -73,6 +73,11 @@ export default grammar({
     // A parenthesised operator is either a binder name `(:|) = ..` or a
     // parenthesised atom (in a bare expression or an argument).
     [$.paren_operator, $._atom],
+    // A binding's trailing `;` (the -ddump-late-cc layout terminator) collides
+    // with the `;` that separates bindings inside a `let { b1; b2 }`. GLR keeps
+    // whichever completes: the separator reading inside a let, the terminator
+    // reading at top level.
+    [$.binding],
   ],
 
   rules: {
@@ -196,6 +201,9 @@ export default grammar({
         repeat($._binder),
         "=",
         field("rhs", $._expr),
+        // -ddump-late-cc layout-terminates a binding whose rhs ends in `}`
+        // (case/let) with a `;` before the next packed group; absent elsewhere.
+        optional(";"),
       ),
 
     type_signature: ($) =>
