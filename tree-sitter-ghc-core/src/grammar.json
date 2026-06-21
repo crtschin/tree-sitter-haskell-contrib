@@ -1193,6 +1193,10 @@
               {
                 "type": "SYMBOL",
                 "name": "constructor"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "literal"
               }
             ]
           }
@@ -1231,7 +1235,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "__ffi_[a-z_]+"
+        "value": "__ffi_[a-z_]+:?"
       }
     },
     "_ppr_debug_tag": {

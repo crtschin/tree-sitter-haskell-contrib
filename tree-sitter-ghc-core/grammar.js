@@ -341,9 +341,15 @@ export default grammar({
       ),
 
     // A C foreign call printed as an applied primitive:
-    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..` (Core/Ppr FCallId). The
-    // target carries the package-qualified C symbol; the `:: ty` is its full
-    // (often unboxed-tuple-returning) System-FC type. Under -dppr-debug the
+    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..` (Core/Ppr FCallId). A
+    // static target is the package-qualified C symbol `unit:sym`; an RTS/
+    // wired-in symbol has no unit and is printed `:sym` glued to the keyword
+    // (`__ffi_static_ccall_unsafe:createAdjustor`), so the keyword absorbs that
+    // optional separator colon and `sym` stays a plain name. A `__ffi_dyn_ccall_*`
+    // (call through a function pointer) has a `DynamicTarget`, which the CCall
+    // printer renders as the empty C label `""`, so the target is a string
+    // literal there. The `:: ty` is its full (often unboxed-tuple-returning)
+    // System-FC type. Under -dppr-debug the
     // FCallId's Unique is glued onto the closing brace as a `{v d12d}` tag (a
     // plain Var carries it inside its name token; the structural `}` here can't,
     // so it is absorbed explicitly); the rest of the debug decoration -- the
@@ -354,13 +360,13 @@ export default grammar({
       seq(
         "{",
         $._ffi_keyword,
-        field("target", choice($.variable, $.constructor)),
+        field("target", choice($.variable, $.constructor, $.literal)),
         $._dcolon,
         field("type", $._type),
         "}",
         optional($._ppr_debug_tag),
       ),
-    _ffi_keyword: ($) => token(/__ffi_[a-z_]+/),
+    _ffi_keyword: ($) => token(/__ffi_[a-z_]+:?/),
     _ppr_debug_tag: ($) => token(/\{[^}]*\}/),
 
     // [gid..] / [lid..] -- an occurrence's IdInfo, printed inline under

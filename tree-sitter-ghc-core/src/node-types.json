@@ -1078,6 +1078,10 @@
             "named": true
           },
           {
+            "type": "literal",
+            "named": true
+          },
+          {
             "type": "variable",
             "named": true
           }
