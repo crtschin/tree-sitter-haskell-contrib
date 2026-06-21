@@ -343,7 +343,13 @@ export default grammar({
     // A C foreign call printed as an applied primitive:
     // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..` (Core/Ppr FCallId). The
     // target carries the package-qualified C symbol; the `:: ty` is its full
-    // (often unboxed-tuple-returning) System-FC type.
+    // (often unboxed-tuple-returning) System-FC type. Under -dppr-debug the
+    // FCallId's Unique is glued onto the closing brace as a `{v d12d}` tag (a
+    // plain Var carries it inside its name token; the structural `}` here can't,
+    // so it is absorbed explicitly); the rest of the debug decoration -- the
+    // `Just Many` multiplicity, the `[gid[ForeignCall]]` IdInfo, and the `:: ty`
+    // ascription -- parses with the same application/annotation/parens forms a
+    // decorated plain Var uses.
     foreign_call: ($) =>
       seq(
         "{",
@@ -352,8 +358,10 @@ export default grammar({
         $._dcolon,
         field("type", $._type),
         "}",
+        optional($._ppr_debug_tag),
       ),
     _ffi_keyword: ($) => token(/__ffi_[a-z_]+/),
+    _ppr_debug_tag: ($) => token(/\{[^}]*\}/),
 
     // [gid..] / [lid..] -- an occurrence's IdInfo, printed inline under
     // -dppr-debug. Coarse balanced soup, like the binding [IdInfo].

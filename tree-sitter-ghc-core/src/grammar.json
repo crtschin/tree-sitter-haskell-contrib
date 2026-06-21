@@ -1212,6 +1212,18 @@
         {
           "type": "STRING",
           "value": "}"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_ppr_debug_tag"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -1220,6 +1232,13 @@
       "content": {
         "type": "PATTERN",
         "value": "__ffi_[a-z_]+"
+      }
+    },
+    "_ppr_debug_tag": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "\\{[^}]*\\}"
       }
     },
     "id_annotation": {

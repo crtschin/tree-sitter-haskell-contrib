@@ -178,11 +178,7 @@ declare -A xfail=()
 mods=()
 for hs in "$repo"/test/fixtures/*.hs; do mods+=("$(basename "$hs" .hs)"); done
 case "$lang" in
-ghc-core)
-    # FFI's foreign call carries -dppr-debug FCallId decoration (glued {v ..}
-    # unique tags + [gid[ForeignCall]]) the coarse foreign_call rule doesn't model.
-    xfail["ppr-debug/Ffi.dump-simpl"]="heavily-decorated -dppr-debug developer format (foreign-call FCallId with glued unique tags + [gid[ForeignCall]])"
-    ;;
+ghc-core) ;; # no remaining gaps
 ghc-cmm)
     for m in "${mods[@]}"; do
         xfail["ppr-debug/$m.dump-cmm"]="heavily-decorated -dppr-debug developer format (package prefixes, unique tags throughout)"
