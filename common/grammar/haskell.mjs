@@ -70,8 +70,14 @@ export function makeTickRules() {
 
 // Qualified GHC names. variable: optional `pkg-ver:` package qualifier and
 // `Module.Sub.` qualifier, then a lower/underscore/$-led name. `#` may appear
-// within (unboxed workers). Trailing operator/colon segments cover method
-// selectors ($c==, $c<$) and operator-TyCon names ($tc:~:1). constructor:
+// within (unboxed workers). The name body admits embedded `"..."` segments: a
+// HasField/HasCField instance dfun glues its type-level Symbol literal into the
+// Id name (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`, `$fHasCFieldCTm"tm_sec"1`).
+// Trailing operator/colon segments cover method selectors ($c==, $c<$, the
+// dot-bearing $c.&./$c.|.) and operator-TyCon names ($tc:~:1). A `.` is admitted
+// in an operator run only when it sits with a non-dot op char, so a `forall a.`
+// dot (a lone `.` after the tyvar) is left as the forall separator, not munched
+// into `a.`. constructor:
 // upper-led, with trailing `:Upper` segments for class-dictionary cons (C:C,
 // C:Show, D:R:FInt).
 // operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
@@ -83,7 +89,7 @@ export function makeLexicalRules() {
   return {
     variable: ($) =>
       token(
-        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$][A-Za-z0-9_'$#]*([-+*/<>=~!&|^%$:?]+[A-Za-z0-9_'$#]*)*(\{[^}]*\})?/,
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$]([A-Za-z0-9_'$#]|"[^"]*")*([.]*[-+*/<>=~!&|^%$:?][-+*/<>=~!&|^%.$:?]*[A-Za-z0-9_'$#]*)*(\{[^}]*\})?/,
       ),
     constructor: ($) =>
       token(
