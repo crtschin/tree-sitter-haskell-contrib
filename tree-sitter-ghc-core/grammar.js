@@ -133,7 +133,11 @@ export default grammar({
     // rules/CorePrep section as soup. A bare expr and a binding still share a
     // leading run; the negative dynamic precedence makes GLR keep the binding
     // whenever a `=` follows, so a bare expr only wins in an expression-only
-    // section.
+    // section. The bare expr may itself end in a top-level cast (`(..) `cast` co`,
+    // the simplified-expression dump of a coerced binding's rhs). The cast hangs
+    // off the `_stmt_head` head (not the full `cast` rule, whose `_atom` lhs would
+    // re-admit a bare-literal head and let a trailing rules section's `"name"`
+    // string masquerade as a group), so the no-bare-literal invariant holds.
     expr_statement: ($) =>
       prec.dynamic(
         -1,
@@ -144,7 +148,13 @@ export default grammar({
           $.case_as_let,
           $.jump,
           $.tick_expr,
-          prec.left(seq($._stmt_head, repeat($._arg))),
+          prec.left(
+            seq(
+              $._stmt_head,
+              repeat($._arg),
+              optional(seq("`cast`", $.coercion)),
+            ),
+          ),
         ),
       ),
     _stmt_head: ($) =>

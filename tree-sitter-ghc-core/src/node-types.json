@@ -924,6 +924,10 @@
           "named": true
         },
         {
+          "type": "coercion",
+          "named": true
+        },
+        {
           "type": "coercion_arg",
           "named": true
         },

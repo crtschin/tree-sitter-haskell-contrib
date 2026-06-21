@@ -328,6 +328,27 @@
                     "type": "SYMBOL",
                     "name": "_arg"
                   }
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SEQ",
+                      "members": [
+                        {
+                          "type": "STRING",
+                          "value": "`cast`"
+                        },
+                        {
+                          "type": "SYMBOL",
+                          "name": "coercion"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
                 }
               ]
             }
