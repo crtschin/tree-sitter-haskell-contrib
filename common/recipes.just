@@ -14,7 +14,7 @@ check:
 
 # Validate every editor query (queries/*/*.scm) compiles against the grammar.
 check-queries: build
-    ../test/check-queries.sh {{ slug }} | tapview
+    ../test/runners/check-queries.sh {{ slug }} | tapview
 
 # Format the grammar file (mode: write|check)
 fmt mode="write":
@@ -45,9 +45,9 @@ _il-test *extra: build
     #!/usr/bin/env bash
     set -uo pipefail
     rc=0
-    ../test/check-queries.sh {{ slug }} | tapview || rc=1
-    ../test/parse-corpus.sh {{ slug }} | tapview || rc=1
-    ../test/gen-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/runners/check-queries.sh {{ slug }} | tapview || rc=1
+    ../test/runners/parse-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/runners/gen-corpus.sh {{ slug }} | tapview || rc=1
     for r in {{ extra }}; do just "$r" || rc=1; done
     tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
     exit "$rc"
