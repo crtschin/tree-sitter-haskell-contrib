@@ -35,3 +35,8 @@ validate-injections:
 # test/gen-corpus.sh).
 gen-corpus: build
     ../test/gen-corpus.sh {{ slug }} | tapview
+
+# Like gen-corpus but across every flake `ghcVersions` GHC. Opt-in; NOT run by
+# `test`/CI. Heavy (pulls each GHC closure).
+gen-corpus-all: build
+    ../test/gen-corpus.sh {{ slug }} all | tapview

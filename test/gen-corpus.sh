@@ -4,13 +4,18 @@
 # everything. NOTHING is committed: the dumps live in a `mktemp` directory that
 # is removed on exit, so a rerun always starts from a clean slate (rewrite on
 # rerun + guaranteed cleanup). This is the on-demand coverage check for grammar
-# development. It is deliberately NOT part of `just test`/CI, which would
-# otherwise need a GHC compiler.
+# development; the default single-version run is also part of `just test`/CI (via
+# _il-test), which pulls one GHC compiler.
 #
 # Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`
 # (it parses with ./result/parser).
 #
-# Usage: gen-corpus.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump>
+# Usage: gen-corpus.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump> [all | <ghc-attr>...]
+#   (no selector)  the default GHC (nixpkgs#ghc); what `just test`/CI exercises
+#   all            every version in flake.nix `ghcVersions` (opt-in; heavy)
+#   <ghc-attr>...  explicit nixpkgs haskell.compiler attrs, e.g. ghc96 ghc98
+# The selector may also come from $GEN_GHC (same values), letting `just test
+# --all` opt into the matrix without changing the shared _il-test invocation.
 
 set -uo pipefail
 
@@ -26,13 +31,31 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 parser_dir="$repo/tree-sitter-$lang/result/parser"
 ts_lang="${lang/ghc-/ghc_}"
 
+# Version selector: positional args after <lang>, else $GEN_GHC (so `just test
+# --all` can opt in without a positional). `all` -> the flake's `ghcVersions`
+# (read jq-free as a space-joined string); otherwise space-separated nixpkgs
+# haskell.compiler attrs; nothing -> the default GHC.
+sel=("${@:2}")
+[[ ${#sel[@]} -eq 0 && -n "${GEN_GHC:-}" ]] && read -ra sel <<<"$GEN_GHC"
+versions=("default")
+if [[ "${sel[0]:-}" == "all" ]]; then
+    read -ra versions < <(nix eval --inputs-from "$repo" "$repo"#ghcVersions \
+        --apply 'builtins.concatStringsSep " "' --raw)
+    [[ ${#versions[@]} -eq 0 ]] && { echo "no ghcVersions in flake" >&2; exit 1; }
+elif [[ ${#sel[@]} -gt 0 ]]; then
+    versions=("${sel[@]}")
+fi
+
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# One `nix shell` amortises the slow GHC closure realisation across every
-# compile. The quoted heredoc runs inside it. $GEN_* come from the environment.
-GEN_TMP="$tmp" GEN_REPO="$repo" GEN_LANG="$lang" \
-    nix shell --inputs-from "$repo" nixpkgs#ghc --command bash -s <<'GEN'
+# One `nix shell` per version amortises the slow GHC closure realisation across
+# every compile of that version. The quoted heredoc runs inside it; $GEN_* come
+# from the environment, with $GEN_TMP namespacing each version's output.
+generate_for() { # generate_for <nix-ref> <out-dir>
+    mkdir -p "$2"
+    GEN_TMP="$2" GEN_REPO="$repo" GEN_LANG="$lang" \
+        nix shell --inputs-from "$repo" "$1" --command bash -s <<'GEN'
 set -uo pipefail
 cd "$GEN_REPO"
 
@@ -136,6 +159,12 @@ if [[ -n "${passes:-}" ]]; then
     done
 fi
 GEN
+}
+
+for v in "${versions[@]}"; do
+    [[ "$v" == default ]] && ref="nixpkgs#ghc" || ref="nixpkgs#haskell.compiler.$v"
+    generate_for "$ref" "$tmp/$v" || echo "warning: generation failed for $v" >&2
+done
 
 # Drop GHC's wall-clock timestamp line (a -ddump-to-file artifact absent from
 # stderr dumps) so what we parse matches the real-world surface.
@@ -197,7 +226,11 @@ for f in "${files[@]}"; do
     i=$((i + 1))
     label="${f#"$tmp"/}"
     label="${label/test\/fixtures\//}" # drop the source-path noise GHC mirrors
-    reason="${xfail[$label]:-}"
+    # label carries a leading "<version>/" segment; xfail keys are
+    # version-agnostic, so match on the stripped key, but let a version-qualified
+    # key win if one is ever added.
+    xkey="${label#*/}"
+    reason="${xfail[$label]:-${xfail[$xkey]:-}}"
     todo=""
     [[ -n "$reason" ]] && todo=" # TODO $reason"
     if [[ -n "${error_for[$f]:-}" ]]; then

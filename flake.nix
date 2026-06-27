@@ -30,7 +30,7 @@
       ghc-src,
       ...
     }:
-    utils.lib.eachDefaultSystem (
+    (utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = import nixpkgs {
@@ -185,5 +185,16 @@
           env.GHC_SRC = "${ghc-src}";
         };
       }
-    );
+    ))
+    // {
+      # Single source of truth for test/gen-corpus.sh's opt-in multi-version
+      # matrix (`gen-corpus.sh <lang> all`). Attr names resolve against the pinned
+      # nixpkgs; bumping nixpkgs may require adjusting them. A plain string list,
+      # not built packages, so `nix flake check`/CI never realise the GHC closures.
+      ghcVersions = [
+        "ghc910"
+        "ghc912"
+        "ghc914"
+      ];
+    };
 }

@@ -8,10 +8,13 @@ mod ghc-dump 'tree-sitter-ghc-dump'
 default: test
 
 # Run every grammar's full suite to completion (keep going past failures), then
-# exit non-zero if any grammar failed.
-test:
+# exit non-zero if any grammar failed. With `--all`, the IL grammars' gen-corpus
+# step runs the cross-GHC matrix (flake `ghcVersions`) instead of the single
+# default GHC -- opt-in and heavy (see test/gen-corpus.sh).
+test *flags:
     #!/usr/bin/env bash
     set -uo pipefail
+    [[ " {{ flags }} " == *" --all "* ]] && export GEN_GHC=all
     rc=0
     for g in cabal cabal-project ghc-core ghc-stg ghc-cmm ghc-dump; do
         echo "==> $g"
@@ -34,6 +37,9 @@ clean: cabal::clean cabal-project::clean ghc-core::clean ghc-stg::clean ghc-cmm:
 
 # Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a GHC compiler. Ephemeral. Also run by `test`.
 gen-corpus: ghc-core::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
+
+# Opt-in: dump matrix across ALL flake `ghcVersions` per IL grammar. Heavy (pulls each GHC closure). Not run by `test`.
+gen-corpus-all: ghc-core::gen-corpus-all ghc-stg::gen-corpus-all ghc-cmm::gen-corpus-all ghc-dump::gen-corpus-all
 
 # Generate flamegraphs for the corpus-backed grammars.
 flamegraph: cabal::flamegraph cabal-project::flamegraph
