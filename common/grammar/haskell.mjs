@@ -14,7 +14,21 @@ import { sepBy } from "./combinators.mjs";
 // around every GHC dump. The middle must hold a non-`=` char (the space-padded
 // title), so an all-`=` line (e.g. a `=========` divider in a dump body) is not
 // a banner. Used by all four grammars (members and the ghc-dump container).
-export const banner = ($) => token(prec(1, /={4,}[^\n]*[^\n=][^\n]*={4,}/));
+//
+// A wide pass description wraps its parenthesised record across lines: GHC 9.12+
+// prints `Float out(FOS {Lam = .., Consts = .., JoinsToTop = .., OverSatApps =
+// ..})` over several lines. The second alternative absorbs those newlines inside
+// the `(..)` (bounded by the first `)`, so it can't span unrelated banners).
+export const banner = ($) =>
+  token(
+    prec(
+      1,
+      choice(
+        /={4,}[^\n]*[^\n=][^\n]*={4,}/,
+        /={4,}[^\n(]*\([^)]*\)[^\n]*={4,}/,
+      ),
+    ),
+  );
 
 // Integer / float / char / string literals (Core and STG print these the same).
 export function makeLiteralRules() {

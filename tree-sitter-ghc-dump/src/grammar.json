@@ -53,8 +53,17 @@
         "type": "PREC",
         "value": 1,
         "content": {
-          "type": "PATTERN",
-          "value": "={4,}[^\\n]*[^\\n=][^\\n]*={4,}"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "={4,}[^\\n]*[^\\n=][^\\n]*={4,}"
+            },
+            {
+              "type": "PATTERN",
+              "value": "={4,}[^\\n(]*\\([^)]*\\)[^\\n]*={4,}"
+            }
+          ]
         }
       }
     },

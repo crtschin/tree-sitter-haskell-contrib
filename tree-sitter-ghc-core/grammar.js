@@ -189,9 +189,11 @@ export default grammar({
 
     // Result size of Tidy Core
     //   = {terms: 182, types: 90, coercions: 0, joins: 4/8}
-    // The pass description can carry its own `{..}` (Float out(FOS {..})), so
-    // match the whole first line, then the `= {..}` record on the next line.
-    result_size: ($) => token(/Result size of[^\n]*\s*=\s*\{[^}]*\}/),
+    // The pass description can carry its own `(..)` record (Float out(FOS {..})),
+    // which GHC 9.12+ wraps across lines, so allow that record to span newlines
+    // (bounded by the first `)`), then the `= {..}` size record that follows.
+    result_size: ($) =>
+      token(/Result size of[^\n(]*(\([^)]*\))?\s*=\s*\{[^}]*\}/),
 
     // Rec bindings are blank-line separated (ITEM_SEP). `Rec {` abuts the first
     // and `end Rec }` abuts the last (single newlines, no ITEM_SEP).
