@@ -74,6 +74,10 @@
             "named": true
           },
           {
+            "type": "tagged_occurrence",
+            "named": true
+          },
+          {
             "type": "tick_expr",
             "named": true
           },
@@ -366,6 +370,10 @@
             "named": true
           },
           {
+            "type": "tagged_occurrence",
+            "named": true
+          },
+          {
             "type": "tick_expr",
             "named": true
           },
@@ -433,6 +441,10 @@
           },
           {
             "type": "special_con",
+            "named": true
+          },
+          {
+            "type": "tagged_occurrence",
             "named": true
           },
           {
@@ -894,6 +906,10 @@
             "named": true
           },
           {
+            "type": "tagged_occurrence",
+            "named": true
+          },
+          {
             "type": "tick_expr",
             "named": true
           },
@@ -965,6 +981,10 @@
           },
           {
             "type": "special_con",
+            "named": true
+          },
+          {
+            "type": "tagged_occurrence",
             "named": true
           },
           {
@@ -1227,6 +1247,10 @@
         },
         {
           "type": "special_con",
+          "named": true
+        },
+        {
+          "type": "tagged_occurrence",
           "named": true
         },
         {
@@ -1658,6 +1682,10 @@
   },
   {
     "type": "tag",
+    "named": true
+  },
+  {
+    "type": "tagged_occurrence",
     "named": true
   },
   {

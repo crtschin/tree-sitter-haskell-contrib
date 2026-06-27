@@ -87,6 +87,17 @@ export default grammar({
       ),
     tag: ($) => token(/<Tag[^>]*>/),
 
+    // A bare variable occurrence carrying its inferred tag sig, `wild<TagVal[TagEPT]>`,
+    // emitted in Final STG when tag inference annotates occurrences (the paren form
+    // (name, <tag>) is tagged_binder). The variable lexer's operator suffix munches
+    // `<TagVal` into the name, and the `<`/`>` it relies on for method selectors
+    // ($c<*>, dm<=) cannot be told apart from `<Tag` without lookahead, so match the
+    // whole occurrence as one maximal-munch token (cf. ghc-cmm's `special`).
+    tagged_occurrence: ($) =>
+      token(
+        /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$]([A-Za-z0-9_'$#]|"[^"]*")*<Tag[^>]*>/,
+      ),
+
     // The [IdInfo] bracket and pre-sig [InlPrag/Occ] note, both coarse balanced
     // soup for now (the same leniency ghc-core takes over IdInfo structure).
     idinfo: soupBracket,
@@ -233,6 +244,7 @@ export default grammar({
     _stg_atom: ($) =>
       choice(
         $.variable,
+        $.tagged_occurrence,
         $.literal,
         $.constructor,
         $.special_con,

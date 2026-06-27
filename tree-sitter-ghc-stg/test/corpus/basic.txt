@@ -96,6 +96,33 @@ f = \r [ds] case ds of wild { Left e [Occ=Once1] -> e; __DEFAULT -> ds; };
           rhs: (variable))))))
 
 ================================
+Tag-annotated occurrence in an alt rhs
+================================
+
+==================== Final STG: ====================
+go = {} \r [f ds] case ds of wild { C e -> wild<TagVal[TagEPT]>; };
+
+--------------------------------
+
+(source_file
+  (banner)
+  (binding
+    name: (variable)
+    rhs: (closure
+      (free_vars)
+      (update_flag)
+      (arg_list
+        (variable)
+        (variable))
+      body: (case
+        scrutinee: (variable)
+        binder: (variable)
+        (alternative
+          pattern: (constructor)
+          (variable)
+          rhs: (tagged_occurrence))))))
+
+================================
 Rec block and tagged binders
 ================================
 

@@ -2,6 +2,7 @@
 
 ; ---- names (generic, specialized further down, which overrides these) ----
 (variable) @variable
+(tagged_occurrence) @variable
 (tyvar) @type.parameter
 (constructor) @constructor
 (special_con) @constructor

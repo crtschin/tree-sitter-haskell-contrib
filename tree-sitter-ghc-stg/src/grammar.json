@@ -251,6 +251,13 @@
         "value": "<Tag[^>]*>"
       }
     },
+    "tagged_occurrence": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\\.)*[a-z_$]([A-Za-z0-9_'$#]|\"[^\"]*\")*<Tag[^>]*>"
+      }
+    },
     "idinfo": {
       "type": "PREC_DYNAMIC",
       "value": 1,
@@ -963,6 +970,10 @@
         {
           "type": "SYMBOL",
           "name": "variable"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "tagged_occurrence"
         },
         {
           "type": "SYMBOL",
