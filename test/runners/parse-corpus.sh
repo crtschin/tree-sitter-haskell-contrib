@@ -18,8 +18,8 @@ case "$preset" in
 esac
 
 dir="$(dirname "$0")"
-source "$dir/parse-lib.sh"
-mapfile -t files < <("$dir/${preset}-files.sh")
+source "$dir/../lib/parse-lib.sh"
+mapfile -t files < <("$dir/../files/${preset}-files.sh")
 
 n=${#files[@]}
 echo "TAP version 14"

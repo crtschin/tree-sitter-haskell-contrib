@@ -58,7 +58,7 @@ for cmd in "${required[@]}"; do
 done
 
 dir="$(dirname "$0")"
-mapfile -t files < <("$dir/${preset}-files.sh")
+mapfile -t files < <("$dir/../files/${preset}-files.sh")
 
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "no files matched for preset $preset" >&2

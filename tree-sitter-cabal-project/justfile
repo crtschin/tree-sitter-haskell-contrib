@@ -16,27 +16,27 @@ test: build
     #!/usr/bin/env bash
     set -uo pipefail
     rc=0
-    ../test/check-queries.sh {{ slug }} | tapview || rc=1
-    ../test/parse-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/runners/check-queries.sh {{ slug }} | tapview || rc=1
+    ../test/runners/parse-corpus.sh {{ slug }} | tapview || rc=1
     tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
     exit "$rc"
 
 # Parse every cabal.project / *.project file across the configured corpora.
 parse-corpus:
-    ../test/parse-corpus.sh {{ slug }} | tapview
+    ../test/runners/parse-corpus.sh {{ slug }} | tapview
 
 # Profile parsing the corpus and emit flamegraph-{{ slug }}.svg at the repo root.
 flamegraph:
-    ../test/flamegraph-corpus.sh {{ slug }} ../flamegraph-{{ slug }}.svg
+    ../test/perf/flamegraph-corpus.sh {{ slug }} ../flamegraph-{{ slug }}.svg
 
 # Benchmark parsing the corpus with hyperfine.
 bench:
-    ../test/bench-corpus.sh {{ slug }}
+    ../test/perf/bench-corpus.sh {{ slug }}
 
 # Profile parsing the corpus under valgrind (tool = callgrind | cachegrind |
 # memcheck | massif). Emits valgrind-{{ slug }}.{out,txt} at the repo root.
 valgrind tool="callgrind":
-    ../test/valgrind-corpus.sh {{ slug }} ../valgrind-{{ slug }} --tool={{ tool }}
+    ../test/perf/valgrind-corpus.sh {{ slug }} ../valgrind-{{ slug }} --tool={{ tool }}
 
 # Parse the corpus with -DSCANNER_STATS so the scanner emits a one-line
 # [scanner-stats] call-rate report on stderr. Uses `tree-sitter parse
@@ -45,6 +45,6 @@ valgrind tool="callgrind":
 stats: generate
     #!/usr/bin/env bash
     set -euo pipefail
-    mapfile -t files < <(../test/{{ slug }}-files.sh)
+    mapfile -t files < <(../test/files/{{ slug }}-files.sh)
     CFLAGS="-DSCANNER_STATS" tree-sitter parse --quiet --rebuild "${files[@]}" >/dev/null
     tree-sitter parse --quiet --rebuild "${files[0]}" >/dev/null 2>&1

@@ -13,11 +13,11 @@
 
 set -uo pipefail
 
-source "$(dirname "$0")/parse-lib.sh"
+source "$(dirname "$0")/../lib/parse-lib.sh"
 
 : "${GHC_SRC:?GHC_SRC is unset (enter the dev shell)}"
 
-repo="$(cd "$(dirname "$0")/.." && pwd)"
+repo="$(cd "$(dirname "$0")/../.." && pwd)"
 inj="$repo/tree-sitter-ghc-dump/queries/helix/injections.scm"
 
 # (banner-regex, member-language) dispatch table, read straight out of
@@ -59,7 +59,7 @@ classify() { # classify <banner> -> echoes the member language, or nothing
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-mapfile -t files < <("$repo/test/ghc-files.sh" ghc-dump)
+mapfile -t files < <("$repo/test/files/ghc-files.sh" ghc-dump)
 
 # Split each file into banner-delimited sections and bucket each section file by
 # its dispatched member language. injections.scm injects the whole section

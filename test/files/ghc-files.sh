@@ -2,7 +2,7 @@
 # Emit the harvested dump fixtures for one GHC IL grammar: the .stderr files in
 # $GHC_SRC's testsuite that carry that IL's phase banner. This is the committed
 # corpus gate (no GHC compiler needed, since $GHC_SRC is a flake input). The
-# comprehensive generated matrix is ephemeral. See test/gen-corpus.sh.
+# comprehensive generated matrix is ephemeral. See test/runners/gen-corpus.sh.
 #
 # Selection is by banner content, not extension: a .stderr captures every
 # enabled -ddump-* pass (Core, STG, Cmm, ...) plus warnings, so the file name
