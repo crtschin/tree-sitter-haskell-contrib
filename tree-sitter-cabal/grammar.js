@@ -3,8 +3,7 @@
 
 import { makePredicateRules, makeValueTokenRules } from "./common/utils.mjs";
 
-// Build a case-insensitive regex for a keyword. Each ASCII letter becomes
-// [aA], each non-letter (hyphen, digit) is kept as-is.
+// Case-insensitive regex for a keyword: each ASCII letter becomes [aA].
 function ci(str) {
   return new RegExp(
     str
@@ -19,35 +18,32 @@ function ci(str) {
 export default grammar({
   name: "cabal",
 
-  // U+00A0 (non-breaking space) appears in some old cabal files. Treat it as whitespace.
+  // U+00A0 (non-breaking space) appears in some old cabal files. Treat it as
+  // whitespace.
   extras: ($) => [$.comment, /[ \t\r ]/],
 
-  // Order must match scanner/scanner.c's enum Token. Both _indented and
-  // _continuation are declared so the shared scanner's valid_symbols array
-  // sizes match the enum. Cabal only references _indented.
+  // Order must match the shared scanner's enum Token. _indented and _continuation are both
+  // declared for valid_symbols sizing. cabal references only _indented.
   externals: ($) => [
     $._newline,
     $.indent,
     $.dedent,
     $._indented,
     $._continuation,
-    // Hidden Unicode externals. The scanner emits these only when a name
-    // contains a non-ASCII byte. Visible `section_name` / `field_name`
-    // rules wrap them via `choice` with the ASCII regex. See the dispatch
-    // comment in scanner.c.
+    // Hidden Unicode externals, emitted only on a non-ASCII byte. Visible section_name /
+    // field_name wrap them via `choice` with the ASCII regex. See scanner.c.
     $._section_name,
     $._field_name,
   ],
 
   word: ($) => $.identifier,
 
-  // Flatten the 23-alternative _value_token wrapper rule into its callsite
-  // (field_value). The wrapper is hidden. Inlining shrinks the parse
-  // table without altering the AST.
+  // Flatten the hidden _value_token wrapper rule into its callsite (field_value).
+  // Inlining shrinks the parse table without altering the AST.
   inline: ($) => [$._value_token],
 
-  // Optional empty bodies on condition_if / condition_elseif make `else`/`elif` reachable
-  // both as continuation of the current conditional and as the start of an outer one.
+  // Empty condition_if/elseif bodies make `else`/`elif` reachable both as a continuation
+  // here and as the start of an outer conditional.
   conflicts: ($) => [[$.conditional]],
 
   rules: {
@@ -62,8 +58,7 @@ export default grammar({
     cabal_version: ($) =>
       seq(repeat($._newline), ci("cabal-version"), ":", $.spec_version),
 
-    // Matches the modern bare version (3.0), the old range prefix (>= 1.8),
-    // and the old -any / -none forms used before cabal-version was meaningful.
+    // Modern bare version (3.0), old range prefix (>= 1.8), and old -any/-none forms.
     spec_version: ($) => /(>=?\s*)?\d+\.\d+(\.\d+)*(\.\*)?|[+\-]any/,
 
     properties: ($) => repeat1(seq($.field, repeat($._newline))),
@@ -148,10 +143,9 @@ export default grammar({
         optional(field("properties", $.property_or_conditional_block)),
       ),
 
-    // ASCII fast path via DFA + Unicode fallback via scanner-emitted
-    // `_section_name`. ci-regex aliases for section_type keywords win at
-    // top-level by specificity. The scanner only fires when the name
-    // contains a non-ASCII byte, so ASCII keywords are never preempted.
+    // ASCII via DFA, Unicode via the scanner's `_section_name`. ci-regex section_type
+    // aliases win by specificity. The scanner fires only on a non-ASCII byte, so ASCII
+    // keywords are never preempted.
     section_name: ($) => choice(/\w*[a-zA-Z]\w*(-\w+)*/, $._section_name),
 
     property_block: ($) =>
@@ -171,7 +165,8 @@ export default grammar({
           seq(
             optional($.field_value),
             $.indent,
-            // field_value is optional on every line so comment-only lines parse cleanly.
+            // field_value is optional on every line so comment-only lines parse
+            // cleanly.
             optional($.field_value),
             repeat(seq($._indented, optional($.field_value))),
             $.dedent,
@@ -212,8 +207,8 @@ export default grammar({
     module_name: ($) =>
       token(prec(5, /[A-Z][A-Za-z0-9_']*(\.[A-Z][A-Za-z0-9_']*)+/)),
 
-    // Atomic token. Rejects the colon entirely when it isn't followed by a valid
-    // sublibrary, so prose colons aren't mistaken for qualified-name separators.
+    // Atomic token. Rejects the `:` unless a valid sublibrary follows, so prose colons
+    // aren't taken as qualified-name separators.
     qualified_name: ($) =>
       token(
         prec(
@@ -250,14 +245,13 @@ export default grammar({
     conditional: ($) =>
       seq(
         $.condition_if,
-        // Newlines between clauses allow `else`/`elif` to be found even when
-        // the preceding `if`/`elif` has an empty body (no indented block).
+        // Newlines between clauses let `else`/`elif` be found even when the preceding
+        // `if`/`elif` has an empty body.
         repeat(seq(repeat($._newline), $.condition_elseif)),
         optional(seq(repeat($._newline), $.condition_else)),
       ),
 
-    // The body of if/elif can be empty (e.g. `if flag(x)` immediately followed
-    // by `else`). Making the block optional handles that case.
+    // if/elif body can be empty (`if flag(x)` then `else`), so the block is optional.
     condition_if: ($) =>
       seq(
         "if",

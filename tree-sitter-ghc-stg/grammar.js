@@ -18,20 +18,11 @@ import {
 } from "./common/grammar/haskell.mjs";
 
 // Models the STG surface GHC's printer emits (compiler/GHC/Stg/Syntax.hs
-// pprStgExpr/pprStgRhs/pprGenStgBinding). Every STG binding (top-level, Rec
-// pair, and let) ends with `;` (pprStgRhs <> semi), so the semicolon
-// self-delimits each binding and blank lines are ordinary whitespace. STG needs
-// no external layout scanner (ghc-core uses _item_sep for this job).
-//
-// Coverage: phase banner, bindings (sig + [IdInfo], or tag-inference
-// (name, <Tag..>) binders), Rec groups, closures (cost-centre? free-vars?
-// \r/\u/\s/\j update flag, [args], body), saturated constructors (StgRhsCon's
-// Con! [args]), top-level string literals, the expression grammar (StgApp,
-// StgConApp/StgOpApp's bracketed args, let/let-no-escape, case + alternatives),
-// the System FC type grammar (shared surface with Core), qualified names, and
-// literals. The [IdInfo] bracket is coarse balanced-delimiter soup, a deliberate
-// leniency over structure. Drives the harvested STG dumps to a clean parse. See
-// README.md.
+// pprStgExpr/pprStgRhs/pprGenStgBinding). Every STG binding ends with `;` (pprStgRhs <>
+// semi), so the semicolon self-delimits bindings and blank lines are ordinary whitespace.
+// STG needs no external layout scanner (unlike ghc-core's _item_sep). The [IdInfo] bracket
+// is coarse balanced-delimiter soup, a deliberate leniency over structure. Drives the
+// harvested STG dumps to a clean parse. See README.md.
 
 export default grammar({
   name: "ghc_stg",
@@ -67,12 +58,10 @@ export default grammar({
         ";",
       ),
 
-    // An untagged binder. The signature is suppressed in some dumps (Final STG
-    // often prints bare `name = rhs`). When present, the optional pre-`::`
-    // bracket is an [InlPrag=..]/[Occ=..] note and a trailing bracket is the
-    // IdInfo. The
-    // bound Id can be upper-led (data-con worker/wrapper names like MkW_F), which
-    // lexes as a constructor, so accept either.
+    // An untagged binder. The signature is suppressed in some dumps (Final STG often
+    // prints bare `name = rhs`). When present, the pre-`::` bracket is an [InlPrag]/[Occ]
+    // note and a trailing bracket is the IdInfo. The bound Id may be upper-led (data-con
+    // worker/wrapper like MkW_F), so accept a constructor too.
     _binder_lhs: ($) =>
       seq(
         field("name", choice($.variable, $.constructor)),
@@ -86,9 +75,8 @@ export default grammar({
         optional($.idinfo),
       ),
 
-    // Tag-inference passes (CodeGenAnal, post-unarise) print binders as
-    // (name, <Tag..>). These carry no signature or IdInfo. The name can be an
-    // upper-led worker/wrapper Id (T24806.Tup2), which lexes as a constructor.
+    // Tag-inference passes (CodeGenAnal, post-unarise) print binders as (name, <Tag..>),
+    // with no signature or IdInfo. The name may be an upper-led worker/wrapper Id.
     tagged_binder: ($) =>
       seq(
         "(",
@@ -133,8 +121,7 @@ export default grammar({
 
     cost_centre: ($) => "NO_CCS",
 
-    // Con! [args] is an StgRhsCon. The `!` bang marks a saturated constructor
-    // binding.
+    // Con! [args] is an StgRhsCon. The `!` marks a saturated constructor.
     con_app_rhs: ($) =>
       seq(
         optional($.cost_centre),

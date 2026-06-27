@@ -7,23 +7,15 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Models the native Cmm dump surface GHC prints (compiler/GHC/Cmm/Node.hs,
-// Expr.hs, Ppr/). A -ddump-cmm pass prints EACH proc under its own repeated
-// banner, so a standalone dump is `(banner group)*`. The container strips the
-// banners and injects each `[..]` group body here, so banners are optional. The
-// per-stage pipeline passes (-ddump-cmm-sink and similar) print ungrouped, so
-// source_file also accepts a bare proc, data section, or `{offset ..}` graph.
+// Models the native Cmm dump surface GHC prints (compiler/GHC/Cmm/Node.hs, Expr.hs,
+// Ppr/). A -ddump-cmm pass prints EACH proc under its own repeated banner, and the
+// container strips those banners to inject each `[..]` group body here, so banners are
+// optional. The per-stage pipeline passes (-ddump-cmm-sink and similar) print ungrouped,
+// so source_file also accepts a bare proc, data section, or `{offset ..}` graph.
 //
-// Structure: a CmmGroup `[decl, ..]` of procs (`name() { info-table offset-body }`)
-// and data sections (`section ".." { .. }`). Offset bodies are labelled basic
-// blocks of statements (assign / goto / if-else-goto / call / const). The
-// expression sub-language has registers and local regs (`_c1::F64`), typed
-// memory access (`I64[Sp - 8]`, `I64![R1]`), machop calls (`%MO_F_Add_W64(..)`),
-// literals with a `:: width` ascription, and infix arithmetic/compare operators
-// (single left-assoc precedence, since a dump parser need not mirror MachOp
-// precedence). The info-table block is coarse balanced-delimiter soup (its
-// HeapRep/srt metadata is leniency over structure). `//` line comments. Cmm
-// statements/blocks are `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
+// The info-table block is coarse balanced-delimiter soup (HeapRep/srt metadata, a leniency
+// over structure). Infix operators use one left-assoc precedence, since a dump parser need
+// not mirror MachOp precedence. Cmm is `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
 // needed. Drives the harvested Cmm dumps to a clean parse. See README.md.
 
 import { sepBy, sepBy1 } from "./common/grammar/combinators.mjs";
@@ -134,7 +126,7 @@ export default grammar({
     // The pre-codegen high-level CmmForeignCall (in -ddump-cmm-from-stg and the
     // passes run before lowering): `foreign call "conv" [hints] tgt(...) returns
     // to L args: ([..]) ress: ([..]) ret_args: N ret_off: N;`. The callee args
-    // print as a `(...)` placeholder; the real argument and result registers are
+    // print as a `(...)` placeholder. The real argument and result registers are
     // the `args:`/`ress:` lists. Distinct from the lowered `call "ccall" ..`.
     foreign_call_statement: ($) =>
       seq(
@@ -193,9 +185,9 @@ export default grammar({
 
     // lhs = rhs ;  (CmmAssign / CmmStore). lhs is a register, local reg, or
     // memory access, accepted as a general expression for leniency. The rhs may
-    // be a foreign call -- `(_c1::F64) = call "ccall" .. sqrt(..)` -- which is
-    // not an ordinary expression (it is kept out of `_expr` so a bare `call`
-    // statement stays unambiguous), so it is admitted explicitly here.
+    // be a foreign call (`(_c1::F64) = call "ccall" .. sqrt(..)`), which is not an
+    // ordinary expression (it is kept out of `_expr` so a bare `call` statement
+    // stays unambiguous), so it is admitted explicitly here.
     assignment: ($) =>
       seq(
         field("lhs", $._expr),
@@ -331,20 +323,20 @@ export default grammar({
           // Labels with one+ `:Upper` segments: dictionary cons (C:Eq_con_info),
           // package:module-qualified labels (main:Ffi_init__fexports), and
           // Typeable TyCon-binding labels ($tc'C:Collection3_bytes). The start
-          // may be `$`/lower-led; the `:` must abut an uppercase (so a block
+          // may be `$`/lower-led. The `:` must abut an uppercase (so a block
           // label `foo:` and the `::` ascription are never swallowed).
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*[A-Za-z_$][A-Za-z0-9_$']*(:[A-Z][A-Za-z0-9_$']*)+[A-Za-z0-9_$.'#]*/,
           // method-selector labels with an operator name: $fNumInt_$c*_info,
           // $fEqDouble_$c/=_closure. The embedded operator run must be followed
           // by a letter/_ so that a `label+2` offset (operator then digit) is
           // left to split as a `+`/`-` binop instead of being glued in. `.` is
-          // NOT an operator char here -- it only separates module qualifiers
-          // (the prefix) -- else a plain `Mod.name` would match as name+`.`name.
+          // NOT an operator char here. It only separates module qualifiers (the
+          // prefix), else a plain `Mod.name` would match as name+`.`name.
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*[A-Za-z_$][A-Za-z0-9_$'#]*([-+*/<>=~&|^%]+[A-Za-z_$#][A-Za-z0-9_$'#]*)+[A-Za-z0-9_$.'#]*/,
           // operator-led method label, qualified (GHC.Internal.Num.*_info) or
           // bare after -dsuppress-all strips the `$fInst_$c` prefix (*_info,
           // /=_info). The required trailing name char keeps a spaced binop
-          // (`a * b`) out; `.` stays a qualifier separator (the prefix), never an
+          // (`a * b`) out. `.` stays a qualifier separator (the prefix), never an
           // operator char, so a plain `Mod.name` is not mistaken for a label.
           /([A-Za-z_$][A-Za-z0-9_$']*\.)*[-+*/<>=~&|^%]+[A-Za-z_$#][A-Za-z0-9_$'#]*[A-Za-z0-9_$.'#]*/,
         ),

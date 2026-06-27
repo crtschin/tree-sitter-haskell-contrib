@@ -19,10 +19,9 @@ export function makeSoupRules() {
   };
 }
 
-// A `[..]` bracket whose contents are soup: the bracketed-metadata idiom the
-// GHC grammars share (Core/STG [IdInfo], occurrence annotations). prec.dynamic
-// lets GLR pick it over an alternative that also opens with `[`. Assign it to a
-// named rule per grammar (idinfo, binder_annotation, ...); each stays a distinct
-// node. Requires makeSoupRules() (references $._soup).
+// A `[..]` bracket whose contents are soup: the bracketed-metadata idiom the GHC
+// grammars share (Core/STG [IdInfo], occurrence annotations). prec.dynamic lets GLR pick
+// it over an alternative that also opens with `[`. Assign it to a named rule per grammar
+// (idinfo, binder_annotation, ...), each a distinct node. Requires makeSoupRules().
 export const soupBracket = ($) =>
   prec.dynamic(1, seq("[", repeat($._soup), "]"));

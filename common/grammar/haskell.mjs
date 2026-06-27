@@ -2,11 +2,10 @@
 // @ts-check
 
 // Surface shared by the GHC Core and STG grammars: the System-FC type grammar
-// (compiler/GHC/Iface/Type.hs), the qualified-name lexical tokens, the literal
-// tokens, and the phase banner. Spread the makeXRules() results into a grammar's
-// `rules` (after its own `source_file`, which must stay the start rule). The
-// type rules reference the lexical rules ($.variable/constructor/special_con/
-// operator), so a grammar using makeTypeRules must also use makeLexicalRules.
+// (compiler/GHC/Iface/Type.hs), the qualified-name and literal tokens, and the phase
+// banner. Spread the makeXRules() results into a grammar's `rules` after its own
+// `source_file` (which must stay the start rule). makeTypeRules needs makeLexicalRules:
+// the type rules reference $.variable/constructor/special_con/operator.
 
 import { sepBy } from "./combinators.mjs";
 
@@ -45,11 +44,9 @@ export function makeLiteralRules() {
     // (`'\NUL'`). `\\.` takes the backslash + first escape char (covers `'\''`,
     // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
     _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
-    // A backslash escapes any char *including a newline*: GHC prints long string
-    // literals with a string gap (`..\n\` <newline> `   \..`), the `\`-whitespace-`\`
-    // continuation. `.` doesn't match a newline, so `\\.` would stop at the gap's
-    // opening `\<newline>`; `\\[\s\S]` spans it. Plain `[^"\\]` already covers the
-    // interior newlines and indentation between the two gap backslashes.
+    // A backslash escapes any char including a newline. GHC prints long strings with a
+    // string gap (`..\n\` <newline> `   \..`), so `\\.` would stop at the gap's opening
+    // `\<newline>`. `\\[\s\S]` spans it, and `[^"\\]` covers the interior newlines.
     _string_lit: ($) => token(/"(\\[\s\S]|[^"\\])*"#*/),
   };
 }
@@ -62,7 +59,7 @@ export function makeLiteralRules() {
 // keyword-led `<..>` win the equal-length lex tie against $.variable, whose
 // operator-suffix class (kept for $c<$ / $c>>= selectors) would otherwise munch
 // the `<..>` into the name. A `Breakpoint` always prints its free-variable list
-// `(v,..)` (possibly empty `()`) glued to the angle part; that paren run belongs
+// `(v,..)` (possibly empty `()`) glued to the angle part. That paren run belongs
 // to the tick, not the wrapped body, so the break form folds it in. Leaving it
 // as a following atom mis-attaches when the body is a non-atom (a `case`/`let`):
 // the `(vars)` fills the body slot and the real body has nowhere to go.
@@ -82,20 +79,21 @@ export function makeTickRules() {
   };
 }
 
-// Qualified GHC names. variable: optional `pkg-ver:` package qualifier and
-// `Module.Sub.` qualifier, then a lower/underscore/$-led name. `#` may appear
-// within (unboxed workers). The name body admits embedded `"..."` segments: a
-// HasField/HasCField instance dfun glues its type-level Symbol literal into the
-// Id name (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`, `$fHasCFieldCTm"tm_sec"1`).
-// Trailing operator/colon segments cover method selectors ($c==, $c<$, the
-// dot-bearing $c.&./$c.|.) and operator-TyCon names ($tc:~:1). A `.` is admitted
-// in an operator run only when it sits with a non-dot op char, so a `forall a.`
-// dot (a lone `.` after the tyvar) is left as the forall separator, not munched
-// into `a.`. constructor:
-// upper-led, with trailing `:Upper` segments for class-dictionary cons (C:C,
-// C:Show, D:R:FInt).
-// operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
-// special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()), qualified.
+// Qualified GHC names.
+//   variable: optional `pkg-ver:` package qualifier and `Module.Sub.` qualifier,
+//     then a lower/underscore/$-led name. `#` may appear within (unboxed
+//     workers). The name body admits embedded `"..."` segments: a
+//     HasField/HasCField instance dfun glues its type-level Symbol literal into
+//     the Id name (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`,
+//     `$fHasCFieldCTm"tm_sec"1`). Trailing operator/colon segments cover method
+//     selectors ($c==, $c<$, the dot-bearing $c.&./$c.|.) and operator-TyCon
+//     names ($tc:~:1). A `.` is admitted in an operator run only when it sits
+//     with a non-dot op char, so a `forall a.` dot (a lone `.` after the tyvar)
+//     is left as the forall separator, not munched into `a.`.
+//   constructor: upper-led, with trailing `:Upper` segments for class-dictionary
+//     cons (C:C, C:Show, D:R:FInt).
+//   operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
+//   special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()), qualified.
 // A trailing `{..}` is a -dppr-debug decoration glued to the name (`f{v r1iT}`,
 // `Int{(w) tc 32}`). A name is never glued to a structural `{` in a dump, so
 // folding the tag into the token is safe and keeps the tree flat.
@@ -110,18 +108,17 @@ export function makeLexicalRules() {
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*(\{[^}]*\})?/,
       ),
     // A symbolic operator. `:` is allowed only after the first char (a leading
-    // `:` is a data constructor; see con_operator), so `>::`, `|>:` lex as one
+    // `:` is a data constructor, see con_operator), so `>::`, `|>:` lex as one
     // operator while a bare `::` stays the dcolon.
     operator: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\{[^}]*\})?/,
       ),
-    // Built-in/parenthesised cons, plus the unboxed-sum injection con printed
-    // with `_` slot markers and `|` separators (`(# _| #)`, `(# |_ #)`,
-    // `(# _|| #)`). The nullary unboxed tuple prints `(##)` or, in unarised STG
-    // (e.g. a ccall returning `(# State# #)` voided to nothing), with a space as
-    // `(# #)`; `\(#[ #]*#\)` covers both. The sum alt needs a `|` to stay off
-    // the unit and the tuple con `(#,#)`; spaces inside are part of the token.
+    // Built-in/parenthesised cons, plus the unboxed-sum injection con with `_` slot
+    // markers and `|` separators (`(# _| #)`, `(# |_ #)`, `(# _|| #)`). The nullary
+    // unboxed tuple prints `(##)`, or a spaced `(# #)` in unarised STG, both covered by
+    // `\(#[ #]*#\)`. The sum alt needs a `|` to stay off the unit and the tuple con
+    // `(#,#)`. Spaces inside are part of the token.
     special_con: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#[ #]*#\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,
@@ -191,7 +188,7 @@ export function makeTypeRules() {
         $.star,
         $.ellipsis,
       ),
-    // `*` is the lifted-type kind; `-fprint-unicode-syntax` prints it as `★`.
+    // `*` is the lifted-type kind, printed `★` under -fprint-unicode-syntax.
     star: ($) => choice("*", "★"),
     ellipsis: ($) => "...",
 

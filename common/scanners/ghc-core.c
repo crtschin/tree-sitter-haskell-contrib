@@ -1,29 +1,29 @@
 #include "tree_sitter/parser.h"
 
-// Layout scanner for GHC Core dumps. GHC separates top-level items (the banner,
-// the Result-size header, each binding *group* -- its `name :: type` signature,
-// `[IdInfo]` bracket and `name = rhs` line -- and Rec bindings). Within a group,
-// and in an expression body's continuations, lines use single newlines and
-// indentation. The grammar can't see column-0 layout, so this scanner emits the
-// external ITEM_SEP that bounds one group from the next.
+// Layout scanner for GHC Core dumps. GHC separates top-level items: the banner,
+// the Result-size header, each binding group, and Rec bindings. A binding group
+// is its `name :: type` signature, `[IdInfo]` bracket, and `name = rhs` line.
+// Within a group, and in an expression body's continuations, lines use single
+// newlines and indentation. The grammar can't see column-0 layout, so this
+// scanner emits the external ITEM_SEP that bounds one group from the next.
 //
 // Normal (unpacked) dumps put a BLANK line, then GHC's per-binding
 // `-- RHS size: {..}` comment, then the signature, before each group. So a blank
 // line (>= 2 newlines) at column 0, or EOF, is the boundary. The `-- RHS size`
-// comment is consumed AS PART of the separator (not left as a standalone token):
-// otherwise it splits the separator -- blank-line ITEM_SEP, comment, then a
-// second scan before the signature -- and that second scan fired the
-// single-newline rule (below) spuriously inside unpacked groups. A `---- .. ----`
-// section marker (>= 3 dashes, introduces a bannerless rules/CorePrep tail) is
-// NOT consumed; the grammar needs it, so the scan stops before one.
+// comment is consumed AS PART of the separator, not left as a standalone token.
+// Otherwise it splits the separator (blank-line ITEM_SEP, comment, then a second
+// scan before the signature), and that second scan fires the single-newline rule
+// (below) spuriously inside unpacked groups. A `---- .. ----` section marker
+// (>= 3 dashes, introduces a bannerless rules/CorePrep tail) is NOT consumed. The
+// grammar needs it, so the scan stops before one.
 //
 // `-ddump-late-cc` is special: it packs groups with NO blank line and NO
 // `-- RHS size` comment (`.. name = rhs \n name2 :: ty ..`). A column-0 signature
-// head (a name then `::`/`[InlPrag..]`) always begins a group -- the IdInfo line
-// starts with `[` and a def is `name = ` -- so at a single-newline column-0
-// boundary we additionally fire before a signature head. ITEM_SEP is only a valid
-// symbol between groups; in unpacked dumps a signature follows the consumed
-// comment so this single-newline path is unreachable there. Stateless.
+// head (a name then `::`/`[InlPrag..]`) always begins a group (the IdInfo line
+// starts with `[`, and a def is `name = `), so at a single-newline column-0
+// boundary we additionally fire before a signature head. ITEM_SEP is only valid
+// between groups. In unpacked dumps a signature follows the consumed comment, so
+// this single-newline path is unreachable there. Stateless.
 
 enum TokenType {
     ITEM_SEP,
@@ -59,11 +59,11 @@ bool tree_sitter_ghc_core_external_scanner_scan(void *payload, TSLexer *lexer,
     int newlines = 0;
     bool consumed = false;
     skip_ws(lexer, &newlines, &consumed);
-    lexer->mark_end(lexer); // token ends after the whitespace consumed so far
+    lexer->mark_end(lexer); // commit the whitespace consumed so far
 
     // Consume `-- RHS size`-style comment lines (exactly two leading dashes) plus
     // the whitespace after each, committing via mark_end. Stop before a `----`
-    // section marker; the dashes we advance over to count are lookahead only, so
+    // section marker. The dashes we advance over to count are lookahead only, so
     // the marker stays intact (mark_end is before them).
     bool at_marker = false;
     while (lexer->lookahead == '-') {
@@ -130,10 +130,10 @@ bool tree_sitter_ghc_core_external_scanner_scan(void *payload, TSLexer *lexer,
     }
 
     // Single newline: only the packed -ddump-late-cc case. Fire before a
-    // group-initial signature head -- a name token then `::` (or its unicode
-    // dcolon) or the `[InlPrag=..]` bracket whose `::` wraps to an indented line.
+    // group-initial signature head: a name token then `::` (or its unicode
+    // dcolon), or the `[InlPrag=..]` bracket whose `::` wraps to an indented line.
     // A def (`name = `/binder) or an IdInfo `[..]` is within-group. Advancing
-    // below is lookahead only; mark_end already bounds the token at the head.
+    // below is lookahead only. mark_end already bounds the token at the head.
     if (newlines < 1) {
         return false;
     }

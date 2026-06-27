@@ -16,10 +16,9 @@ function indented_block($) {
 export default grammar({
   name: "cabal_project",
 
-  // Order must match scanner/scanner.c's enum Token. _section_name is
-  // declared for enum alignment. cabal-project has no section_name concept,
-  // so the rule is unreferenced. _field_name is the hidden Unicode-fallback
-  // external, used inside the field_name rule below.
+  // Order must match the shared scanner's enum Token. _section_name is declared only for
+  // that enum alignment (cabal-project has no section concept). _field_name is the hidden
+  // Unicode-fallback external used by field_name below.
   externals: ($) => [
     $._newline,
     $._indent,
@@ -53,20 +52,15 @@ export default grammar({
         $._newline,
       ),
 
-    // ASCII fast path via $._word (also the grammar's word token) + Unicode
-    // fallback via the scanner-emitted $._field_name. _word stays a terminal
-    // so keyword extraction continues to win for stanza-header literals
-    // (`package`, `repository`, …). The scanner only fires when the name
-    // contains a non-ASCII byte.
+    // ASCII via $._word (the grammar's word token), Unicode via the scanner's
+    // $._field_name. _word stays a terminal so keyword extraction wins for stanza headers
+    // (`package`, `repository`). The scanner fires only on a non-ASCII byte.
     field_name: ($) => choice($._word, $._field_name),
 
     _word: ($) => /[A-Za-z][A-Za-z0-9_-]*/,
 
-    // A value is any non-empty sequence of value tokens and continuation
-    // tokens. Putting `_continuation` and `_value_token` in the same
-    // `repeat1` lets values start on a continuation line (e.g.
-    // `packages:\n    foo\n  , bar`) and span any number of indented
-    // continuation lines.
+    // Mixing `_continuation` and `_value_token` in one `repeat1` lets a value start on a
+    // continuation line (`packages:\n    foo\n  , bar`) and span indented continuations.
     field_value: ($) => repeat1(choice($._value_token, $._continuation)),
 
     _value_token: ($) =>
@@ -108,15 +102,12 @@ export default grammar({
         ),
       ),
 
-    // Identifier covers names, enum-ish values (streaming, modular),
-    // versionish hyphenated tokens (ghc-9.4), and dotted/slashy path
-    // fragments (setup-test/, foo/bar). Allows `/`, `.`, and `-` so that
-    // path-like values lex as one token.
+    // Covers names, enum-ish values, versionish tokens (ghc-9.4), and dotted/slashy path
+    // fragments. Allows `/`, `.`, `-` so path-like values lex as one token.
     identifier: ($) => token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-\/]*/)),
 
-    // Path tokens: bare `.` / `..`, absolute paths, relative `./` and `../`
-    // paths, plus glob-y trailing `/` paths. `*` and `?` are allowed for
-    // glob patterns like `/*.cabal`.
+    // Bare `.`/`..`, absolute, relative `./`/`../`, and glob paths. `*`/`?` for globs like
+    // `/*.cabal`.
     path: ($) =>
       token(
         prec(
