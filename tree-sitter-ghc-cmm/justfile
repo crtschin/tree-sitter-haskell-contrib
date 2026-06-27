@@ -17,14 +17,14 @@ test: _il-test
 # Parse every harvested Cmm dump (`Output Cmm` / `Cmm produced by codegen`
 # banner) in $GHC_SRC. A clean gate (0 ERROR/MISSING), also run by `test`.
 parse-corpus:
-    ../test/parse-corpus.sh {{ slug }} | tapview
+    ../test/runners/parse-corpus.sh {{ slug }} | tapview
 
 # Ephemeral coverage check: generate Cmm dumps with GHC into a temp dir, parse
-# them, report errors, tear down (nothing committed, see test/gen-corpus.sh).
+# them, report errors, tear down (nothing committed, see test/runners/gen-corpus.sh).
 gen-corpus: build
-    ../test/gen-corpus.sh {{ slug }} | tapview
+    ../test/runners/gen-corpus.sh {{ slug }} | tapview
 
 # Like gen-corpus but across every flake `ghcVersions` GHC. Opt-in, NOT run by
 # `test`/CI. Heavy (pulls each GHC closure).
 gen-corpus-all: build
-    ../test/gen-corpus.sh {{ slug }} all | tapview
+    ../test/runners/gen-corpus.sh {{ slug }} all | tapview

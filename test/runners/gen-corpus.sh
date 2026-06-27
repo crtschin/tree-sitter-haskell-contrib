@@ -14,7 +14,7 @@
 
 set -uo pipefail
 
-source "$(dirname "$0")/parse-lib.sh"
+source "$(dirname "$0")/../lib/parse-lib.sh"
 
 lang="${1:?usage: $0 <ghc-core|ghc-stg|ghc-cmm|ghc-dump>}"
 case "$lang" in
@@ -22,7 +22,7 @@ case "$lang" in
     *) echo "unknown lang: $lang" >&2; exit 64 ;;
 esac
 
-repo="$(cd "$(dirname "$0")/.." && pwd)"
+repo="$(cd "$(dirname "$0")/../.." && pwd)"
 parser_dir="$repo/tree-sitter-$lang/result/parser"
 ts_lang="${lang/ghc-/ghc_}"
 

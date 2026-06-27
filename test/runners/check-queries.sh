@@ -12,7 +12,7 @@ set -uo pipefail
 slug="${1:?usage: check-queries.sh <grammar-slug>}"
 ts_lang="${slug//-/_}" # cabal-project -> cabal_project, ghc-core -> ghc_core
 
-repo="$(cd "$(dirname "$0")/.." && pwd)"
+repo="$(cd "$(dirname "$0")/../.." && pwd)"
 dir="$repo/tree-sitter-$slug"
 parser="$dir/result/parser"
 [[ -e "$parser" ]] || {
@@ -22,7 +22,7 @@ parser="$dir/result/parser"
 
 # Query compilation is independent of the input. `tree-sitter query` still needs
 # a file to parse, so use the grammar's first corpus file.
-sample="$("$repo/test/${slug}-files.sh" 2>/dev/null | head -1)"
+sample="$("$repo/test/files/${slug}-files.sh" 2>/dev/null | head -1)"
 [[ -n "$sample" ]] || {
     echo "no corpus sample for $slug (is CABAL_SRC/GHC_SRC set?)" >&2
     exit 1

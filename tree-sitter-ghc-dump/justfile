@@ -18,7 +18,7 @@ test: (_il-test "validate-injections")
 # Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only
 # checks the banner/body split. `validate-injections` checks the dispatch.
 parse-corpus:
-    ../test/parse-corpus.sh {{ slug }} | tapview
+    ../test/runners/parse-corpus.sh {{ slug }} | tapview
 
 # End-to-end injection check: split each harvested dump stream into its
 # banner-delimited sections, classify each with injections.scm's own dispatch
@@ -28,15 +28,15 @@ validate-injections:
     nix build ..#tree-sitter-ghc-core -o ../tree-sitter-ghc-core/result
     nix build ..#tree-sitter-ghc-stg -o ../tree-sitter-ghc-stg/result
     nix build ..#tree-sitter-ghc-cmm -o ../tree-sitter-ghc-cmm/result
-    ../test/validate-injections.sh | tapview
+    ../test/runners/validate-injections.sh | tapview
 
 # Ephemeral coverage check: generate a mixed multi-IL stream with GHC into a
 # temp dir, parse it, report errors, tear down (nothing committed, see
-# test/gen-corpus.sh).
+# test/runners/gen-corpus.sh).
 gen-corpus: build
-    ../test/gen-corpus.sh {{ slug }} | tapview
+    ../test/runners/gen-corpus.sh {{ slug }} | tapview
 
 # Like gen-corpus but across every flake `ghcVersions` GHC. Opt-in, NOT run by
 # `test`/CI. Heavy (pulls each GHC closure).
 gen-corpus-all: build
-    ../test/gen-corpus.sh {{ slug }} all | tapview
+    ../test/runners/gen-corpus.sh {{ slug }} all | tapview

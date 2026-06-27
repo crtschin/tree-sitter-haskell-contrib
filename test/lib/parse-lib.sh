@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Shared parse helper for the corpus/injection gates (parse-corpus.sh,
-# gen-corpus.sh, validate-injections.sh). Source it, do not execute.
+# Shared parse helper for the corpus/injection gates (runners/parse-corpus.sh,
+# runners/gen-corpus.sh, runners/validate-injections.sh). Source it, do not execute.
 #
 # The one thing all three must get right and historically did not: a parser that
 # fails to LOAD (missing/stale result/parser, ABI mismatch, crash) makes
