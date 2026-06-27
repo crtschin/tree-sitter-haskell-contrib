@@ -120,7 +120,7 @@ for lang in "${uniq_langs[@]}"; do
         echo "ok $i - $lang (0 sections)"
         continue
     fi
-    # Parse the bucket via the shared helper; a parser that fails to load fails
+    # Parse the bucket via the shared helper. A parser that fails to load fails
     # this lang's test instead of silently passing with zero detected errors.
     declare -A sec_err=()
     if ! collect_parse_errors sec_err --lib-path "$parser" --lang-name "$lang" "${list[@]}"; then
@@ -149,8 +149,8 @@ for lang in "${uniq_langs[@]}"; do
     fi
 done
 
-# A known gap that no longer fails means a member grammar grew to cover it --
-# flag it so the allowlist gets pruned (warning, not a hard failure).
+# A known gap that no longer fails means a member grammar grew to cover it.
+# Flag it so the allowlist gets pruned (warning, not a hard failure).
 for sec in "${!known_gaps[@]}"; do
     [[ -z "${hit_gap[$sec]:-}" ]] &&
         echo "# stale known-gap (now parses, prune it): $sec"

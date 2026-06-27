@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Shared parse helper for the corpus/injection gates (parse-corpus.sh,
-# gen-corpus.sh, validate-injections.sh). Source it; do not execute.
+# gen-corpus.sh, validate-injections.sh). Source it, do not execute.
 #
 # The one thing all three must get right and historically did not: a parser that
 # fails to LOAD (missing/stale result/parser, ABI mismatch, crash) makes
 # `tree-sitter parse` exit non-zero and print an "Error:" banner with NO per-file
 # "Parse:" line. A gate that only scans stdout for (ERROR/(MISSING then finds
-# nothing, reports every file `ok`, and exits 0 -- green while the grammar is
-# non-functional. collect_parse_errors treats that as a hard failure.
+# nothing, reports every file `ok`, and exits 0 (green while the grammar is
+# non-functional). collect_parse_errors treats that as a hard failure.
 
 # collect_parse_errors <assoc-array-name> <tree-sitter-parse-args...>
 #   Runs `tree-sitter parse --quiet <args>`. Callers pass the file list and,
@@ -23,7 +23,7 @@ collect_parse_errors() {
     __cpe_rc=$?
     # Under --quiet tree-sitter prints a "<path><pad>\tParse: .. (ERROR/MISSING)"
     # line ONLY for a failing file (nothing for a clean one). A non-zero exit with
-    # no such line means the parser never ran -- fail loudly, not all-ok.
+    # no such line means the parser never ran: fail loudly, not all-ok.
     if ((__cpe_rc != 0)) && ! grep -q $'\tParse:' <<<"$__cpe_text"; then
         printf 'tree-sitter parse could not run (parser load/ABI failure?):\n%s\n' \
             "$__cpe_text" >&2

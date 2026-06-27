@@ -45,7 +45,6 @@ deny_args+=(
 # (already-closed) section above.
 deny_args+=(--deny 'cabal-testsuite/PackageTests/Regression/T9640/depend-on-custom-with-exe.cabal')
 
-
 # HLS testdata: deliberately partial / mid-edit cabal fragments used to exercise
 # the language server's completion and outline features.
 #   completer.cabal: ends mid-section header ('co' on the last line).

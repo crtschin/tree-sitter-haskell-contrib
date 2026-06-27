@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
-# Generate an EPHEMERAL GHC dump matrix for one grammar, parse every file with
-# the freshly-built grammar (result/parser), report parse errors, then delete
-# everything. NOTHING is committed: the dumps live in a `mktemp` directory that
-# is removed on exit, so a rerun always starts from a clean slate (rewrite on
-# rerun + guaranteed cleanup). This is the on-demand coverage check for grammar
-# development; the default single-version run is also part of `just test`/CI (via
-# _il-test), which pulls one GHC compiler.
+# Generate an EPHEMERAL GHC dump matrix for one grammar, parse each file with the
+# freshly-built grammar (result/parser), report errors, then delete everything (the dumps
+# live in a `mktemp` dir removed on exit). The on-demand coverage check for grammar
+# development. The default single-version run is also part of `just test`/CI via _il-test.
 #
-# Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`
-# (it parses with ./result/parser).
+# Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`.
 #
 # Usage: gen-corpus.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump> [all | <ghc-attr>...]
-#   (no selector)  the default GHC (nixpkgs#ghc); what `just test`/CI exercises
-#   all            every version in flake.nix `ghcVersions` (opt-in; heavy)
+#   (no selector)  the default GHC (nixpkgs#ghc), what `just test`/CI exercises
+#   all            every version in flake.nix `ghcVersions` (opt-in, heavy)
 #   <ghc-attr>...  explicit nixpkgs haskell.compiler attrs, e.g. ghc96 ghc98
-# The selector may also come from $GEN_GHC (same values), letting `just test
-# --all` opt into the matrix without changing the shared _il-test invocation.
+# The selector may also come from $GEN_GHC, letting `just test --all` opt in.
 
 set -uo pipefail
 
@@ -34,7 +29,7 @@ ts_lang="${lang/ghc-/ghc_}"
 # Version selector: positional args after <lang>, else $GEN_GHC (so `just test
 # --all` can opt in without a positional). `all` -> the flake's `ghcVersions`
 # (read jq-free as a space-joined string); otherwise space-separated nixpkgs
-# haskell.compiler attrs; nothing -> the default GHC.
+# haskell.compiler attrs. Nothing -> the default GHC.
 sel=("${@:2}")
 [[ ${#sel[@]} -eq 0 && -n "${GEN_GHC:-}" ]] && read -ra sel <<<"$GEN_GHC"
 versions=("default")
@@ -201,7 +196,7 @@ fi
 declare -A xfail=()
 # The structural gaps below hold for EVERY fixture regardless of content (a
 # scanner limitation, or a wholesale-out-of-scope display format), so they are
-# keyed off the fixture set rather than a hand-maintained module list -- a new
+# keyed off the fixture set rather than a hand-maintained module list, so a new
 # fixture is covered without editing this file. Content-specific cells are still
 # listed individually so a NEW such failure fails the gate.
 mods=()
@@ -226,7 +221,7 @@ for f in "${files[@]}"; do
     i=$((i + 1))
     label="${f#"$tmp"/}"
     label="${label/test\/fixtures\//}" # drop the source-path noise GHC mirrors
-    # label carries a leading "<version>/" segment; xfail keys are
+    # label carries a leading "<version>/" segment. xfail keys are
     # version-agnostic, so match on the stripped key, but let a version-qualified
     # key win if one is ever added.
     xkey="${label#*/}"

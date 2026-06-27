@@ -25,12 +25,12 @@ All commands run across every grammar via the top-level justfile.
 |--------------------|--------------------------------------------------------------|
 | `just`             | Run every grammar's full suite (default)                     |
 | `just test`        | Per grammar: query compile, parse-corpus, inline tests, and the GHC dump matrix. Runs all suites to completion, then fails if any failed |
-| `just test --all`  | Same, but the GHC dump matrix runs across every `flake.nix` `ghcVersions` GHC (opt-in; heavy) |
+| `just test --all`  | Same, but the GHC dump matrix runs across every `flake.nix` `ghcVersions` GHC (opt-in, heavy) |
 | `just build`       | Generate each parser and build its shared library            |
 | `just check`       | Validate every grammar without building                      |
 | `just fmt`         | Format grammar files and the flake (prettier and nixfmt)     |
 | `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite (needs a GHC compiler) |
-| `just gen-corpus-all` | Same matrix across every GHC in `flake.nix` `ghcVersions` (opt-in; heavy) |
+| `just gen-corpus-all` | Same matrix across every GHC in `flake.nix` `ghcVersions` (opt-in, heavy) |
 | `just clean`       | Remove build artifacts                                       |
 
 Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one

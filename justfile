@@ -10,7 +10,7 @@ default: test
 # Run every grammar's full suite to completion (keep going past failures), then
 # exit non-zero if any grammar failed. With `--all`, the IL grammars' gen-corpus
 # step runs the cross-GHC matrix (flake `ghcVersions`) instead of the single
-# default GHC -- opt-in and heavy (see test/gen-corpus.sh).
+# default GHC (opt-in and heavy, see test/gen-corpus.sh).
 test *flags:
     #!/usr/bin/env bash
     set -uo pipefail
