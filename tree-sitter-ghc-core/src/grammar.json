@@ -1992,7 +1992,7 @@
           "members": [
             {
               "type": "PATTERN",
-              "value": "(src|scctick|tick|scc|hpc)<[^>]*>"
+              "value": "(src|scctick|tick|scc|hpc)<\\S*>"
             },
             {
               "type": "PATTERN",

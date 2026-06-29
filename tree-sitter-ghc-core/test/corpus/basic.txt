@@ -291,6 +291,28 @@ k = case x of { (a, b) -> src<F:1:2> a }
           (variable))))))
 
 ================================
+Operator-labelled cost-centre tick (payload contains '>')
+================================
+
+f = tick<<?>> \ x -> scc<<?>> (g x)
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (tick_expr
+      (tickish)
+      (lambda
+        (variable)
+        (tick_expr
+          (tickish)
+          (parens
+            (application
+              (variable)
+              (variable))))))))
+
+================================
 Operator-named binding
 ================================
 

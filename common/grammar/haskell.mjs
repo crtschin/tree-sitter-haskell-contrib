@@ -63,6 +63,11 @@ export function makeLiteralRules() {
 // to the tick, not the wrapped body, so the break form folds it in. Leaving it
 // as a following atom mis-attaches when the body is a non-atom (a `case`/`let`):
 // the `(vars)` fills the body slot and the real body has nowhere to go.
+//
+// The cost-centre label is the binder's name, which may be an operator that
+// contains `>` (aeson's `(<?>)` prints `scc<<?>>`). So the payload admits any
+// non-whitespace run, not just `[^>]`; GHC's `<+>` always separates the tick
+// from its body, so maximal munch terminates at the last `>` before the space.
 export function makeTickRules() {
   return {
     tick_expr: ($) => seq($.tickish, $._expr),
@@ -71,7 +76,7 @@ export function makeTickRules() {
         prec(
           1,
           choice(
-            /(src|scctick|tick|scc|hpc)<[^>]*>/,
+            /(src|scctick|tick|scc|hpc)<\S*>/,
             /break<[^>]*>(\([^)]*\))?/,
           ),
         ),
