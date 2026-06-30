@@ -1,0 +1,10 @@
+constraints: base ^>= 4.18 && < 4.20,
+             lens installed,
+             vector >= 0.12 && <= 0.13.0.0,
+             text +developer -debug +static,
+             mypkg:mylib ^>= 1.2.3,
+             other:*
+
+allow-newer: *:*, aeson:base, containers:internal
+
+index-state: 2025-06-27T20:43:14Z

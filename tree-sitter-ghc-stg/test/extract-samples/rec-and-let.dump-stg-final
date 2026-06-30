@@ -1,0 +1,10 @@
+==================== CodeGenAnal STG: ====================
+Rec {
+(M.x, <TagDunno>) = {} \u [] M.x;
+end Rec }
+
+(M.f, <TagProper>) = {a, f} \r [(g, <TagDunno>)] M.g [eta];
+
+bar = \u [] let { sat [Occ=Once] :: T [LclId] = NO_CCS Mk! [x]; } in f sat;
+
+f = \r [x] src<file:1:1-2> f x;

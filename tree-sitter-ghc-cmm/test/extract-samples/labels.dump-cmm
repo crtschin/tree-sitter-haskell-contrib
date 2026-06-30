@@ -1,0 +1,14 @@
+[section ""data" . GHC.Types.True_closure" {
+     GHC.Types.True_closure:
+         const GHC.Base.:_con_info;
+ },
+ g() { //  [R1]
+         { info_tbls: []
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1: // global
+           _s1::I64 = I8[young<cR8> + 7];
+           foreign call "ccall" memcpy(...) returns to c2 args: ([R1]) ress: ([]) ret_args: 8 ret_off: 0;
+     }
+ }]

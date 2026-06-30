@@ -763,6 +763,13 @@
           "name": "_type"
         },
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_soup"
+          }
+        },
+        {
           "type": "STRING",
           "value": ")"
         }
@@ -1230,6 +1237,22 @@
               }
             ]
           }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "symbol",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_string_lit"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -1966,7 +1989,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "\"(\\\\[\\s\\S]|[^\"\\\\])*\"#*"
+        "value": "\"(\\\\\\s+\\\\|\\\\[\\s\\S]|[^\"\\\\])*\"#*"
       }
     },
     "tick_expr": {
@@ -2627,7 +2650,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\\{[^}]*\\})?"
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*([-+*/<>!&|^%.~?][-+*/<>=!&|^%.~?:]*|=[-+*/<>=!&|^%.~?:]+)#*(\\{[^}]*\\})?"
       }
     },
     "special_con": {

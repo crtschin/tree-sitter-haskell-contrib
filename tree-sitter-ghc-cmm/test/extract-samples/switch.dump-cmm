@@ -1,0 +1,12 @@
+[f() { //  []
+         { info_tbls: []
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1: // global
+           switch [0 .. 1] _s::I64 {
+               case 0 : goto c2;
+               default: {goto c3;}
+           }
+     }
+ }]

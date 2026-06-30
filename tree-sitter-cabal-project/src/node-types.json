@@ -182,6 +182,11 @@
     }
   },
   {
+    "type": "identifier",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "if_clause",
     "named": true,
     "fields": {
@@ -580,6 +585,11 @@
     }
   },
   {
+    "type": "sublibrary_name",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "!",
     "named": false
   },
@@ -637,10 +647,6 @@
     "named": true
   },
   {
-    "type": "identifier",
-    "named": true
-  },
-  {
     "type": "if",
     "named": false
   },
@@ -666,10 +672,6 @@
   },
   {
     "type": "repo_name",
-    "named": true
-  },
-  {
-    "type": "sublibrary_name",
     "named": true
   },
   {

@@ -218,6 +218,9 @@ export default grammar({
         optional($.binder_annotation),
         $._dcolon,
         $._type,
+        // -dppr-debug appends the binder's IdInfo after the type (`:: t Unf=..`,
+        // `Str=..`), absorbed as coarse soup so the `variable`/type stay structured.
+        repeat($._soup),
         ")",
       ),
 
@@ -337,6 +340,9 @@ export default grammar({
         "{",
         $._ffi_keyword,
         field("target", choice($.variable, $.constructor, $.literal)),
+        // The C symbol name, printed as a string after the target
+        // (`__ffi_static_ccall_safe pkg:sym "sym" :: ty`).
+        optional(field("symbol", $._string_lit)),
         $._dcolon,
         field("type", $._type),
         "}",

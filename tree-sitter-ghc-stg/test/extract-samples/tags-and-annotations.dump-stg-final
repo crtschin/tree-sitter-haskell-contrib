@@ -1,0 +1,11 @@
+==================== CodeGenAnal STG: ====================
+Rec {
+(Main.loop, <TagProper>) = {} \u [(x, <TagDunno>)] Main.loop x;
+end Rec }
+
+(Main.Res, <TagProper>) = {eta_B0, eta_B1} \r [(wk, <TagDunno>) (strs, <TagDunno>)] Main.Res [eta_B0 eta_B1];
+
+deRef = \r [ipv3] case deRefWeak# [ipv3 GHC.Prim.void#] of wild [Occ=Once1] {
+          (#,#) ipv5 [Occ=Once1] ipv6 [Occ=Dead] -> wild<TagProper[TagEPT]>;
+          Solo# ipv1 [Occ=Once1!] -> ipv1;
+        };

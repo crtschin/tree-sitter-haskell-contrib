@@ -1,0 +1,14 @@
+hsprimitive_memset
+  :: forall {s}.
+     MutableByteArray# s
+     -> Int64#
+     -> Word64#
+     -> State# RealWorld
+     -> (# State# RealWorld, () #)
+hsprimitive_memset = \ mba off n s -> src<Prim.hs:12:3-40> unsafeWrite mba off n s
+
+readTick
+  = \ addr i s ->
+      case readWord32OffAddr# addr i s of { (# ipv, ipv1 #) ->
+      (# ipv, W32# ipv1 #)
+      }

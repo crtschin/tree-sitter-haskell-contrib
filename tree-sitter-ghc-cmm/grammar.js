@@ -255,8 +255,11 @@ export default grammar({
         $._int_lit,
         ";",
       ),
-    _call_target: ($) =>
-      choice(seq("(", $._expr, ")"), $.con_label, $.identifier),
+    _call_target: ($) => choice($.indirect_target, $.con_label, $.identifier),
+    // An indirect call through a computed address (`call (I64[Sp])(...)`). Named
+    // so the `target` field holds a single node, queryable like the label/name
+    // forms (a bare `seq("(", _expr, ")")` would spread the field over `(`/`)`).
+    indirect_target: ($) => seq("(", $._expr, ")"),
     returns_to: ($) => seq("returns", "to", field("target", $.identifier), ","),
 
     // const <expr> ; is a static data word in a section.

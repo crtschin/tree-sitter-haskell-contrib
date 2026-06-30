@@ -1,0 +1,9 @@
+if os(linux) || arch(arm) && !flag(fast)
+  extra-lib-dirs: /usr/lib
+elif os(windows)
+  extra-lib-dirs: /usr/local
+else
+  extra-lib-dirs: /opt/lib
+
+if True
+  tests: True

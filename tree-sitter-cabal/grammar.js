@@ -219,10 +219,13 @@ export default grammar({
             choice(
               /[A-Za-z_][A-Za-z0-9_.\-]*/,
               "*",
+              // A sublibrary set `{a, b}`; Cabal allows spaces after `{`, around
+              // the commas, and before `}`, so fold `[ \t]*` into the token.
               seq(
                 "{",
-                /[A-Za-z_][A-Za-z0-9_.\-]*/,
-                repeat(seq(",", /[A-Za-z_][A-Za-z0-9_.\-]*/)),
+                /[ \t]*[A-Za-z_][A-Za-z0-9_.\-]*/,
+                repeat(/[ \t]*,[ \t]*[A-Za-z_][A-Za-z0-9_.\-]*/),
+                /[ \t]*/,
                 "}",
               ),
             ),

@@ -1,0 +1,8 @@
+Rule fired: Class op + (BUILTIN)
+Rule fired: fold/build (GHC.Internal.Base)
+Rule fired: Int# -> Integer -> Int# (GHC.Num.Integer)
+Rule fired: +# (BUILTIN)
+Rule fired: my rule with spaces (Tricky)
+Rule fired: paren (in) name (Paren)
+Rule fired: a (b) c (Mod)
+Rule fired: SPEC $fShowFoo (Data.Foo)

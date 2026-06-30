@@ -1,0 +1,10 @@
+==================== Tidy Core ====================
+Result size of Tidy Core = {terms: 4, types: 2, coercions: 0, joins: 0/0}
+
+f = case x of { I# y -> y };
+
+g = let { z = +# a 1# } in z;
+
+==================== Tidy Core rules ====================
+"USPEC f @Int"
+    forall (@e) ($dEq :: Eq e). f @e = \1 ww

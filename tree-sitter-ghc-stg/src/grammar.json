@@ -142,6 +142,10 @@
               {
                 "type": "SYMBOL",
                 "name": "constructor"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "entry_name"
               }
             ]
           }
@@ -205,6 +209,13 @@
           ]
         }
       ]
+    },
+    "entry_name": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": ":([A-Z][A-Za-z0-9_']*\\.)+[A-Za-z_][A-Za-z0-9_'#]*"
+      }
     },
     "tagged_binder": {
       "type": "SEQ",
@@ -1046,7 +1057,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "\"(\\\\[\\s\\S]|[^\"\\\\])*\"#*"
+        "value": "\"(\\\\\\s+\\\\|\\\\[\\s\\S]|[^\"\\\\])*\"#*"
       }
     },
     "tick_expr": {
@@ -1707,7 +1718,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([A-Z][A-Za-z0-9_']*\\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\\{[^}]*\\})?"
+        "value": "([A-Z][A-Za-z0-9_']*\\.)*([-+*/<>!&|^%.~?][-+*/<>=!&|^%.~?:]*|=[-+*/<>=!&|^%.~?:]+)#*(\\{[^}]*\\})?"
       }
     },
     "special_con": {

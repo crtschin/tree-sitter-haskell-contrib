@@ -202,6 +202,10 @@
             "named": true
           },
           {
+            "type": "entry_name",
+            "named": true
+          },
+          {
             "type": "variable",
             "named": true
           }
@@ -1647,6 +1651,10 @@
   {
     "type": "end",
     "named": false
+  },
+  {
+    "type": "entry_name",
+    "named": true
   },
   {
     "type": "forall",

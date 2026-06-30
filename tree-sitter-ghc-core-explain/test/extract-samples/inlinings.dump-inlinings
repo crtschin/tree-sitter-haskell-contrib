@@ -1,0 +1,3 @@
+Inlining done: GHC.Base.map
+Inlining done: GHC.Internal.Num.$fNumInt_$c+
+Inlining done: GHC.Classes.eqInt

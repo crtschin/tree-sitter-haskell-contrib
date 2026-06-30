@@ -1,0 +1,16 @@
+==================== Final STG: ====================
+sat_s1xR = Main.Res! [ipv3 sat];
+
+Main.MkW = MkW! [];
+
+MkW_F = \r [eta_B0] Main.MkW [eta_B0];
+
+T24806.Tup2 = Tup2! [a b];
+
+sat_s1xP = :! [sat_s1xO GHC.Types.[]];
+
+p = GHC.Generics.:*:! [a b];
+
+Main.U [InlPrag=CONLIKE] :: GHC.Prim.Int# %1 -> Main.U
+[GblId[DataCon], Arity=1, Caf=NoCafRefs, Unf=OtherCon []] =
+    {} \r [eta_B0] Main.U [eta_B0];

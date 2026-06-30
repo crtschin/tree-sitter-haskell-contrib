@@ -1,0 +1,4 @@
+Rule fired: x ++ (y ++ z) (My.Module)
+Rule fired: SPEC $c<> @[] (GHC.Base)
+Rule fired: → fusion (Data.Vector)
+Rule fired: SPEC/Main foldr (GHC.List)

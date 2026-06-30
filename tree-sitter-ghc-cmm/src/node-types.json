@@ -284,21 +284,9 @@
     "named": true,
     "fields": {
       "target": {
-        "multiple": true,
+        "multiple": false,
         "required": true,
         "types": [
-          {
-            "type": "(",
-            "named": false
-          },
-          {
-            "type": ")",
-            "named": false
-          },
-          {
-            "type": "binary_expr",
-            "named": true
-          },
           {
             "type": "con_label",
             "named": true
@@ -308,27 +296,7 @@
             "named": true
           },
           {
-            "type": "literal",
-            "named": true
-          },
-          {
-            "type": "machop_call",
-            "named": true
-          },
-          {
-            "type": "mem_access",
-            "named": true
-          },
-          {
-            "type": "parens",
-            "named": true
-          },
-          {
-            "type": "special",
-            "named": true
-          },
-          {
-            "type": "typed_expr",
+            "type": "indirect_target",
             "named": true
           }
         ]
@@ -556,21 +524,9 @@
     "named": true,
     "fields": {
       "target": {
-        "multiple": true,
+        "multiple": false,
         "required": true,
         "types": [
-          {
-            "type": "(",
-            "named": false
-          },
-          {
-            "type": ")",
-            "named": false
-          },
-          {
-            "type": "binary_expr",
-            "named": true
-          },
           {
             "type": "con_label",
             "named": true
@@ -580,27 +536,7 @@
             "named": true
           },
           {
-            "type": "literal",
-            "named": true
-          },
-          {
-            "type": "machop_call",
-            "named": true
-          },
-          {
-            "type": "mem_access",
-            "named": true
-          },
-          {
-            "type": "parens",
-            "named": true
-          },
-          {
-            "type": "special",
-            "named": true
-          },
-          {
-            "type": "typed_expr",
+            "type": "indirect_target",
             "named": true
           }
         ]
@@ -672,21 +608,9 @@
         ]
       },
       "target": {
-        "multiple": true,
+        "multiple": false,
         "required": true,
         "types": [
-          {
-            "type": "(",
-            "named": false
-          },
-          {
-            "type": ")",
-            "named": false
-          },
-          {
-            "type": "binary_expr",
-            "named": true
-          },
           {
             "type": "con_label",
             "named": true
@@ -696,27 +620,7 @@
             "named": true
           },
           {
-            "type": "literal",
-            "named": true
-          },
-          {
-            "type": "machop_call",
-            "named": true
-          },
-          {
-            "type": "mem_access",
-            "named": true
-          },
-          {
-            "type": "parens",
-            "named": true
-          },
-          {
-            "type": "special",
-            "named": true
-          },
-          {
-            "type": "typed_expr",
+            "type": "indirect_target",
             "named": true
           }
         ]
@@ -787,6 +691,53 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "indirect_target",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "binary_expr",
+          "named": true
+        },
+        {
+          "type": "con_label",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "machop_call",
+          "named": true
+        },
+        {
+          "type": "mem_access",
+          "named": true
+        },
+        {
+          "type": "parens",
+          "named": true
+        },
+        {
+          "type": "special",
+          "named": true
+        },
+        {
+          "type": "typed_expr",
+          "named": true
+        }
+      ]
     }
   },
   {

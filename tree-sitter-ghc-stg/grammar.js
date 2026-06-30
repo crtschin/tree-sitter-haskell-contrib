@@ -64,7 +64,7 @@ export default grammar({
     // worker/wrapper like MkW_F), so accept a constructor too.
     _binder_lhs: ($) =>
       seq(
-        field("name", choice($.variable, $.constructor)),
+        field("name", choice($.variable, $.constructor, $.entry_name)),
         optional(
           seq(
             optional($.binder_annotation),
@@ -74,6 +74,11 @@ export default grammar({
         ),
         optional($.idinfo),
       ),
+
+    // GHC's synthesized program entry prints with a leading `:` (`:Main.main`),
+    // which lexes as `special_con` + `variable` otherwise. Scoped to the binder.
+    entry_name: (_) =>
+      token(/:([A-Z][A-Za-z0-9_']*\.)+[A-Za-z_][A-Za-z0-9_'#]*/),
 
     // Tag-inference passes (CodeGenAnal, post-unarise) print binders as (name, <Tag..>),
     // with no signature or IdInfo. The name may be an upper-led worker/wrapper Id.

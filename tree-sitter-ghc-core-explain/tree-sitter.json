@@ -1,0 +1,39 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ghc_core_explain",
+      "camelcase": "GhcCoreExplain",
+      "title": "GHC Core Explain",
+      "scope": "source.ghc_core_explain",
+      "file-types": ["dump-rule-firings", "dump-inlinings"],
+      "injection-regex": "^ghc[-_]?core[-_]?explain$",
+      "highlights": "queries/helix/highlights.scm",
+      "class-name": "TreeSitterGhcCoreExplain"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for GHC simplifier-explanation dumps (-ddump-rule-firings, -ddump-inlinings).",
+    "authors": [
+      {
+        "name": "Curtis Chin Jen Sem",
+        "email": "csochinjensem@gmail.com",
+        "url": "https://crtschin.com/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false,
+    "zig": false
+  }
+}

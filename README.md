@@ -5,6 +5,7 @@ Tree-sitter grammars for Haskell-ecosystem file formats.
 - **tree-sitter-cabal**: `.cabal` package description files
 - **tree-sitter-cabal-project**: `cabal.project` and `*.project` workspace files
 - **tree-sitter-ghc-core**: GHC Core dumps (`-ddump-simpl` and the other Core passes)
+- **tree-sitter-ghc-core-explain**: GHC simplifier-explanation logs (`-ddump-rule-firings`, `-ddump-inlinings`)
 - **tree-sitter-ghc-stg**: GHC STG dumps (`-ddump-stg-final` and the other STG passes)
 - **tree-sitter-ghc-cmm**: GHC Cmm dumps (`-ddump-cmm` and the pipeline-stage passes)
 - **tree-sitter-ghc-dump**: container grammar that injects the per-IL grammars into multi-section dump files

@@ -1,0 +1,40 @@
+## test/extract-samples/inlinings-edge.dump-inlinings
+inline.id	0,15-0,26	GHC.Base.++
+inline.id	1,15-1,37	GHC.Internal.Base.$c<>
+inline.id	2,15-2,23	lvl_s6aB
+inline.detail	3,14-5,0	
+inline.id	5,15-5,26	GHC.Base.id
+## test/extract-samples/inlinings.dump-inlinings
+inline.id	0,15-0,27	GHC.Base.map
+inline.id	1,15-1,44	GHC.Internal.Num.$fNumInt_$c+
+inline.id	2,15-2,32	GHC.Classes.eqInt
+## test/extract-samples/rule-firings-edge.dump-rule-firings
+rule.name	0,12-0,25	x ++ (y ++ z)
+rule.module	0,27-0,36	My.Module
+rule.name	1,12-1,25	SPEC $c<> @[]
+rule.module	1,27-1,35	GHC.Base
+rule.name	2,12-2,22	→ fusion
+rule.module	2,24-2,35	Data.Vector
+rule.name	3,12-3,27	SPEC/Main foldr
+rule.module	3,29-3,37	GHC.List
+## test/extract-samples/rule-firings.dump-rule-firings
+rule.name	0,12-0,22	Class op +
+rule.builtin	0,24-0,31	BUILTIN
+rule.name	1,12-1,22	fold/build
+rule.module	1,24-1,41	GHC.Internal.Base
+rule.name	2,12-2,35	Int# -> Integer -> Int#
+rule.module	2,37-2,52	GHC.Num.Integer
+rule.name	3,12-3,14	+#
+rule.builtin	3,16-3,23	BUILTIN
+rule.name	4,12-4,31	my rule with spaces
+rule.module	4,33-4,39	Tricky
+rule.name	5,12-5,27	paren (in) name
+rule.module	5,29-5,34	Paren
+rule.name	6,12-6,19	a (b) c
+rule.module	6,21-6,24	Mod
+rule.name	7,12-7,26	SPEC $fShowFoo
+rule.module	7,28-7,36	Data.Foo
+## test/extract-samples/verbose.dump-inlinings
+inline.detail	0,14-4,0	
+inline.detail	4,14-8,0	
+inline.detail	8,14-12,0	

@@ -1,0 +1,10 @@
+packages: ./pkg-a, */*.cabal
+
+constraints: base >= 4.14 && < 5,
+             aeson == 2.1.0.0,
+             text +developer -debug,
+             pkga-1.1.2:internal-lib
+
+tests: True
+optimization: 2
+index-state: hackage.haskell.org 2025-06-27T20:43:14Z

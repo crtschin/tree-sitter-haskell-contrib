@@ -1,0 +1,12 @@
+Inlining done:
+    (ghc-internal:GHC.Internal.Num.$fNumInt_$c+{v rA7} Just 'ghc-prim:GHC.Types.Many{(w) d 65I} [gid] :: ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                         -> ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                            -> ghc-prim:GHC.Types.Int{(w) tc 3u})
+Inlining done:
+    (ghc-internal:GHC.Internal.Num.$fNumInt_$c*{v rA9} Just 'ghc-prim:GHC.Types.Many{(w) d 65I} [gid] :: ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                         -> ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                            -> ghc-prim:GHC.Types.Int{(w) tc 3u})
+Inlining done:
+    (ghc-internal:GHC.Internal.Num.$fNumInt_$c+{v rA7} Just 'ghc-prim:GHC.Types.Many{(w) d 65I} [gid] :: ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                         -> ghc-prim:GHC.Types.Int{(w) tc 3u}
+                                                                                                            -> ghc-prim:GHC.Types.Int{(w) tc 3u})

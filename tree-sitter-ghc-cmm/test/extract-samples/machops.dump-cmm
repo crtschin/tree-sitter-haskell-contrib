@@ -1,0 +1,15 @@
+[h() { //  [R1]
+         { info_tbls: []
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1: // global
+           _c1::F64 = %MO_FF_Conv_W32_W64(D1);
+           _c2::I64 = %MO_F_Add_W64(D1, D2);
+           I64![R1 + 7] = _c1::F64;
+           D1 = I64[young<cR8> + 16];
+           R1 = I64[<highSp>];
+           P64[Sp] = R1;
+           goto c2;
+     }
+ }]

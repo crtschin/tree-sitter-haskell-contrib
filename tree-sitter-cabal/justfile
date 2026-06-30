@@ -18,6 +18,7 @@ test: build
     rc=0
     ../test/runners/check-queries.sh {{ slug }} | tapview || rc=1
     ../test/runners/parse-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/runners/extract-golden.sh {{ slug }} | tapview || rc=1
     tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
     exit "$rc"
 

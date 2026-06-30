@@ -1,0 +1,3 @@
+:Main.main :: GHC.Types.IO ()
+[GblId] =
+    {} \u [] GHC.Internal.TopHandler.runMainIO Main.main;

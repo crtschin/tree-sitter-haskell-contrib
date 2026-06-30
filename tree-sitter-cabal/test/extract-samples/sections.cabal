@@ -1,0 +1,10 @@
+cabal-version: 2.4
+name: acme-app
+
+flag debug
+  default: False
+
+executable acme
+  main-is: Main.hs
+  if flag(debug)
+    ghc-options: -threaded -rtsopts

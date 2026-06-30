@@ -1,0 +1,145 @@
+================================================================================
+rule firings: builtin and module origins
+================================================================================
+Rule fired: Class op + (BUILTIN)
+Rule fired: fold/build (GHC.Internal.Base)
+Rule fired: +# (BUILTIN)
+Rule fired: Int# -> Integer -> Int# (GHC.Num.Integer)
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (builtin)))
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (module)))
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (builtin)))
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (module))))
+
+================================================================================
+rule firings: names containing parentheses and embedded groups
+================================================================================
+Rule fired: paren (in) name (Paren)
+Rule fired: a (b) c (Mod)
+Rule fired: SPEC $fShowFoo (Data.Foo)
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (module)))
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (module)))
+  (rule_firing
+    name: (rule_name)
+    provenance: (provenance
+      (module))))
+
+================================================================================
+inlinings: default single-line form
+================================================================================
+Inlining done: GHC.Base.map
+Inlining done: GHC.Internal.Num.$fNumInt_$c+
+--------------------------------------------------------------------------------
+
+(source_file
+  (inlining
+    name: (inlined_id))
+  (inlining
+    name: (inlined_id)))
+
+================================================================================
+inlinings: -dppr-debug verbose body captured as detail
+================================================================================
+Inlining done:
+    (ghc-internal:GHC.Internal.Num.$fNumInt_$c+{v rA7} Just 'ghc-prim:GHC.Types.Many :: Int
+                                                                                       -> Int)
+Inlining done: GHC.Base.id
+--------------------------------------------------------------------------------
+
+(source_file
+  (inlining
+    detail: (detail))
+  (inlining
+    name: (inlined_id)))
+
+================================================================================
+simpl-stats: iterations, total ticks, categories, inline count
+================================================================================
+Simplifier reached fixed point after 2 iterations
+
+Total ticks:     70
+
+18 PreInlineUnconditionally
+  3 ds_aSW
+  1 eta_B1
+5 LetFloatFromLet 5
+33 BetaReduction
+  33 i_a1fM
+--------------------------------------------------------------------------------
+
+(source_file
+  (iterations)
+  (total_ticks
+    (number))
+  (tick_category
+    (number)
+    (category_name)
+    (tick_detail
+      (number)
+      (detail_name))
+    (tick_detail
+      (number)
+      (detail_name)))
+  (tick_category
+    (number)
+    (category_name)
+    (number))
+  (tick_category
+    (number)
+    (category_name)
+    (tick_detail
+      (number)
+      (detail_name))))
+
+================================================================================
+simpl-stats: RuleFired detail is a rule phrase; mixed with the firing trace
+================================================================================
+Rule fired: Class op sum (BUILTIN)
+Inlining done: GHC.Base.map
+Simplifier reached fixed point after 3 iterations
+
+11 RuleFired
+  4 Int# -> Integer -> Int#
+  1 map
+--------------------------------------------------------------------------------
+
+(source_file
+  (rule_firing
+    (rule_name)
+    (provenance
+      (builtin)))
+  (inlining
+    (inlined_id))
+  (iterations)
+  (tick_category
+    (number)
+    (category_name)
+    (tick_detail
+      (number)
+      (detail_name))
+    (tick_detail
+      (number)
+      (detail_name))))

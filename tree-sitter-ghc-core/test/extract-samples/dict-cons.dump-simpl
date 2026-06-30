@@ -1,0 +1,9 @@
+$fEqLogLevel :: Eq LogLevel
+[GblId[DFunId], Str=<S>]
+$fEqLogLevel = C:Eq $fEqLogLevel_$c== $fEqLogLevel_$c/=
+
+$fShowEdit = C:Show $cshowsPrec $cshow $cshowList
+
+$fGenericTSPoint = C:Generic (from `cast` <Co:56> :: a ~R# b) $fGenericTSPoint_$cto
+
+lvl = D:R:FInt 0#

@@ -1,0 +1,6 @@
+Inlining done: GHC.Base.++
+Inlining done: GHC.Internal.Base.$c<>
+Inlining done: lvl_s6aB
+Inlining done:
+    (base:GHC.Base.foo{v r1} Just Many [gid] :: Int -> Int)
+Inlining done: GHC.Base.id

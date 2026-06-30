@@ -1,0 +1,54 @@
+## test/extract-samples/banner-variety.dump
+preamble.body	0,0-0,55	[1 of 1] Compiling Main             ( Main.hs, Main.o )
+section	1,0-5,20	
+section.banner	1,0-1,70	==================== Desugar (after optimization) ====================
+section.body	2,0-5,20	
+section	7,0-8,38	
+section.banner	7,0-7,50	==================== CorePrep ====================
+section.body	8,0-8,38	main = putStrLn (unpackCString# "hi"#)
+section	10,0-11,27	
+section.banner	10,0-10,53	==================== STG syntax: ====================
+section.body	11,0-11,27	main = \r [] putStrLn "hi";
+section	13,0-14,27	
+section.banner	13,0-13,54	==================== Pre unarise: ====================
+section.body	14,0-14,27	main = \r [] putStrLn "hi";
+section	16,0-17,27	
+section.banner	16,0-16,52	==================== Final STG: ====================
+section.body	17,0-17,27	main = \r [] putStrLn "hi";
+section	19,0-22,1	
+section.banner	19,0-19,65	==================== Cmm produced by codegen ====================
+section.body	20,0-22,1	
+section	24,0-27,1	
+section.banner	24,0-24,52	==================== Output Cmm ====================
+section.body	25,0-27,1	
+section	29,0-31,5	
+section.banner	29,0-29,50	==================== Asm code ====================
+section.body	30,0-31,5	
+## test/extract-samples/boundary-edges.dump
+section	0,0-0,51	==================== Tidy Core ====================
+section.banner	0,0-0,51	==================== Tidy Core ====================
+section	1,0-2,12	
+section.banner	1,0-1,53	==================== STG syntax: ====================
+section.body	2,0-2,12	f = \r [] g;
+section	4,0-4,52	==================== Final STG: ====================
+section.banner	4,0-4,52	==================== Final STG: ====================
+section	6,0-12,1	
+section.banner	6,0-6,52	==================== Output Cmm ====================
+section.body	7,0-12,1	
+## test/extract-samples/multi-il.dump
+section	0,0-3,11	
+section.banner	0,0-0,51	==================== Tidy Core ====================
+section.body	1,0-3,11	
+section	5,0-6,13	
+section.banner	5,0-5,52	==================== Final STG: ====================
+section.body	6,0-6,13	f = \r [x] x;
+section	8,0-11,1	
+section.banner	8,0-8,52	==================== Output Cmm ====================
+section.body	9,0-11,1	
+## test/extract-samples/preamble-and-empty.dump
+preamble.body	0,0-0,44	warning: [-Wfoo] something before any banner
+section	1,0-1,70	==================== Desugar (after optimization) ====================
+section.banner	1,0-1,70	==================== Desugar (after optimization) ====================
+section	2,0-5,1	
+section.banner	2,0-2,52	==================== Output Cmm ====================
+section.body	3,0-5,1	

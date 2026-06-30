@@ -31,6 +31,28 @@ y = TrNameS x
       (variable))))
 
 ================================
+Consecutive signed bindings, type-shaped rhs (signature must not over-munch)
+================================
+
+greeting :: String
+greeting = unpackCString# greeting1
+
+$trModule3 :: TrName
+$trModule3 = TrNameS $trModule4
+
+--------------------------------
+
+(source_file
+  (binding
+    signature: (type_signature (variable) (constructor))
+    name: (variable)
+    rhs: (application (variable) (variable)))
+  (binding
+    signature: (type_signature (variable) (constructor))
+    name: (variable)
+    rhs: (application (constructor) (variable))))
+
+================================
 Lambda with case and constructor pattern
 ================================
 
@@ -612,3 +634,58 @@ Trailing rules section stays soup
 (source_file
   (trailing_sections
     (banner)))
+
+================================
+-dppr-debug pattern binder with trailing IdInfo
+================================
+
+Result size of Tidy Core = {terms: 1, types: 0, coercions: 0, joins: 0/0}
+
+foo = case ds of wild { Box (x :: Int Unf=OtherCon []) -> x }
+
+--------------------------------
+
+(source_file
+  (result_size)
+  (binding
+    name: (variable)
+    rhs: (case
+      scrutinee: (variable)
+      binder: (variable)
+      (alternative
+        pattern: (pattern
+          (con_pattern
+            (constructor)
+            (typed_binder
+              (variable)
+              (constructor))))
+        rhs: (variable)))))
+
+================================
+Multi-line string literal with a string gap
+================================
+
+foo = "line one\n\
+      \\"quoted\" done"
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (literal)))
+
+================================
+Foreign call with C symbol name
+================================
+
+foo = {__ffi_static_ccall_safe base:c_sym "c_sym" :: Int}
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (foreign_call
+      target: (variable)
+      type: (constructor))))

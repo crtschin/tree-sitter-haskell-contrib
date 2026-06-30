@@ -1,6 +1,7 @@
 mod cabal 'tree-sitter-cabal'
 mod cabal-project 'tree-sitter-cabal-project'
 mod ghc-core 'tree-sitter-ghc-core'
+mod ghc-core-explain 'tree-sitter-ghc-core-explain'
 mod ghc-stg 'tree-sitter-ghc-stg'
 mod ghc-cmm 'tree-sitter-ghc-cmm'
 mod ghc-dump 'tree-sitter-ghc-dump'
@@ -16,30 +17,36 @@ test *flags:
     set -uo pipefail
     [[ " {{ flags }} " == *" --all "* ]] && export GEN_GHC=all
     rc=0
-    for g in cabal cabal-project ghc-core ghc-stg ghc-cmm ghc-dump; do
+    for g in cabal cabal-project ghc-core ghc-core-explain ghc-stg ghc-cmm ghc-dump; do
         echo "==> $g"
         just "$g::test" || rc=1
     done
     exit "$rc"
 
 # Build every grammar
-build: cabal::build cabal-project::build ghc-core::build ghc-stg::build ghc-cmm::build ghc-dump::build
+build: cabal::build cabal-project::build ghc-core::build ghc-core-explain::build ghc-stg::build ghc-cmm::build ghc-dump::build
 
 # Static checks for every grammar
-check: cabal::check cabal-project::check ghc-core::check ghc-stg::check ghc-cmm::check ghc-dump::check
+check: cabal::check cabal-project::check ghc-core::check ghc-core-explain::check ghc-stg::check ghc-cmm::check ghc-dump::check
 
 # Format every grammar and the flake (mode: write|check)
-fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mode) (ghc-stg::fmt mode) (ghc-cmm::fmt mode) (ghc-dump::fmt mode)
+fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mode) (ghc-core-explain::fmt mode) (ghc-stg::fmt mode) (ghc-cmm::fmt mode) (ghc-dump::fmt mode)
     nixfmt {{ if mode == "check" { "--check" } else { "" } }} flake.nix
 
 # Clean build artifacts in every grammar
-clean: cabal::clean cabal-project::clean ghc-core::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
+clean: cabal::clean cabal-project::clean ghc-core::clean ghc-core-explain::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
 
 # Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a GHC compiler. Ephemeral. Also run by `test`.
-gen-corpus: ghc-core::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
+gen-corpus: ghc-core::gen-corpus ghc-core-explain::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
 
 # Opt-in: dump matrix across ALL flake `ghcVersions` per IL grammar. Heavy (pulls each GHC closure). Not run by `test`.
-gen-corpus-all: ghc-core::gen-corpus-all ghc-stg::gen-corpus-all ghc-cmm::gen-corpus-all ghc-dump::gen-corpus-all
+gen-corpus-all: ghc-core::gen-corpus-all ghc-core-explain::gen-corpus-all ghc-stg::gen-corpus-all ghc-cmm::gen-corpus-all ghc-dump::gen-corpus-all
+
+# Run the extraction-golden gate (asserts info shape/extraction, not just no-error) for every grammar. Also run by `test`.
+extract: cabal::extract cabal-project::extract ghc-core::extract ghc-core-explain::extract ghc-stg::extract ghc-cmm::extract ghc-dump::extract
+
+# Regenerate every grammar's extraction golden (review the diff before committing).
+update-extractions: cabal::update-extractions cabal-project::update-extractions ghc-core::update-extractions ghc-core-explain::update-extractions ghc-stg::update-extractions ghc-cmm::update-extractions ghc-dump::update-extractions
 
 # Generate flamegraphs for the corpus-backed grammars.
 flamegraph: cabal::flamegraph cabal-project::flamegraph

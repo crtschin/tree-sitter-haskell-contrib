@@ -1,0 +1,14 @@
+[k() { //  [R1]
+         { info_tbls: []
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1: // global
+           (_c1::F64) = call "ccall" arg hints:  [PtrHint]  result hints:  [PtrHint] sqrt(D1);
+           call (I64[Sp])(R1, R2) returns to c2, args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""cstring" . msg_bytes" {
+     msg_bytes:
+         I8[] "hello \"world\""
+ }]

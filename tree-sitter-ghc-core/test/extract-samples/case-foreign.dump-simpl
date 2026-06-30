@@ -1,0 +1,8 @@
+y = TrNameS x
+
+g = case w of v { __DEFAULT -> v; 0# -> w }
+
+f =
+  case {__ffi_static_ccall_unsafe ghc-internal:rts_getThreadId :: State# RealWorld -> (# State# RealWorld, Word64# #)} realWorld# of {
+    __DEFAULT -> r
+  }

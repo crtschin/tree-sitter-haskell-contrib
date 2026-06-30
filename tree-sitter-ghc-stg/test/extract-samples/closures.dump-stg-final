@@ -1,0 +1,10 @@
+==================== Final STG: ====================
+$WNil = Nil! [];
+
+$WCons = \r [conrep conrep1] Cons [conrep conrep1];
+
+f = \r [ds] case ds of wild { Left e [Occ=Once1] -> e; __DEFAULT -> ds; };
+
+go = {} \r [f ds] case ds of wild { C e -> wild<TagVal[TagEPT]>; };
+
+lvl = 0#Word64;

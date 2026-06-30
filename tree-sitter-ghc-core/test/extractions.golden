@@ -1,0 +1,98 @@
+## test/extract-samples/bindings.dump-simpl
+binding.signature	0,0-0,18	greeting :: String
+binding.name	1,0-1,8	greeting
+binding.rhs	1,11-1,35	unpackCString# greeting1
+binding.signature	3,0-3,25	f :: GHC.Types.Int -> Int
+binding.name	4,0-4,1	f
+binding.rhs	4,4-4,34	\ x -> case x of { I# y -> y }
+case.scrutinee	4,16-4,17	x
+binding.signature	6,0-6,38	(+++) :: forall {a}. [a] -> [a] -> [a]
+binding.operator	7,1-7,4	+++
+binding.name	9,0-9,1	h
+binding.rhs	9,4-9,28	let { z = +# a 1# } in z
+binding.name	9,10-9,11	z
+binding.rhs	9,14-9,21	+# a 1#
+literal	9,19-9,21	1#
+let.kind	9,4-9,7	let
+let.body	9,27-9,28	z
+## test/extract-samples/case-foreign.dump-simpl
+binding.name	0,0-0,1	y
+binding.rhs	0,4-0,13	TrNameS x
+app.constructor	0,4-0,11	TrNameS
+binding.name	2,0-2,1	g
+binding.rhs	2,4-2,43	case w of v { __DEFAULT -> v; 0# -> w }
+case.scrutinee	2,9-2,10	w
+case.binder	2,14-2,15	v
+literal	2,34-2,36	0#
+binding.name	4,0-4,1	f
+binding.rhs	5,2-7,3	
+case.scrutinee	5,7-5,129	{__ffi_static_ccall_unsafe ghc-internal:rts_getThreadId :: State# RealWorld -> (# State# RealWorld, Word64# #)} realWorld#
+ffi.target	5,34-5,62	ghc-internal:rts_getThreadId
+ffi.type	5,66-5,117	State# RealWorld -> (# State# RealWorld, Word64# #)
+## test/extract-samples/dict-cons.dump-simpl
+binding.signature	0,0-0,27	$fEqLogLevel :: Eq LogLevel
+binding.name	2,0-2,12	$fEqLogLevel
+binding.rhs	2,15-2,55	C:Eq $fEqLogLevel_$c== $fEqLogLevel_$c/=
+app.constructor	2,15-2,19	C:Eq
+binding.name	4,0-4,10	$fShowEdit
+binding.rhs	4,13-4,49	C:Show $cshowsPrec $cshow $cshowList
+app.constructor	4,13-4,19	C:Show
+binding.name	6,0-6,16	$fGenericTSPoint
+binding.rhs	6,19-6,83	C:Generic (from `cast` <Co:56> :: a ~R# b) $fGenericTSPoint_$cto
+app.constructor	6,19-6,28	C:Generic
+binding.name	8,0-8,3	lvl
+binding.rhs	8,6-8,17	D:R:FInt 0#
+app.constructor	8,6-8,14	D:R:FInt
+literal	8,15-8,17	0#
+## test/extract-samples/joins-nested-case.dump-simpl
+binding.name	0,0-0,1	f
+binding.rhs	0,4-15,27	
+binding.name	2,4-2,8	exit
+binding.rhs	3,8-6,9	
+case.scrutinee	3,13-3,33	>=# (+# ww10 1#) ww5
+literal	3,26-3,28	1#
+literal	5,10-5,12	1#
+jump.target	5,21-5,23	$j
+let.kind	1,2-1,6	join
+let.body	7,2-15,27	
+binding.name	8,4-8,14	$weq_loop1
+binding.rhs	9,8-14,9	
+case.scrutinee	9,13-9,16	ds8
+case.scrutinee	10,13-10,25	>=# ww10 ww5
+jump.target	11,28-11,38	$weq_loop1
+app.constructor	11,45-11,47	I#
+literal	11,55-11,57	1#
+literal	11,69-11,71	1#
+literal	12,10-12,12	1#
+jump.target	12,21-12,25	exit
+let.kind	7,2-7,9	joinrec
+let.body	15,2-15,27	jump $weq_loop1 ww ww1 0#
+jump.target	15,7-15,17	$weq_loop1
+literal	15,25-15,27	0#
+binding.name	17,0-17,1	g
+binding.rhs	17,4-22,5	
+case.scrutinee	17,9-17,40	scrut1 `cast` <Co:2> :: T ~R# S
+case.scrutinee	18,9-18,15	scrut2
+literal	20,6-20,8	1#
+case.scrutinee	20,17-20,30	eqAddr# a1 b1
+literal	20,55-20,57	1#
+## test/extract-samples/late-cc-rules.dump-simpl
+binding.name	3,0-3,1	f
+binding.rhs	3,4-3,27	case x of { I# y -> y }
+case.scrutinee	3,9-3,10	x
+binding.name	5,0-5,1	g
+binding.rhs	5,4-5,28	let { z = +# a 1# } in z
+binding.name	5,10-5,11	z
+binding.rhs	5,14-5,21	+# a 1#
+literal	5,19-5,21	1#
+let.kind	5,4-5,7	let
+let.body	5,27-5,28	z
+## test/extract-samples/sig-unboxed-tick.dump-simpl
+binding.signature	0,0-6,34	
+binding.name	7,0-7,18	hsprimitive_memset
+binding.rhs	7,21-7,82	\ mba off n s -> src<Prim.hs:12:3-40> unsafeWrite mba off n s
+binding.name	9,0-9,8	readTick
+binding.rhs	10,4-13,7	
+case.scrutinee	11,11-11,38	readWord32OffAddr# addr i s
+unboxed.tuple	12,6-12,26	(# ipv, W32# ipv1 #)
+app.constructor	12,14-12,18	W32#

@@ -1,0 +1,23 @@
+f = \ ww ww1 ->
+  join {
+    exit ww10
+      = case >=# (+# ww10 1#) ww5 of {
+          __DEFAULT -> False;
+          1# -> jump $j
+        } } in
+  joinrec {
+    $weq_loop1 ds8 x1 ww10
+      = case ds8 of { __DEFAULT ->
+        case >=# ww10 ww5 of {
+          __DEFAULT -> jump $weq_loop1 SPEC (I# (+# x1 1#)) (+# ww10 1#);
+          1# -> jump exit ww10
+        }
+        }; } in
+  jump $weq_loop1 ww ww1 0#
+
+g = case scrut1 `cast` <Co:2> :: T ~R# S of { Ptr a1 ->
+    case scrut2 of {
+      __DEFAULT -> False;
+      1# -> case eqAddr# a1 b1 of { __DEFAULT -> True; 1# -> False }
+    }
+    }

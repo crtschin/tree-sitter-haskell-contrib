@@ -1,0 +1,21 @@
+cabal-version: 3.0
+name: cond-zoo
+
+flag dev
+  description: development build
+  default: True
+  manual: False
+
+executable foo
+  main-is: Main.hs
+  if flag(dev) && !os(windows)
+    ghc-options: -O0 -Wall
+  elif impl(ghc >= 9.4)
+    ghc-options: -O2
+  else
+    ghc-options: -O1
+  build-depends: base
+
+source-repository head
+  type: git
+  location: https://github.com/acme/cond-zoo.git

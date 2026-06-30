@@ -1,0 +1,12 @@
+==================== Tidy Core ====================
+Result size of Tidy Core = {terms: 3, types: 1}
+
+f = \x -> x
+
+==================== Final STG: ====================
+f = \r [x] x;
+
+==================== Output Cmm ====================
+f_entry() {
+  c1: return;
+}

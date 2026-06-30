@@ -1,0 +1,12 @@
+==================== Final STG: ====================
+plusInt = \r [d a b] GHC.Num.* d a b;
+
+genProd = \r [a b] GHC.Generics.:*: [a b];
+
+perfGC = \u [] case __ffi_static_ccall_safe base:performMajorGC :: [GHC.Prim.void#] of { (##) -> GHC.Tuple.Prim.(); };
+
+joinPt = NO_CCS \r [x] let-no-escape { Rec { $wgo = \j [a] $wgo a; end Rec } } in $wgo x;
+
+singleEntry = \s [] GHC.Types.False;
+
+opApp = \u [] +# [x y];

@@ -1,0 +1,249 @@
+[
+  {
+    "type": "detail_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "inlining",
+    "named": true,
+    "fields": {
+      "detail": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "detail",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "inlined_id",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "iterations",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "provenance",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "builtin",
+          "named": true
+        },
+        {
+          "type": "module",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "rule_firing",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "rule_name",
+            "named": true
+          }
+        ]
+      },
+      "provenance": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "provenance",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "source_file",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "inlining",
+          "named": true
+        },
+        {
+          "type": "iterations",
+          "named": true
+        },
+        {
+          "type": "rule_firing",
+          "named": true
+        },
+        {
+          "type": "tick_category",
+          "named": true
+        },
+        {
+          "type": "total_ticks",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tick_category",
+    "named": true,
+    "fields": {
+      "count": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "category_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "number",
+          "named": true
+        },
+        {
+          "type": "tick_detail",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "tick_detail",
+    "named": true,
+    "fields": {
+      "count": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "detail_name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "total_ticks",
+    "named": true,
+    "fields": {
+      "count": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": "Inlining done:",
+    "named": false
+  },
+  {
+    "type": "Rule fired:",
+    "named": false
+  },
+  {
+    "type": "Simplifier",
+    "named": false
+  },
+  {
+    "type": "Total ticks:",
+    "named": false
+  },
+  {
+    "type": "builtin",
+    "named": true
+  },
+  {
+    "type": "category_name",
+    "named": true
+  },
+  {
+    "type": "detail",
+    "named": true
+  },
+  {
+    "type": "inlined_id",
+    "named": true
+  },
+  {
+    "type": "module",
+    "named": true
+  },
+  {
+    "type": "number",
+    "named": true
+  },
+  {
+    "type": "rule_name",
+    "named": true
+  }
+]

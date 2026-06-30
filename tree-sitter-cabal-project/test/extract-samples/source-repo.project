@@ -1,0 +1,13 @@
+source-repository-package
+    type: git
+    location: https://github.com/haskell/aeson.git
+    tag: 8b2a1e3c9d4f0a5b6c7d8e9f0a1b2c3d4e5f6a7b
+    subdir: aeson-benchmarks
+
+source-repository-package
+    type: git
+    location: git://example.org/pkg.git
+    tag: v1.2.3
+
+program-options
+  ghc-options: "-with-rtsopts=-T --nonmoving-gc"

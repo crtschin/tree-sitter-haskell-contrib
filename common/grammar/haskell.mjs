@@ -45,9 +45,11 @@ export function makeLiteralRules() {
     // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
     _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
     // A backslash escapes any char including a newline. GHC prints long strings with a
-    // string gap (`..\n\` <newline> `   \..`), so `\\.` would stop at the gap's opening
-    // `\<newline>`. `\\[\s\S]` spans it, and `[^"\\]` covers the interior newlines.
-    _string_lit: ($) => token(/"(\\[\s\S]|[^"\\])*"#*/),
+    // string gap `\ <whitespace> \` (`..\n\` <newline> `   \..`): the resume `\` must NOT
+    // pair with the following escape (`\\"` = gap-resume + escaped quote, not escaped
+    // backslash + terminating quote), so the gap `\\\s+\\` is its own longest-match
+    // alternative, ahead of the `\\[\s\S]` escape and the `[^"\\]` char.
+    _string_lit: ($) => token(/"(\\\s+\\|\\[\s\S]|[^"\\])*"#*/),
   };
 }
 
@@ -75,10 +77,7 @@ export function makeTickRules() {
       token(
         prec(
           1,
-          choice(
-            /(src|scctick|tick|scc|hpc)<\S*>/,
-            /break<[^>]*>(\([^)]*\))?/,
-          ),
+          choice(/(src|scctick|tick|scc|hpc)<\S*>/, /break<[^>]*>(\([^)]*\))?/),
         ),
       ),
   };
@@ -114,10 +113,14 @@ export function makeLexicalRules() {
       ),
     // A symbolic operator. `:` is allowed only after the first char (a leading
     // `:` is a data constructor, see con_operator), so `>::`, `|>:` lex as one
-    // operator while a bare `::` stays the dcolon.
+    // operator while a bare `::` stays the dcolon. A lone `=` is the binding
+    // separator, never an operator (mirrors type_operator); without this a `=`
+    // lexes as a type atom and a signature's type over-munches the binding line
+    // below it (the `name =` never bounds the GLR type branch). A `=`-led op
+    // (==#, =<<) keeps a second symbol char.
     operator: ($) =>
       token(
-        /([A-Z][A-Za-z0-9_']*\.)*[-+*/<>=!&|^%.~?][-+*/<>=!&|^%.~?:]*#*(\{[^}]*\})?/,
+        /([A-Z][A-Za-z0-9_']*\.)*([-+*/<>!&|^%.~?][-+*/<>=!&|^%.~?:]*|=[-+*/<>=!&|^%.~?:]+)#*(\{[^}]*\})?/,
       ),
     // Built-in/parenthesised cons, plus the unboxed-sum injection con with `_` slot
     // markers and `|` separators (`(# _| #)`, `(# |_ #)`, `(# _|| #)`). The nullary

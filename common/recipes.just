@@ -36,11 +36,20 @@ parse file: build
 highlight file: generate
     tree-sitter highlight {{ file }}
 
+# Assert information extraction (not just no-error): run test/extractions_test.scm
+# over test/extract-samples/* and diff captures against test/extractions.golden.
+extract: build
+    ../test/runners/extract-golden.sh {{ slug }} | tapview
+
+# Regenerate test/extractions.golden from the current grammar (review the diff).
+update-extractions: build
+    ../test/runners/extract-golden.sh {{ slug }} --update
+
 # IL-grammar test flow (ghc-core/stg/cmm/dump only; cabal has no gen-corpus).
-# Runs queries, the harvested-corpus gate, the ephemeral generated matrix, any
-# `extra` gate recipes (space-separated; ghc-dump passes validate-injections),
-# and the inline tests, each to completion. Exits non-zero if any failed. Needs
-# a built parser (build) and, for gen-corpus, a GHC compiler.
+# Runs queries, the harvested-corpus gate, the ephemeral generated matrix, the
+# extraction golden, any `extra` gate recipes (space-separated; ghc-dump passes
+# validate-injections), and the inline tests, each to completion. Exits non-zero
+# if any failed. Needs a built parser (build) and, for gen-corpus, a GHC compiler.
 _il-test *extra: build
     #!/usr/bin/env bash
     set -uo pipefail
@@ -48,6 +57,7 @@ _il-test *extra: build
     ../test/runners/check-queries.sh {{ slug }} | tapview || rc=1
     ../test/runners/parse-corpus.sh {{ slug }} | tapview || rc=1
     ../test/runners/gen-corpus.sh {{ slug }} | tapview || rc=1
+    ../test/runners/extract-golden.sh {{ slug }} | tapview || rc=1
     for r in {{ extra }}; do just "$r" || rc=1; done
     tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
     exit "$rc"

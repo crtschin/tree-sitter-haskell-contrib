@@ -1,0 +1,122 @@
+## test/extract-samples/bytes-call.dump-cmm
+proc.name	0,1-0,2	k
+block.label	5,7-5,9	c1
+type	6,17-6,20	F64
+assign.lhs	6,11-6,21	(_c1::F64)
+assign.rhs	6,24-6,93	call "ccall" arg hints:  [PtrHint]  result hints:  [PtrHint] sqrt(D1)
+fcall.conv	6,29-6,36	"ccall"
+fcall.target	6,85-6,89	sqrt
+call.target	7,16-7,25	(I64[Sp])
+type	7,17-7,20	I64
+mem.address	7,21-7,23	Sp
+return.target	7,45-7,47	c2
+data.section	10,9-10,32	""cstring" . msg_bytes"
+block.label	11,5-11,14	msg_bytes
+type	12,9-12,11	I8
+## test/extract-samples/caf.dump-cmm
+caf.label	0,2-0,6	c1ka
+caf.member	0,9-0,27	block_c1ka_closure
+caf.label	0,32-0,36	c1kd
+caf.member	0,39-0,57	block_c1ka_closure
+caf.member	0,59-0,80	Bindings.poly_closure
+caf.label	1,2-1,6	c1kz
+## test/extract-samples/clabels.dump-cmm
+data.section	0,9-0,42	""data" . GHC.Tuple.(,)_con_info"
+block.label	1,5-1,27	GHC.Tuple.(,)_con_info
+clabel	1,5-1,27	GHC.Tuple.(,)_con_info
+const.value	2,15-2,27	(,)_con_info
+clabel	2,15-2,27	(,)_con_info
+const.value	3,15-3,35	GHC.Types.[]_closure
+clabel	3,15-3,35	GHC.Types.[]_closure
+const.value	4,15-4,25	:_con_info
+clabel	4,15-4,25	:_con_info
+const.value	5,15-5,28	C:Eq_con_info
+clabel	5,15-5,28	C:Eq_con_info
+const.value	6,15-6,38	main:Ffi_init__fexports
+clabel	6,15-6,38	main:Ffi_init__fexports
+const.value	7,15-7,38	$tc'C:Collection3_bytes
+clabel	7,15-7,38	$tc'C:Collection3_bytes
+const.value	8,15-8,32	$fNumInt_$c*_info
+clabel	8,15-8,32	$fNumInt_$c*_info
+const.value	9,15-9,49	GHC.Internal.Num.$fNumInt_$c*_info
+clabel	9,15-9,49	GHC.Internal.Num.$fNumInt_$c*_info
+const.value	10,15-10,36	GHC.Types.I#_con_info
+const.value	11,15-11,50	GHC.Classes.$fEqColour_$c/=_closure
+clabel	11,15-11,50	GHC.Classes.$fEqColour_$c/=_closure
+## test/extract-samples/labels.dump-cmm
+data.section	0,9-0,42	""data" . GHC.Types.True_closure"
+block.label	1,5-1,27	GHC.Types.True_closure
+const.value	2,15-2,34	GHC.Base.:_con_info
+clabel	2,15-2,34	GHC.Base.:_con_info
+proc.name	4,1-4,2	g
+block.label	9,7-9,9	c1
+type	10,16-10,19	I64
+assign.lhs	10,11-10,19	_s1::I64
+assign.rhs	10,22-10,40	I8[young<cR8> + 7]
+type	10,22-10,24	I8
+mem.address	10,25-10,39	young<cR8> + 7
+stack.area	10,25-10,35	young<cR8>
+foreign.conv	11,24-11,31	"ccall"
+foreign.target	11,32-11,38	memcpy
+foreign.returns	11,55-11,57	c2
+## test/extract-samples/machops.dump-cmm
+proc.name	0,1-0,2	h
+block.label	5,7-5,9	c1
+type	6,16-6,19	F64
+assign.lhs	6,11-6,19	_c1::F64
+assign.rhs	6,22-6,45	%MO_FF_Conv_W32_W64(D1)
+machop	6,22-6,41	%MO_FF_Conv_W32_W64
+type	7,16-7,19	I64
+assign.lhs	7,11-7,19	_c2::I64
+assign.rhs	7,22-7,43	%MO_F_Add_W64(D1, D2)
+machop	7,22-7,35	%MO_F_Add_W64
+type	8,11-8,14	I64
+mem.address	8,16-8,22	R1 + 7
+assign.lhs	8,11-8,23	I64![R1 + 7]
+assign.rhs	8,26-8,34	_c1::F64
+type	8,31-8,34	F64
+assign.lhs	9,11-9,13	D1
+assign.rhs	9,16-9,36	I64[young<cR8> + 16]
+type	9,16-9,19	I64
+mem.address	9,20-9,35	young<cR8> + 16
+stack.area	9,20-9,30	young<cR8>
+assign.lhs	10,11-10,13	R1
+assign.rhs	10,16-10,29	I64[<highSp>]
+type	10,16-10,19	I64
+mem.address	10,20-10,28	<highSp>
+stack.area	10,20-10,28	<highSp>
+type	11,11-11,14	P64
+mem.address	11,15-11,17	Sp
+assign.lhs	11,11-11,18	P64[Sp]
+assign.rhs	11,21-11,23	R1
+goto.target	12,16-12,18	c2
+## test/extract-samples/proc.dump-cmm
+proc.name	0,1-0,4	fun
+block.label	5,7-5,9	c1
+type	6,16-6,19	F64
+assign.lhs	6,11-6,19	_c2::F64
+assign.rhs	6,22-6,54	%MO_F_Add_W64(D1, 12.345 :: W64)
+machop	6,22-6,35	%MO_F_Add_W64
+type	6,50-6,53	W64
+type	7,11-7,14	I64
+mem.address	7,15-7,21	Sp - 8
+assign.lhs	7,11-7,22	I64[Sp - 8]
+assign.rhs	7,25-7,27	c1
+branch.cond	8,15-8,25	Hp > HpLim
+branch.then	8,48-8,50	c3
+branch.else	8,62-8,64	c4
+block.label	9,7-9,9	c3
+call.target	10,16-10,25	(P64[Sp])
+type	10,17-10,20	P64
+mem.address	10,21-10,23	Sp
+return.target	10,41-10,43	c5
+data.section	13,9-13,31	""data" . fun_closure"
+block.label	14,5-14,16	fun_closure
+const.value	15,15-15,23	fun_info
+## test/extract-samples/switch.dump-cmm
+proc.name	0,1-0,2	f
+block.label	5,7-5,9	c1
+switch.scrutinee	6,27-6,34	_s::I64
+type	6,31-6,34	I64
+goto.target	7,29-7,31	c2
+goto.target	8,30-8,32	c3

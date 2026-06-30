@@ -16,15 +16,15 @@ set -uo pipefail
 
 source "$(dirname "$0")/../lib/parse-lib.sh"
 
-lang="${1:?usage: $0 <ghc-core|ghc-stg|ghc-cmm|ghc-dump>}"
+lang="${1:?usage: $0 <ghc-core|ghc-core-explain|ghc-stg|ghc-cmm|ghc-dump>}"
 case "$lang" in
-    ghc-core | ghc-stg | ghc-cmm | ghc-dump) ;;
+    ghc-core | ghc-core-explain | ghc-stg | ghc-cmm | ghc-dump) ;;
     *) echo "unknown lang: $lang" >&2; exit 64 ;;
 esac
 
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 parser_dir="$repo/tree-sitter-$lang/result/parser"
-ts_lang="${lang/ghc-/ghc_}"
+ts_lang="${lang//-/_}"
 
 # Version selector: positional args after <lang>, else $GEN_GHC (so `just test
 # --all` can opt in without a positional). `all` -> the flake's `ghcVersions`
@@ -96,6 +96,17 @@ case "$GEN_LANG" in
             "ppr-debug:-dppr-debug"
             "case-as-let:-dppr-case-as-let"
             "ticks:-g3"
+        )
+        ;;
+    ghc-core-explain)
+        # Bannerless simplifier logs. -dppr-debug leaves rule firings unchanged
+        # but expands inlinings into indented typed-Core bodies (the scanner's
+        # `detail` path), so it is the representative format cell.
+        passes="-ddump-rule-firings -ddump-inlinings"
+        fmt_pass="-ddump-inlinings"
+        formats=(
+            "default:"
+            "ppr-debug:-dppr-debug"
         )
         ;;
     ghc-stg)
@@ -202,7 +213,8 @@ declare -A xfail=()
 mods=()
 for hs in "$repo"/test/fixtures/*.hs; do mods+=("$(basename "$hs" .hs)"); done
 case "$lang" in
-ghc-core) ;; # no remaining gaps
+ghc-core) ;;         # no remaining gaps
+ghc-core-explain) ;; # no remaining gaps (verbose inlinings captured as `detail`)
 ghc-cmm)
     for m in "${mods[@]}"; do
         xfail["ppr-debug/$m.dump-cmm"]="heavily-decorated -dppr-debug developer format (package prefixes, unique tags throughout)"

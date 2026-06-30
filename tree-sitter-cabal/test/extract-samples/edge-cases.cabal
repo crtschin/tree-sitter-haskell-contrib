@@ -1,0 +1,10 @@
+cabal-version: 3.0
+name: edge-zoo
+homepage: <https://example.com/home>
+bug-reports: https://example.com/bugs
+
+library
+  description:
+    A long description
+    spanning multiple lines.
+  build-depends: acme:{core, extra}

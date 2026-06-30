@@ -1,0 +1,7 @@
+Inlining done: GHC.Internal.Num.$fNumInt_$c+
+Inlining done: GHC.Internal.Num.$fNumInt_$c*
+Inlining done: GHC.Internal.Num.$fNumInt_$cfromInteger
+Inlining done: GHC.Internal.Enum.$fEnumInt_$cenumFromTo
+Inlining done: GHC.Classes.eqInt
+Inlining done: GHC.Internal.List.idLength
+Inlining done: GHC.Internal.Base.id

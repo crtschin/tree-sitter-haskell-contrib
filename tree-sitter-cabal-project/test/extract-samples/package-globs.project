@@ -1,0 +1,8 @@
+packages: .
+          ./pkg-a
+          ../sibling
+          */*.cabal
+          packages/**/*.cabal
+          pkg-*/
+          vendor/*
+          ./src/**/*.cabal

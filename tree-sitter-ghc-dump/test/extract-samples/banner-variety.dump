@@ -1,0 +1,32 @@
+[1 of 1] Compiling Main             ( Main.hs, Main.o )
+==================== Desugar (after optimization) ====================
+Result size of Desugar (after optimization)
+  = {terms: 5, types: 2, coercions: 0, joins: 0/0}
+
+main = putStrLn "hi"
+
+==================== CorePrep ====================
+main = putStrLn (unpackCString# "hi"#)
+
+==================== STG syntax: ====================
+main = \r [] putStrLn "hi";
+
+==================== Pre unarise: ====================
+main = \r [] putStrLn "hi";
+
+==================== Final STG: ====================
+main = \r [] putStrLn "hi";
+
+==================== Cmm produced by codegen ====================
+main_entry() {
+  c1: return;
+}
+
+==================== Output Cmm ====================
+main_entry() {
+  c2: return;
+}
+
+==================== Asm code ====================
+_main:
+  ret

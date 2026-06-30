@@ -1,0 +1,6 @@
+warning: [-Wfoo] something before any banner
+==================== Desugar (after optimization) ====================
+==================== Output Cmm ====================
+g_entry() {
+  c2: return;
+}

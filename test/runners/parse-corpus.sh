@@ -4,7 +4,7 @@
 # stdout. Exits non-zero if any file fails to parse.
 #
 # Usage: parse-corpus.sh <preset>
-#   preset = cabal | cabal-project | ghc-core | ghc-stg | ghc-cmm | ghc-dump
+#   preset = cabal | cabal-project | ghc-core | ghc-core-explain | ghc-stg | ghc-cmm | ghc-dump
 #
 # Must be invoked from inside the grammar's directory (the one containing
 # tree-sitter.json) so `tree-sitter parse` picks the right parser.
@@ -13,8 +13,8 @@ set -uo pipefail
 
 preset="${1:-}"
 case "$preset" in
-    cabal|cabal-project|ghc-core|ghc-stg|ghc-cmm|ghc-dump) ;;
-    *) echo "usage: $0 <preset>  (cabal | cabal-project | ghc-core | ghc-stg | ghc-cmm | ghc-dump)" >&2; exit 64 ;;
+    cabal|cabal-project|ghc-core|ghc-core-explain|ghc-stg|ghc-cmm|ghc-dump) ;;
+    *) echo "usage: $0 <preset>  (cabal | cabal-project | ghc-core | ghc-core-explain | ghc-stg | ghc-cmm | ghc-dump)" >&2; exit 64 ;;
 esac
 
 dir="$(dirname "$0")"

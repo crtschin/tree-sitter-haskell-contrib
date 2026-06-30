@@ -1,0 +1,17 @@
+[fun() { //  [R2]
+         { info_tbls: []
+           stack_info: arg_space: 8
+         }
+     {offset
+       c1: // global
+           _c2::F64 = %MO_F_Add_W64(D1, 12.345 :: W64);
+           I64[Sp - 8] = c1;
+           if (Hp > HpLim) (likely: False) goto c3; else goto c4;
+       c3: // global
+           call (P64[Sp])(R1) returns to c5, args: 8, res: 0, upd: 8;
+     }
+ },
+ section ""data" . fun_closure" {
+     fun_closure:
+         const fun_info;
+ }]

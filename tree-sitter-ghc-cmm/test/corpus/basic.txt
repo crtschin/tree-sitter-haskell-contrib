@@ -66,9 +66,10 @@ Proc with info table, statements, and a data section
             name: (identifier))
           (comment)
           (call
-            target: (mem_access
-              (cmm_type)
-              address: (identifier))
+            target: (indirect_target
+              (mem_access
+                (cmm_type)
+                address: (identifier)))
             (identifier)))))
     (data_section
       name: (section_name)
@@ -199,9 +200,10 @@ Bare offset graph with unwind (pipeline-stage dump)
           (binop)
           (literal)))
       (call
-        target: (mem_access
-          (cmm_type)
-          address: (identifier))
+        target: (indirect_target
+          (mem_access
+            (cmm_type)
+            address: (identifier)))
         (identifier)))))
 
 ================================

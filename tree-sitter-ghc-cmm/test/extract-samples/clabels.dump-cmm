@@ -1,0 +1,13 @@
+[section ""data" . GHC.Tuple.(,)_con_info" {
+     GHC.Tuple.(,)_con_info:
+         const (,)_con_info;
+         const GHC.Types.[]_closure;
+         const :_con_info;
+         const C:Eq_con_info;
+         const main:Ffi_init__fexports;
+         const $tc'C:Collection3_bytes;
+         const $fNumInt_$c*_info;
+         const GHC.Internal.Num.$fNumInt_$c*_info;
+         const GHC.Types.I#_con_info;
+         const GHC.Classes.$fEqColour_$c/=_closure;
+ }]

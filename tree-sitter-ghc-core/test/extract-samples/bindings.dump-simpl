@@ -1,0 +1,10 @@
+greeting :: String
+greeting = unpackCString# greeting1
+
+f :: GHC.Types.Int -> Int
+f = \ x -> case x of { I# y -> y }
+
+(+++) :: forall {a}. [a] -> [a] -> [a]
+(+++) = ++
+
+h = let { z = +# a 1# } in z

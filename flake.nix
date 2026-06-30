@@ -87,6 +87,12 @@
           scanner = "ghc-core.c";
         };
 
+        treeSitterGhcCoreExplain = buildTreeSitterPkg {
+          pname = "tree-sitter-ghc-core-explain";
+          language = "ghc_core_explain";
+          scanner = "ghc-core-explain.c";
+        };
+
         treeSitterGhcStg = buildTreeSitterPkg {
           pname = "tree-sitter-ghc-stg";
           language = "ghc_stg";
@@ -149,6 +155,7 @@
           tree-sitter-cabal = treeSitterCabal;
           tree-sitter-cabal-project = treeSitterCabalProject;
           tree-sitter-ghc-core = treeSitterGhcCore;
+          tree-sitter-ghc-core-explain = treeSitterGhcCoreExplain;
           tree-sitter-ghc-stg = treeSitterGhcStg;
           tree-sitter-ghc-cmm = treeSitterGhcCmm;
           tree-sitter-ghc-dump = treeSitterGhcDump;

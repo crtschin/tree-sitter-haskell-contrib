@@ -1,0 +1,13 @@
+source-repository-package
+    type: git
+    location: https://github.com/haskell/cabal
+    tag: abc123
+
+package aeson
+  ghc-options: -O2
+
+repository hackage.haskell.org
+  url: https://hackage.haskell.org/
+
+program-options
+  ghc-options: "-with-rtsopts=-T --disable-delayed-os-memory-return"
