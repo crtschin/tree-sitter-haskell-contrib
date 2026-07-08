@@ -689,3 +689,63 @@ foo = {__ffi_static_ccall_safe base:c_sym "c_sym" :: Int}
     rhs: (foreign_call
       target: (variable)
       type: (constructor))))
+
+================================
+Let-bound type prints a @-binder above its equation (worker/wrapper -O)
+================================
+
+foo
+  = let {
+      @a
+      a = TYPE: b } in
+    x
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (let
+      (binding
+        signature: (type_binder
+          (tyvar
+            (variable)))
+        name: (variable)
+        rhs: (application
+          (constructor)
+          (special_con)
+          (variable)))
+      body: (variable))))
+
+================================
+Signature type keeps a trailing atom, not the binding name
+================================
+
+table :: Map.Map Int String
+table = tab
+
+poly :: Maybe a
+poly = p
+
+--------------------------------
+
+(source_file
+  (binding
+    signature: (type_signature
+      (variable)
+      (type_apply
+        (type_apply
+          (constructor)
+          (constructor))
+        (constructor)))
+    name: (variable)
+    rhs: (variable))
+  (binding
+    signature: (type_signature
+      (variable)
+      (type_apply
+        (constructor)
+        (tyvar
+          (variable))))
+    name: (variable)
+    rhs: (variable)))

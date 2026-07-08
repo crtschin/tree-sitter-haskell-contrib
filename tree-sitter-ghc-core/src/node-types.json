@@ -319,6 +319,10 @@
         "required": false,
         "types": [
           {
+            "type": "type_binder",
+            "named": true
+          },
+          {
             "type": "type_signature",
             "named": true
           }

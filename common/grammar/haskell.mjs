@@ -198,16 +198,34 @@ export function makeTypeRules() {
     mult_arrow: ($) => seq("%", $._type_atom, choice("->", "→")),
 
     _type_btype: ($) => choice($.type_apply, $._type_atom),
+    // A signature type greedily keeps a trailing atom rather than ceding it to the binding
+    // `name` slot: `table :: Map Int String` / `table = ..` else mis-parses as a
+    // data-con-wrapper `String` binding, and `foo :: Map a` steals `a`. Both derivations
+    // complete, so without a bias GLR tie-breaks it unpredictably (surfaces in a linked
+    // parser, not always the CLI). Only `constructor` and `tyvar` are stealable (the type
+    // atoms that are also valid `_def_name`s), so the prec.dynamic covers exactly those.
+    // They are spelled against _type_atom_rest, not _type_atom, so the boosted atoms do not
+    // overlap the plain ones (an unresolved [type_apply, _type_atom] conflict); a trailing
+    // `[..]` stays unboosted so a following `[IdInfo]` bracket still reduces to idinfo.
     type_apply: ($) =>
-      prec.left(seq($._type_btype, choice($._type_atom, $.kind_app))),
+      prec.left(
+        seq(
+          $._type_btype,
+          choice(
+            prec.dynamic(1, $.constructor),
+            prec.dynamic(1, $.tyvar),
+            $._type_atom_rest,
+            $.kind_app,
+          ),
+        ),
+      ),
     kind_app: ($) => seq("@", $._type_atom),
 
-    _type_atom: ($) =>
+    _type_atom: ($) => choice($.constructor, $.tyvar, $._type_atom_rest),
+    _type_atom_rest: ($) =>
       choice(
-        $.constructor,
         $.special_con,
         $.operator,
-        $.tyvar,
         $._type_literal,
         $.type_list,
         $.type_paren_form,

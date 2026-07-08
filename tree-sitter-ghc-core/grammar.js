@@ -40,9 +40,11 @@ export default grammar({
 
   word: ($) => $.variable,
 
-  // After a signature's type, the next `variable` is either a type-application
-  // argument or the binding name on the next line. Let GLR explore both. The
-  // over-munch branch dies because the binding then can't complete.
+  // After a signature's type, the next atom is either a type-application argument
+  // or the binding name on the next line. Let GLR explore both. Munching the
+  // next-line name dies (the binding can't complete), but a trailing same-line
+  // `constructor`/`tyvar` also completes as a wrapper name, so type_apply carries a
+  // prec.dynamic to keep it in the type (see common/grammar/haskell.mjs).
   conflicts: ($) => [
     [$._type, $.type_apply],
     // A banner may open another Core section or a trailing soup section. Both
@@ -186,9 +188,11 @@ export default grammar({
     // A binding, optionally preceded by its type signature (same group, single newline, no
     // _item_sep). The binders are join-point parameters (empty for ordinary bindings). A
     // multi-line signature type is bounded by where the binding `name` parses (GLR).
+    // A let-bound type prints its binder as a bare `@a` line above the `a = TYPE: t`
+    // equation, so the signature slot also accepts a `type_binder` (worker/wrapper -O output).
     binding: ($) =>
       seq(
-        optional(field("signature", $.type_signature)),
+        optional(field("signature", choice($.type_signature, $.type_binder))),
         optional(field("info", $.idinfo)),
         field("name", $._def_name),
         repeat($._binder),

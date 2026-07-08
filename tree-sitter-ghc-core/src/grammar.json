@@ -527,8 +527,17 @@
               "type": "FIELD",
               "name": "signature",
               "content": {
-                "type": "SYMBOL",
-                "name": "type_signature"
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "type_signature"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "type_binder"
+                  }
+                ]
               }
             },
             {
@@ -2296,8 +2305,24 @@
             "type": "CHOICE",
             "members": [
               {
+                "type": "PREC_DYNAMIC",
+                "value": 1,
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "constructor"
+                }
+              },
+              {
+                "type": "PREC_DYNAMIC",
+                "value": 1,
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "tyvar"
+                }
+              },
+              {
                 "type": "SYMBOL",
-                "name": "_type_atom"
+                "name": "_type_atom_rest"
               },
               {
                 "type": "SYMBOL",
@@ -2330,15 +2355,24 @@
         },
         {
           "type": "SYMBOL",
+          "name": "tyvar"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_type_atom_rest"
+        }
+      ]
+    },
+    "_type_atom_rest": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
           "name": "special_con"
         },
         {
           "type": "SYMBOL",
           "name": "operator"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "tyvar"
         },
         {
           "type": "SYMBOL",
