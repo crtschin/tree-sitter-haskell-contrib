@@ -9,10 +9,11 @@
 # Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`.
 #
 # Usage: gen-corpus.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump> [all | <ghc-attr>...]
-#   (no selector)  the default GHC (nixpkgs#ghc), what `just test`/CI exercises
-#   all            every version in flake.nix `ghcVersions` (opt-in, heavy)
+#   (no selector)  the default GHC (nixpkgs#ghc), what `just test --fast` uses
+#   all            every version in flake.nix `ghcVersions` (heavy)
 #   <ghc-attr>...  explicit nixpkgs haskell.compiler attrs, e.g. ghc96 ghc98
-# The selector may also come from $GEN_GHC, letting `just test --all` opt in.
+# The selector may also come from $GEN_GHC; `just test` sets GEN_GHC=all so the
+# default suite validates every version (`--fast` leaves it unset for one GHC).
 
 set -uo pipefail
 

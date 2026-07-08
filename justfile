@@ -9,13 +9,13 @@ mod ghc-dump 'tree-sitter-ghc-dump'
 default: test
 
 # Run every grammar's full suite to completion (keep going past failures), then
-# exit non-zero if any grammar failed. With `--all`, the IL grammars' gen-corpus
-# step runs the cross-GHC matrix (flake `ghcVersions`) instead of the single
-# default GHC (opt-in and heavy, see test/runners/gen-corpus.sh).
+# exit non-zero if any grammar failed. The IL grammars' gen-corpus step validates
+# against every flake `ghcVersions` GHC by default (heavy; pulls each closure);
+# `--fast` restricts it to the single default GHC (see test/runners/gen-corpus.sh).
 test *flags:
     #!/usr/bin/env bash
     set -uo pipefail
-    [[ " {{ flags }} " == *" --all "* ]] && export GEN_GHC=all
+    [[ " {{ flags }} " == *" --fast "* ]] || export GEN_GHC=all
     rc=0
     for g in cabal cabal-project ghc-core ghc-core-explain ghc-stg ghc-cmm ghc-dump; do
         echo "==> $g"
@@ -36,11 +36,10 @@ fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mod
 # Clean build artifacts in every grammar
 clean: cabal::clean cabal-project::clean ghc-core::clean ghc-core-explain::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
 
-# Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a GHC compiler. Ephemeral. Also run by `test`.
+# Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a
+# GHC compiler. Ephemeral. Uses the default GHC; set GEN_GHC=all (or a space-
+# separated list of nixpkgs haskell.compiler attrs) for the cross-version matrix.
 gen-corpus: ghc-core::gen-corpus ghc-core-explain::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
-
-# Opt-in: dump matrix across ALL flake `ghcVersions` per IL grammar. Heavy (pulls each GHC closure). Not run by `test`.
-gen-corpus-all: ghc-core::gen-corpus-all ghc-core-explain::gen-corpus-all ghc-stg::gen-corpus-all ghc-cmm::gen-corpus-all ghc-dump::gen-corpus-all
 
 # Run the extraction-golden gate (asserts info shape/extraction, not just no-error) for every grammar. Also run by `test`.
 extract: cabal::extract cabal-project::extract ghc-core::extract ghc-core-explain::extract ghc-stg::extract ghc-cmm::extract ghc-dump::extract

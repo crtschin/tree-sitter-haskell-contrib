@@ -25,8 +25,3 @@ parse-corpus:
 # (nothing committed, see test/runners/gen-corpus.sh).
 gen-corpus: build
     ../test/runners/gen-corpus.sh {{ slug }} | tapview
-
-# Like gen-corpus but across every flake `ghcVersions` GHC. Opt-in, NOT run by
-# `test`/CI. Heavy (pulls each GHC closure).
-gen-corpus-all: build
-    ../test/runners/gen-corpus.sh {{ slug }} all | tapview

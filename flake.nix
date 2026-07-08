@@ -149,6 +149,25 @@
               };
             };
         };
+
+        # Tools the CI recipes (just check / test / fmt check) shell out to.
+        # Factored out so the minimal `ci` devShell drops the local
+        # profiling/editor tooling while sharing one source of truth with default.
+        ciPackages = with pkgs; [
+          just
+          nixfmt
+          prettier
+          tapview
+          tree-sitter
+        ];
+
+        # Corpus sources the parse/validate recipes read via env
+        # (test/runners/parse-corpus.sh, test/files/*.sh, validate-injections.sh).
+        corpusEnv = {
+          CABAL_SRC = "${cabal-src}";
+          HLS_SRC = "${hls-src}";
+          GHC_SRC = "${ghc-src}";
+        };
       in
       {
         packages = {
@@ -165,31 +184,35 @@
         # a broken grammar.
         checks.pre-commit-check = pre-commit-check;
 
-        devShells.default = pkgs.mkShell {
-          inherit (pre-commit-check) shellHook;
-          buildInputs =
-            with pkgs;
-            [
-              haskellPackages.cabal-fmt
-              hyperfine
-              tapview
-              just
-              nodejs
-              nixfmt
-              prettier
-              tree-sitter
-              typescript-language-server
-              valgrind
-              kdePackages.kcachegrind
-            ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-              perf
-              flamegraph
-            ]
-            ++ pre-commit-check.enabledPackages;
-          env.CABAL_SRC = "${cabal-src}";
-          env.HLS_SRC = "${hls-src}";
-          env.GHC_SRC = "${ghc-src}";
+        devShells = {
+          default = pkgs.mkShell {
+            inherit (pre-commit-check) shellHook;
+            buildInputs =
+              ciPackages
+              ++ (with pkgs; [
+                haskellPackages.cabal-fmt
+                hyperfine
+                nodejs
+                typescript-language-server
+                valgrind
+                kdePackages.kcachegrind
+              ])
+              ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+                pkgs.perf
+                pkgs.flamegraph
+              ]
+              ++ pre-commit-check.enabledPackages;
+            env = corpusEnv;
+          };
+
+          # Minimal shell used by .github/workflows/test.yml: only the tools the
+          # just check / test / fmt-check recipes invoke, none of the local
+          # profiling/editor tooling and no git-hook install, to keep the CI
+          # store closure (and its cache) small.
+          ci = pkgs.mkShell {
+            buildInputs = ciPackages;
+            env = corpusEnv;
+          };
         };
       }
     ))

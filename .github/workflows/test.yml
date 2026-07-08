@@ -14,12 +14,50 @@ jobs:
         with:
           primary-key: cache-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: cache-${{ runner.os }}-
-          gc-max-store-size-linux: 1G
+          # 1G was below the run's closure (the ci shell plus the on-demand GHC),
+          # so the GC-before-save wiped it and the cache never restored anything.
+          gc-max-store-size-linux: 6G
           purge: true
           purge-prefixes: cache-${{ runner.os }}-
           purge-created: 0
           purge-last-accessed: 0
           purge-primary-key: never
-      - run: nix develop --command just check
-      - run: nix develop --command just test
-      - run: nix develop --command just fmt check
+      - run: nix develop .#ci --command just check
+      - run: nix develop .#ci --command just test --fast
+      - run: nix develop .#ci --command just fmt check
+
+  # Cross-GHC validation of the IL grammars against real dumps from every flake
+  # `ghcVersions`, one matrix job per version. Gates PRs. The preflight below
+  # fails fast if a GHC is not substitutable from cache.nixos.org (e.g. after a
+  # nixpkgs bump), blocking the merge instead of triggering a multi-hour source
+  # build. fail-fast is off so every version's result is reported, not just the
+  # first failure.
+  cross-ghc:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: [ghc910, ghc912, ghc914]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
+        with:
+          # Shares the test job's single cache key (one entry, not one per
+          # version) so the small ci shell is restored rather than re-realised.
+          # The on-demand GHC (~3.3 GiB, essentially disjoint across versions) is
+          # cheap to re-fetch from cache.nixos.org, so no per-version caching.
+          primary-key: cache-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: cache-${{ runner.os }}-
+          gc-max-store-size-linux: 6G
+          purge: false
+      - name: Fail fast if the GHC is not in the binary cache
+        run: |
+          if nix build --dry-run --inputs-from . "nixpkgs#haskell.compiler.${{ matrix.ghc }}" 2>&1 | grep -qi 'will be built'; then
+            echo "::error::${{ matrix.ghc }} is not substitutable under this nixpkgs pin; refusing to compile GHC from source on CI."
+            exit 1
+          fi
+      - name: Generate and parse the ${{ matrix.ghc }} dump corpus
+        env:
+          GEN_GHC: ${{ matrix.ghc }}
+        run: nix develop .#ci --command just gen-corpus

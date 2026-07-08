@@ -25,13 +25,12 @@ All commands run across every grammar via the top-level justfile.
 | Command            | Description                                                  |
 |--------------------|--------------------------------------------------------------|
 | `just`             | Run every grammar's full suite (default)                     |
-| `just test`        | Per grammar: query compile, parse-corpus, inline tests, and the GHC dump matrix. Runs all suites to completion, then fails if any failed |
-| `just test --all`  | Same, but the GHC dump matrix runs across every `flake.nix` `ghcVersions` GHC (opt-in, heavy) |
+| `just test`        | Per grammar: query compile, parse-corpus, inline tests, and the GHC dump matrix across every `flake.nix` `ghcVersions` GHC. Runs all suites to completion, then fails if any failed (heavy) |
+| `just test --fast` | Same, but the GHC dump matrix uses only the default nixpkgs GHC (quick) |
 | `just build`       | Generate each parser and build its shared library            |
 | `just check`       | Validate every grammar without building                      |
 | `just fmt`         | Format grammar files and the flake (prettier and nixfmt)     |
-| `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite (needs a GHC compiler) |
-| `just gen-corpus-all` | Same matrix across every GHC in `flake.nix` `ghcVersions` (opt-in, heavy) |
+| `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite for the default GHC; set `GEN_GHC=all` for every `ghcVersions` GHC (needs a GHC compiler) |
 | `just clean`       | Remove build artifacts                                       |
 
 Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one
@@ -44,13 +43,17 @@ for profiling the scanner over their corpora.
 The cabal grammars parse a corpus drawn from the
 [cabal](https://github.com/haskell/cabal) and
 [haskell-language-server](https://github.com/haskell/haskell-language-server)
-source trees
+source trees.
 
 The GHC grammars parse a harvested corpus of real dumps from the GHC test suite.
 On top of that, `gen-corpus` compiles a handful of fixtures with GHC across a
-matrix of dump and display flags. By default it uses the one GHC in the pinned
-nixpkgs; `gen-corpus-all` re-runs the matrix once per version listed in
-`flake.nix` `ghcVersions`, validating the grammars against several compilers.
+matrix of dump and display flags.
+
+- `just test` runs the matrix once per version listed in `flake.nix`
+  `ghcVersions`, validating against several compilers (heavy: pulls each closure).
+
+- `just test --fast` and the CI pull-request gate restrict it to the one GHC in
+  the pinned nixpkgs.
 
 ## References
 
