@@ -1,29 +1,30 @@
 #include "tree_sitter/parser.h"
 
-// Layout scanner for GHC Core dumps. GHC separates top-level items: the banner,
-// the Result-size header, each binding group, and Rec bindings. A binding group
-// is its `name :: type` signature, `[IdInfo]` bracket, and `name = rhs` line.
-// Within a group, and in an expression body's continuations, lines use single
-// newlines and indentation. The grammar can't see column-0 layout, so this
-// scanner emits the external ITEM_SEP that bounds one group from the next.
+// Layout scanner for GHC Core dumps. It emits the external ITEM_SEP that bounds
+// one top-level item from the next: the banner, the Result-size header, each
+// binding group, and Rec bindings. A binding group is its `name :: type`
+// signature, `[IdInfo]` bracket, and `name = rhs` line. Within a group, and in
+// an expression body's continuations, lines use single newlines and
+// indentation. The grammar cannot see column-0 layout, hence this scanner.
 //
-// Normal (unpacked) dumps put a BLANK line, then GHC's per-binding
-// `-- RHS size: {..}` comment, then the signature, before each group. So a blank
-// line (>= 2 newlines) at column 0, or EOF, is the boundary. The `-- RHS size`
-// comment is consumed AS PART of the separator, not left as a standalone token.
-// Otherwise it splits the separator (blank-line ITEM_SEP, comment, then a second
-// scan before the signature), and that second scan fires the single-newline rule
-// (below) spuriously inside unpacked groups. A `---- .. ----` section marker
-// (>= 3 dashes, introduces a bannerless rules/CorePrep tail) is NOT consumed. The
-// grammar needs it, so the scan stops before one.
+// Normal (unpacked) dumps put a blank line, then GHC's per-binding
+// `-- RHS size: {..}` comment, then the signature, before each group.
 //
-// `-ddump-late-cc` is special: it packs groups with NO blank line and NO
-// `-- RHS size` comment (`.. name = rhs \n name2 :: ty ..`). A column-0 signature
-// head (a name then `::`/`[InlPrag..]`) always begins a group (the IdInfo line
-// starts with `[`, and a def is `name = `), so at a single-newline column-0
-// boundary we additionally fire before a signature head. ITEM_SEP is only valid
-// between groups. In unpacked dumps a signature follows the consumed comment, so
-// this single-newline path is unreachable there. Stateless.
+//   - A blank line (>= 2 newlines) at column 0, or EOF, is the boundary.
+//   - The `-- RHS size` comment is consumed as part of the separator. Left
+//     standalone it splits the separator, and the second scan then fires the
+//     single-newline rule (below) spuriously inside unpacked groups.
+//   - A `---- .. ----` section marker (>= 3 dashes, introducing a bannerless
+//     rules/CorePrep tail) is NOT consumed. The grammar needs it, so the scan
+//     stops before one.
+//
+// `-ddump-late-cc` packs groups with no blank line and no `-- RHS size` comment
+// (`.. name = rhs \n name2 :: ty ..`). A column-0 signature head (a name then
+// `::`/`[InlPrag..]`) always begins a group, so at a single-newline column-0
+// boundary we also fire before a signature head. In unpacked dumps a signature
+// follows the consumed comment, so this path is unreachable there.
+//
+// Stateless.
 
 enum TokenType {
     ITEM_SEP,
@@ -149,7 +150,7 @@ bool tree_sitter_ghc_core_external_scanner_scan(void *payload, TSLexer *lexer,
                          (c >= '0' && c <= '9') || c == '_' || c == '\'' ||
                          c == '$' || c == '#' || c == '.' ||
                          // a method-selector binder ends in an operator run
-                         // (`$fEqColour_$c/=`, `$fOrdColour_$c<`); `:` is
+                         // (`$fEqColour_$c/=`, `$fOrdColour_$c<`). `:` is
                          // excluded so the `::` of the signature still ends it.
                          c == '-' || c == '+' || c == '*' || c == '/' ||
                          c == '<' || c == '>' || c == '=' || c == '~' ||

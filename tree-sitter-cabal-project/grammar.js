@@ -16,9 +16,12 @@ function indented_block($) {
 export default grammar({
   name: "cabal_project",
 
-  // Order must match the shared scanner's enum Token. _section_name is declared only for
-  // that enum alignment (cabal-project has no section concept). _field_name is the hidden
-  // Unicode-fallback external used by field_name below.
+  // Order must match the shared scanner's enum Token.
+  //
+  // _section_name is declared only for that enum alignment (cabal-project has no
+  // section concept).
+  //
+  // _field_name is the hidden Unicode-fallback external used by field_name below.
   externals: ($) => [
     $._newline,
     $._indent,
@@ -110,27 +113,37 @@ export default grammar({
         ),
       ),
 
-    // Covers names, enum-ish values, versionish tokens (ghc-9.4), and dotted/slashy path
-    // fragments. Allows `/`, `.`, `-`, and glob `*`/`?` so a path-like value or a glob with
-    // an alphanumeric prefix (`vendor/*`, `pkg-*/`, `packages/**/*.cabal`) lexes as one
-    // token instead of splitting at the wildcard. A glob that leads with `*`/`?` is a `path`.
-    // Second alt: a digit-leading token that contains a letter and no `.`
-    // (a git commit SHA / ref in `tag:`), which would otherwise split into
-    // `integer` (the leading digits) + `identifier`. Its own token at a prec
-    // above `integer` (2) so it wins the shared prefix, but below `iso_date`
-    // (7)/`url` (8) so a date/URL still wins; a pure number stays `integer` and
-    // a dotted `1.2.3` stays `version` (neither this alt nor they overlap).
+    // Covers names, enum-ish values, versionish tokens (ghc-9.4), and
+    // dotted/slashy path fragments.
+    //
+    // Allows `/`, `.`, `-`, and glob `*`/`?` so a path-like value or a glob with
+    // an alphanumeric prefix (`vendor/*`, `pkg-*/`, `packages/**/*.cabal`) lexes
+    // as one token instead of splitting at the wildcard. A glob that leads with
+    // `*`/`?` is a `path`.
+    //
+    // Second alt: a digit-leading token that contains a letter and no `.` (a git
+    // commit SHA / ref in `tag:`), which would otherwise split into `integer`
+    // (the leading digits) + `identifier`.
+    //
+    // Its own token at a prec above `integer` (2) so it wins the shared prefix,
+    // but below `iso_date` (7)/`url` (8) so a date/URL still wins.
+    //
+    // A pure number stays `integer` and a dotted `1.2.3` stays `version`
+    // (neither this alt nor they overlap).
     identifier: ($) =>
       choice(
         token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-\/*?]*/)),
         token(prec(4, /[0-9][A-Za-z0-9_\-\/*?]*[A-Za-z][A-Za-z0-9_\-\/*?]*/)),
       ),
 
-    // Bare `.`/`..`, absolute, relative `./`/`../`, and glob paths. `*`/`?` for globs like
-    // `/*.cabal`. The third alternative is a glob-leading segment (`*.cabal`,
-    // `*/*.cabal`) so its leading `*` folds into the path instead of splitting off as
-    // the standalone `*` token; a trailing char is required, so a bare `*` (glob-all)
-    // stays that token.
+    // Bare `.`/`..`, absolute, relative `./`/`../`, and glob paths. `*`/`?` for
+    // globs like `/*.cabal`.
+    //
+    // The third alternative is a glob-leading segment (`*.cabal`, `*/*.cabal`)
+    // so its leading `*` folds into the path instead of splitting off as the
+    // standalone `*` token.
+    //
+    // A trailing char is required, so a bare `*` (glob-all) stays that token.
     path: ($) =>
       token(
         prec(

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Validate ghc-dump's injection dispatch end to end: for every banner-delimited
-# section in the harvested dump streams, classify the banner with the SAME
-# (regex -> language) table that queries/injections.scm uses, then parse the
-# section body with the dispatched member grammar and assert no ERROR/MISSING.
+# Validate ghc-dump's injection dispatch end to end. For every banner-delimited
+# section in the harvested dump streams:
+#
+#   - Classify the banner with the SAME (regex -> language) table that
+#     queries/injections.scm uses.
+#   - Parse the section body with the dispatched member grammar and assert no
+#     ERROR/MISSING.
+#
 # This is what an editor's injection does at highlight time, checked
 # deterministically. No GHC compiler is needed, only $GHC_SRC (a flake input)
 # and the built member parsers.
@@ -20,11 +24,12 @@ source "$(dirname "$0")/../lib/parse-lib.sh"
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 inj="$repo/tree-sitter-ghc-dump/queries/helix/injections.scm"
 
-# (banner-regex, member-language) dispatch table, read straight out of
-# injections.scm so it stays in lockstep. Paired per rule: a rule's `#match?`
-# regex is bound to the `injection.language` that follows it, so the two arrays
-# can never desync. Hard-fail if nothing parses out (a reformatted/restructured
-# query must break loudly, not validate zero sections and pass).
+# The (banner-regex, member-language) dispatch table, built from injections.scm.
+#
+#   - Paired per rule: a rule's `#match?` regex is bound to the
+#     `injection.language` that follows it, so the two arrays cannot desync.
+#   - Hard-fail if nothing parses out, so a reformatted query breaks loudly
+#     instead of validating zero sections and passing.
 regexes=()
 langs=()
 rx=""
@@ -97,9 +102,8 @@ for f in "${files[@]}"; do
     ' "$f")
 done
 
-# Sections that an in-scope member grammar does not parse, with the reason. Each
-# is a variant/appendix dump outside the member's modelled surface. An editor
-# leaves it un-highlighted. <fileid>_<section-index> -> reason.
+# Sections outside the member's modelled surface. An editor leaves them
+# un-highlighted. <fileid>_<section-index> -> reason.
 declare -A known_gaps=(
     [simplCore_should_compile_T23083_1]="CorePrep is a second Core pass; ghc-core models Tidy Core"
     [simplStg_should_compile_T13588_2]="pre-unarise STG omits the binding-terminating ; that ghc-stg requires"

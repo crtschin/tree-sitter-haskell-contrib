@@ -10,7 +10,7 @@
   name: (rule_name) @rule.name
   provenance: (provenance (builtin) @rule.builtin))
 
-; A firing may print without an origin; still assert the name is captured whole.
+; A firing may print without an origin. Assert the name is captured whole.
 (rule_firing
   name: (rule_name) @rule.name
   .)

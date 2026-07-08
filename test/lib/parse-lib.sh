@@ -2,12 +2,14 @@
 # Shared parse helper for the corpus/injection gates (runners/parse-corpus.sh,
 # runners/gen-corpus.sh, runners/validate-injections.sh). Source it, do not execute.
 #
-# The one thing all three must get right and historically did not: a parser that
-# fails to LOAD (missing/stale result/parser, ABI mismatch, crash) makes
-# `tree-sitter parse` exit non-zero and print an "Error:" banner with NO per-file
-# "Parse:" line. A gate that only scans stdout for (ERROR/(MISSING then finds
-# nothing, reports every file `ok`, and exits 0 (green while the grammar is
-# non-functional). collect_parse_errors treats that as a hard failure.
+# The one thing all three must get right, and historically did not: a parser
+# that fails to LOAD (missing/stale result/parser, ABI mismatch, crash) makes
+# `tree-sitter parse` exit non-zero and print an "Error:" banner with no
+# per-file "Parse:" line.
+#
+# A gate that only scans stdout for (ERROR/(MISSING then finds nothing, reports
+# every file `ok`, and exits 0: green while the grammar is non-functional.
+# collect_parse_errors treats that as a hard failure.
 
 # collect_parse_errors <assoc-array-name> <tree-sitter-parse-args...>
 #   Runs `tree-sitter parse --quiet <args>`. Callers pass the file list and,

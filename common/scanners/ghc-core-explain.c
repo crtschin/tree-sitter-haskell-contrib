@@ -1,22 +1,28 @@
 #include "tree_sitter/parser.h"
 
-// Scanner for GHC's bannerless simplifier logs.
+// Scanner for GHC's bannerless simplifier logs. It emits three externals.
 //
-// RULE_NAME (after `Rule fired:`): a rule name may contain spaces, symbols, and
-// even parentheses (`paren (in) name`), and it is followed by the origin as a
-// trailing ` (BUILTIN)`/` (<Module>)` group at end of line. The name is
-// everything up to that final group, which needs lookahead a token regex cannot
-// express: we scan to EOL and `mark_end` at the gap before the LAST `(...)`
-// group. `tail_is_group` tracks whether the run after the last gap is exactly a
-// trailing group; if not (no origin, or the group was embedded and more name
-// follows), the name runs to EOL. Origins never contain spaces, so the gap
-// before the final group is unambiguous.
+// RULE_NAME (after `Rule fired:`). A rule name may contain spaces, symbols, and
+// even parentheses (`paren (in) name`), followed by the origin as a trailing
+// ` (BUILTIN)`/` (<Module>)` group at end of line. The name is everything up to
+// that final group.
 //
-// INLINED_ID / DETAIL (after `Inlining done:`): the default form is one
-// `Inlining done: <id>` line; `-dppr-debug` prints a bare `Inlining done:`
-// header then an indented multi-line typed-Core body. We peek past the keyword
-// and emit the same-line id, or capture the indented body opaquely as DETAIL up
-// to the next column-0 record or EOF. Stateless.
+//   - A token regex cannot express the lookahead, so we scan to EOL and
+//     `mark_end` at the gap before the LAST `(...)` group.
+//   - `tail_is_group` tracks whether the run after the last gap is exactly a
+//     trailing group. If not (no origin, or an embedded group with more name
+//     after), the name runs to EOL.
+//   - Origins never contain spaces, so the gap before the final group is
+//     unambiguous.
+//
+// INLINED_ID / DETAIL (after `Inlining done:`). Two forms:
+//
+//   - Default: one `Inlining done: <id>` line. We emit the same-line id.
+//   - `-dppr-debug`: a bare `Inlining done:` header then an indented
+//     multi-line typed-Core body, captured opaquely as DETAIL up to the next
+//     column-0 record or EOF.
+//
+// Stateless.
 
 enum TokenType {
     RULE_NAME,
@@ -78,7 +84,7 @@ static bool scan_inlining(TSLexer *lexer, const bool *valid_symbols) {
     }
 
     // Verbose (-dppr-debug) form: bare header, then an indented body block. A
-    // body line is always indented; a column-0 non-space char begins the next
+    // body line is always indented. A column-0 non-space char begins the next
     // record. A truncated bare header at EOF has no body, so leave it to error.
     if (!valid_symbols[DETAIL] || lexer->eof(lexer)) return false;
     lexer->advance(lexer, false); // the header's line ending (keeps DETAIL non-empty)
@@ -101,7 +107,7 @@ static bool scan_inlining(TSLexer *lexer, const bool *valid_symbols) {
 bool tree_sitter_ghc_core_explain_external_scanner_scan(void *payload, TSLexer *lexer,
                                                         const bool *valid_symbols) {
     // The two contexts are mutually exclusive in a normal parse (each external is
-    // valid only after its keyword); rule_name wins if error recovery offers all.
+    // valid only after its keyword). rule_name wins if error recovery offers all.
     if (valid_symbols[RULE_NAME]) return scan_rule_name(lexer);
     if (valid_symbols[INLINED_ID] || valid_symbols[DETAIL]) return scan_inlining(lexer, valid_symbols);
     return false;

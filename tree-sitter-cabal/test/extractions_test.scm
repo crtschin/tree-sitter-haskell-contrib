@@ -23,7 +23,7 @@
 (library type: (section_type) @section.type . (property_or_conditional_block))
 
 ; Conditional predicates: the function (e.g. flag/impl/os) and its argument.
-; impl(ghc >= 9.4) carries a constraint_op and version inside the arg; capture
+; impl(ghc >= 9.4) carries a constraint_op and version inside the arg. Capture
 ; those too so a mis-split of a compiler-version predicate fails the diff.
 (predicate_call
   fn: (identifier) @predicate.fn

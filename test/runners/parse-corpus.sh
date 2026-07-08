@@ -29,8 +29,7 @@ if [[ $n -eq 0 ]]; then
     exit 1
 fi
 
-# Single-pass batch parse via the shared helper (cwd auto-detects the parser).
-# A parser that fails to load is a Bail out, not a silent all-ok pass.
+# cwd auto-detects the parser. A load failure is a Bail out, not a silent all-ok pass.
 declare -A error_for=()
 if ! collect_parse_errors error_for "${files[@]}"; then
     echo "Bail out! tree-sitter could not parse preset $preset (build the grammar first?)"

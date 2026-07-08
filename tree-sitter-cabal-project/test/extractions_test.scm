@@ -1,8 +1,7 @@
 ; Extraction contract for the extract-golden gate (test/runners/extract-golden.sh).
-; Captures the semantic payload a cabal.project exposes -- field name/value
-; splits, package globs, constraint atoms, stanza headers, and conditional
-; predicates -- so the golden asserts exact extracted text, not merely absence
-; of ERROR nodes.
+; Captures the semantic payload a cabal.project exposes: field name/value splits,
+; package globs, constraint atoms, stanza headers, and conditional predicates.
+; The golden asserts exact extracted text, not merely absence of ERROR nodes.
 
 ; Field name plus each leaf value token, so a value mis-split shows up as a span.
 (field name: (field_name) @field.name)
@@ -18,7 +17,7 @@
 (field_value (quoted_string)  @value.string)
 (field_value (flag_token)     @value.flag)
 (field_value (constraint_op)  @value.op)
-; The standalone glob-all `*` (`packages: *`) is anonymous; capture it so a
+; The standalone glob-all `*` (`packages: *`) is anonymous. Capture it so a
 ; regression that splits a glob and drops a stray `*` stays visible.
 (field_value "*" @value.star)
 

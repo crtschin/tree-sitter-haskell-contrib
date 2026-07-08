@@ -1,4 +1,4 @@
-; cabal flag scope tracking. A `flag <name>` stanza defines a flag; a
+; cabal flag scope tracking. A `flag <name>` stanza defines a flag and a
 ; `flag(<name>)` predicate in a condition references it. No @local.scope: defs
 ; live in the implicit file-root scope, so a flag defined in one stanza resolves
 ; from any condition in the file.

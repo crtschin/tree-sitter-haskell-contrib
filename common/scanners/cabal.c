@@ -14,7 +14,7 @@
 #define NBSP 0x00A0
 
 // Optional call-rate instrumentation. Build with `-DSCANNER_STATS` (see
-// `just stats`). Off in normal builds, where the macros compile to nothing.
+// `just stats`). Off in normal builds.
 #ifdef SCANNER_STATS
 #include <stdio.h>
 #include <stdlib.h>
@@ -147,7 +147,7 @@ enum Token {
 typedef struct {
     // Indent columns (spaces). Always holds the sentinel 0 at the root.
     //   back()    == cur_indent_lvl  (innermost open block)
-    //   [size-2]  == prev_indent_lvl (level before the last INDENT; the INDENTED check),
+    //   [size-2]  == prev_indent_lvl (level before the last INDENT, the INDENTED check),
     //                defined only when size >= 2.
     Array(uint16_t) indents;
     // DEDENTs queued for later calls: when NEWLINE fires but the next line is already
@@ -352,18 +352,21 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
         STATS_PATH(SP_EOF_NEWLINE); return true;
     }
 
-    // Name dispatch: ASCII-fast / Unicode-fallback, shared by both grammars. The visible
-    // field_name (and cabal's section_name) choices between an ASCII terminal and the
-    // hidden external here.
-    //   - ASCII: return false and let the DFA pick, so keyword aliases (cabal's ci-regex
-    //     `library`/`if`, cabal-project's `_word` keywords `package`/`repository`) win by
-    //     precedence. Emitting unconditionally would steal them.
-    //   - Unicode: commit. Both ASCII terminals stop at the first byte >= 0x80, so the
-    //     parser would otherwise error. Unicode can sit anywhere (`x-無`, `Fünfstück`), so
-    //     walk the whole body first. The wasted ASCII advances cost ~17M Ir on the cabal
-    //     corpus. Dropping a Unicode range from the regex saves ~105M Ir.
-    // `lookahead` is the pre-decoded codepoint, so `>= 0x80` is a single compare.
-    // cabal-project never sets SECTION_NAME, so that branch is cabal-only.
+    // Name dispatch, shared by both grammars: choose between an ASCII terminal
+    // and this hidden external for field_name (and cabal's section_name).
+    //
+    //   - ASCII: return false and let the DFA pick, so keyword aliases (cabal's
+    //     ci-regex `library`/`if`, cabal-project's `_word` keywords
+    //     `package`/`repository`) win by precedence. Emitting unconditionally
+    //     would steal them.
+    //   - Unicode: commit. Both ASCII terminals stop at the first byte >= 0x80,
+    //     so the parser would otherwise error. Unicode can sit anywhere
+    //     (`x-無`, `Fünfstück`), so walk the whole body first.
+    //
+    // `lookahead` is the pre-decoded codepoint, so `>= 0x80` is a single
+    // compare. The wasted ASCII advances cost ~17M Ir on the cabal corpus, and
+    // dropping a Unicode range from the regex saves ~105M Ir. cabal-project
+    // never sets SECTION_NAME, so that branch is cabal-only.
     if (valid_symbols[SECTION_NAME] || valid_symbols[FIELD_NAME]) {
         while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
                lexer->lookahead == '\r' || lexer->lookahead == NBSP) {

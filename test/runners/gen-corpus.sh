@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Generate an EPHEMERAL GHC dump matrix for one grammar, parse each file with the
-# freshly-built grammar (result/parser), report errors, then delete everything (the dumps
-# live in a `mktemp` dir removed on exit). The on-demand coverage check for grammar
-# development. The default single-version run is also part of `just test`/CI via _il-test.
+# freshly-built grammar (result/parser), report errors, then delete everything
+# (the dumps live in a `mktemp` dir removed on exit).
+#
+# The on-demand coverage check for grammar development. Its default
+# single-version run is also part of `just test`/CI via _il-test.
 #
 # Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`.
 #
@@ -26,10 +28,8 @@ repo="$(cd "$(dirname "$0")/../.." && pwd)"
 parser_dir="$repo/tree-sitter-$lang/result/parser"
 ts_lang="${lang//-/_}"
 
-# Version selector: positional args after <lang>, else $GEN_GHC (so `just test
-# --all` can opt in without a positional). `all` -> the flake's `ghcVersions`
-# (read jq-free as a space-joined string); otherwise space-separated nixpkgs
-# haskell.compiler attrs. Nothing -> the default GHC.
+# Version selector: positional args after <lang>, else $GEN_GHC. `all` expands
+# to the flake's `ghcVersions`. Bare attrs are nixpkgs haskell.compiler names.
 sel=("${@:2}")
 [[ ${#sel[@]} -eq 0 && -n "${GEN_GHC:-}" ]] && read -ra sel <<<"$GEN_GHC"
 versions=("default")
@@ -44,9 +44,8 @@ fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# One `nix shell` per version amortises the slow GHC closure realisation across
-# every compile of that version. The quoted heredoc runs inside it; $GEN_* come
-# from the environment, with $GEN_TMP namespacing each version's output.
+# One `nix shell` per version amortises closure realisation across all compiles
+# for that version. $GEN_* come from the environment. $GEN_TMP namespaces output.
 generate_for() { # generate_for <nix-ref> <out-dir>
     mkdir -p "$2"
     GEN_TMP="$2" GEN_REPO="$repo" GEN_LANG="$lang" \
@@ -54,11 +53,14 @@ generate_for() { # generate_for <nix-ref> <out-dir>
 set -uo pipefail
 cd "$GEN_REPO"
 
-# Compile one fixture with the given dump flags. -ddump-to-file routes each pass
-# to its own <sub>/<Module>.dump-<pass> file. Each cell gets a distinct
-# -outputdir (GHC aliases dumpdir to it), so different format cells don't
-# overwrite each other's <Module>.dump-simpl. Failures (a fixture that rejects a
-# flag combo) are tolerated. Coverage is best-effort per cell.
+# Compile one fixture with the given dump flags.
+#
+#   - -ddump-to-file routes each pass to its own <sub>/<Module>.dump-<pass>
+#     file.
+#   - Each cell gets a distinct -outputdir (GHC aliases dumpdir to it), so
+#     different format cells do not overwrite each other's <Module>.dump-simpl.
+#   - Failures (a fixture that rejects a flag combo) are tolerated. Coverage is
+#     best-effort per cell.
 emit() { # emit <out-subdir> <ghc-flags...>
     local sub="$1"; shift
     local hs
@@ -68,11 +70,15 @@ emit() { # emit <out-subdir> <ghc-flags...>
     done
 }
 
-# Each IL grammar sets `passes` (every dump flag of that IL, emitted at the
-# default format in one compile per fixture) and a `formats` display matrix
-# applied to `fmt_pass` (one representative pass). The shared loop below runs
-# them. ghc-dump is special (a multi-IL stream). Inapplicable cells produce
-# no dump (the parse step only sees files that were generated).
+# Each IL grammar sets two variables, run by the shared loop below:
+#
+#   - `passes`: every dump flag of that IL, emitted at the default format in
+#     one compile per fixture.
+#   - `formats`: a display matrix applied to `fmt_pass` (one representative
+#     pass).
+#
+# ghc-dump is special (a multi-IL stream). Inapplicable cells produce no dump,
+# since the parse step only sees files that were generated.
 case "$GEN_LANG" in
     ghc-core)
         passes="-ddump-ds -ddump-ds-preopt -ddump-simpl -ddump-simpl-iterations \
@@ -156,8 +162,8 @@ case "$GEN_LANG" in
         ;;
 esac
 
-# Shared emit for the IL grammars: every pass at default format, then the
-# representative pass across the display-format matrix.
+# IL grammars: every pass at default format, then the representative pass
+# across the display-format matrix.
 if [[ -n "${passes:-}" ]]; then
     emit passes $passes
     for fmt in "${formats[@]}"; do
@@ -190,8 +196,7 @@ if [[ ! -e "$parser_dir" ]]; then
     exit 1
 fi
 
-# Single-pass batch parse via the shared helper. A parser that fails to load is
-# a Bail out, not a silent all-ok pass.
+# A parser load failure is a Bail out, not a silent all-ok pass.
 declare -A error_for=()
 if ! collect_parse_errors error_for --lib-path "$parser_dir" --lang-name "$ts_lang" "${files[@]}"; then
     echo "Bail out! parser at $parser_dir failed to load"
@@ -205,11 +210,10 @@ fi
 # -dppr/-fprint display format. Emitted as TAP `# TODO` so they stay visible
 # without failing the gate. A NEW failure outside this set still fails.
 declare -A xfail=()
-# The structural gaps below hold for EVERY fixture regardless of content (a
-# scanner limitation, or a wholesale-out-of-scope display format), so they are
-# keyed off the fixture set rather than a hand-maintained module list, so a new
-# fixture is covered without editing this file. Content-specific cells are still
-# listed individually so a NEW such failure fails the gate.
+# Structural gaps (scanner limitation or wholesale-out-of-scope format) apply to
+# every fixture, so they are keyed off the fixture set rather than a
+# hand-maintained module list (new fixture covered without editing this file).
+# Content-specific cells are listed individually so a NEW failure fails the gate.
 mods=()
 for hs in "$repo"/test/fixtures/*.hs; do mods+=("$(basename "$hs" .hs)"); done
 case "$lang" in

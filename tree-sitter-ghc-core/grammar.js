@@ -8,13 +8,17 @@
 // @ts-check
 
 // Models the System FC surface GHC's Core printer emits (compiler/GHC/Core/Ppr.hs,
-// compiler/GHC/Iface/Type.hs). Expressions are fully brace/keyword-delimited. The column-0
-// top-level layout is recovered by the external scanner's _item_sep (src/scanner.c), which
-// also bounds a multi-line signature from the binding line below it.
+// compiler/GHC/Iface/Type.hs). Expressions are fully brace/keyword-delimited.
 //
-// The [IdInfo] bracket, coercion bodies, and trailing banner-delimited sections (Tidy Core
-// rules, CorePrep) are modelled coarsely as balanced delimiter soup, a deliberate leniency
-// over structure. Drives the harvested Tidy Core and repeated-pass dumps (CSE, float,
+//   - The external scanner's _item_sep (src/scanner.c) recovers the column-0
+//     top-level layout, and bounds a multi-line signature from the binding line
+//     below it.
+//
+//   - The [IdInfo] bracket, coercion bodies, and trailing banner-delimited
+//     sections (Tidy Core rules, CorePrep) are modelled coarsely as balanced
+//     delimiter soup, a deliberate leniency over structure.
+//
+// This drives the harvested Tidy Core and repeated-pass dumps (CSE, float,
 // occur-anal, simplifier iterations) to a clean parse. See README.md.
 
 import { sepBy1, sepBy } from "./common/grammar/combinators.mjs";
@@ -107,14 +111,20 @@ export default grammar({
 
     _group: ($) => choice($.binding, $.rec_block, $.expr_statement),
 
-    // The `==== Simplified expression ====` dump (-ddump-simpl-expr, some TH splices) is a
-    // single bare CoreExpr with no `name =`. Its head excludes a bare literal or `[..]`
-    // bracket (those would be a rule's `"name"` string or an [IdInfo]/soup bracket), so a
-    // trailing rules/CorePrep section stays soup. A bare expr and a binding share a leading
-    // run, so the negative dynamic precedence keeps the binding whenever a `=` follows, and
-    // a bare expr only wins in an expression-only section. A top-level cast hangs off
-    // `_stmt_head`, not the full `cast` rule (whose `_atom` lhs would re-admit a
-    // bare-literal head), preserving the no-bare-literal invariant.
+    // The `==== Simplified expression ====` dump (-ddump-simpl-expr, some TH
+    // splices) is a single bare CoreExpr with no `name =`.
+    //
+    //   - Its head excludes a bare literal or `[..]` bracket (those would be a
+    //     rule's `"name"` string or an [IdInfo]/soup bracket), so a trailing
+    //     rules/CorePrep section stays soup.
+    //
+    //   - A bare expr and a binding share a leading run, so the negative dynamic
+    //     precedence keeps the binding whenever a `=` follows. A bare expr only
+    //     wins in an expression-only section.
+    //
+    //   - A top-level cast hangs off `_stmt_head`, not the full `cast` rule
+    //     (whose `_atom` lhs would re-admit a bare-literal head), preserving the
+    //     no-bare-literal invariant.
     expr_statement: ($) =>
       prec.dynamic(
         -1,
@@ -269,12 +279,15 @@ export default grammar({
     // e `cast` co  (compiler/GHC/Core/Ppr.hs ppr_expr Cast).
     cast: ($) => prec.left(seq($._atom, "`cast`", $.coercion)),
 
-    // A coercion: `(co :: t1 ~role# t2)` unsuppressed, or a bare atom: the
-    // suppressed `<Co:N>` (optionally with its `:: type`) or a Refl `<ty>_N`.
-    // The body is coarse balanced soup for now (Sym/Sub/Trans/axioms/SelCo/
-    // forall-co/function-co). Angle brackets are treated as atoms (the
-    // function-coercion arrow `->_R` carries a lone `>`), so (), [] and {} nest
-    // (a forall-co prints its binder brace, `forall {a}. ..`).
+    // A coercion, either `(co :: t1 ~role# t2)` unsuppressed or a bare atom:
+    // the suppressed `<Co:N>` (optionally with its `:: type`) or a Refl `<ty>_N`.
+    //
+    //   - The body is coarse balanced soup for now
+    //     (Sym/Sub/Trans/axioms/SelCo/forall-co/function-co).
+    //
+    //   - Angle brackets are treated as atoms (the function-coercion arrow
+    //     `->_R` carries a lone `>`), so (), [] and {} nest (a forall-co prints
+    //     its binder brace, `forall {a}. ..`).
     coercion: ($) =>
       choice(
         seq("(", repeat($._soup), ")"),
@@ -311,7 +324,7 @@ export default grammar({
     // parenthesised, with a trailing-digit occurrence disambiguator. Three shapes
     // the plain `operator`/`con_operator` tokens can't take:
     //   - `@`-led (`@?6`, `@?==2`, `(@.)`): a `@` + operator char is never a
-    //     `@type`/`@kind` application (those lead with a letter/`(`/`*`); the
+    //     `@type`/`@kind` application (those lead with a letter/`(`/`*`). The
     //     first char excludes `~` so `@~coercion` stays intact.
     //   - `\`-led (`\\1`): `\` is an operator char too, so requiring a second
     //     symbol char keeps a lambda's lone `\` out.
@@ -326,15 +339,23 @@ export default grammar({
         ),
       ),
 
-    // A C foreign call printed as an applied primitive:
-    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..` (Core/Ppr FCallId). The target is
-    // a package-qualified C symbol `unit:sym`. An RTS/wired-in symbol drops the unit and
-    // glues `:sym` to the keyword, which absorbs that colon. A dyn call's DynamicTarget
-    // prints as the empty C label `""`, a string literal. Under -dppr-debug the FCallId's
-    // Unique glues onto the closing brace as a `{v d12d}` tag, absorbed explicitly here (a
-    // plain Var carries it inside its name token, the structural `}` cannot). The rest of
-    // the debug decoration (`Just Many` multiplicity, `[gid[ForeignCall]]` IdInfo, `:: ty`
-    // ascription) parses like a decorated plain Var.
+    // A C foreign call printed as an applied primitive (Core/Ppr FCallId):
+    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..`.
+    //
+    //   - The target is a package-qualified C symbol `unit:sym`. An RTS/wired-in
+    //     symbol drops the unit and glues `:sym` to the keyword, which absorbs
+    //     that colon.
+    //
+    //   - A dyn call's DynamicTarget prints as the empty C label `""`, a string
+    //     literal.
+    //
+    //   - Under -dppr-debug the FCallId's Unique glues onto the closing brace as
+    //     a `{v d12d}` tag, absorbed explicitly here (a plain Var carries it
+    //     inside its name token, the structural `}` cannot).
+    //
+    //   - The rest of the debug decoration (`Just Many` multiplicity,
+    //     `[gid[ForeignCall]]` IdInfo, `:: ty` ascription) parses like a
+    //     decorated plain Var.
     foreign_call: ($) =>
       seq(
         "{",

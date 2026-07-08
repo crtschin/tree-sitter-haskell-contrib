@@ -11,7 +11,7 @@ import 'common/recipes.just'
 default: test
 
 # Full gate suite (queries, committed-sample gate, generated matrix, inline
-# tests); the shared flow is common/recipes.just `_il-test`.
+# tests). Shared flow is common/recipes.just `_il-test`.
 test: _il-test
 
 # Parse the committed sample dumps in test/samples (a clean gate, also run by

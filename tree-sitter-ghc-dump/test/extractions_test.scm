@@ -10,7 +10,7 @@
   (banner) @section.banner
   (body) @section.body) @section
 
-; A banner with an empty body still parses as a section; assert the banner alone.
+; A banner with an empty body still parses as a section. Assert the banner alone.
 (section
   (banner) @section.banner
   .) @section

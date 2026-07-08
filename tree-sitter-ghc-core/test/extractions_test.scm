@@ -11,7 +11,7 @@
 (binding
   signature: (type_signature) @binding.signature)
 
-; Operator-named binders print inside parens; capture the bare operator.
+; Operator-named binders print inside parens. Capture the bare operator.
 (binding
   name: (paren_operator (operator) @binding.operator))
 

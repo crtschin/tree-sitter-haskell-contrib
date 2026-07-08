@@ -18,11 +18,16 @@ import {
 } from "./common/grammar/haskell.mjs";
 
 // Models the STG surface GHC's printer emits (compiler/GHC/Stg/Syntax.hs
-// pprStgExpr/pprStgRhs/pprGenStgBinding). Every STG binding ends with `;` (pprStgRhs <>
-// semi), so the semicolon self-delimits bindings and blank lines are ordinary whitespace.
-// STG needs no external layout scanner (unlike ghc-core's _item_sep). The [IdInfo] bracket
-// is coarse balanced-delimiter soup, a deliberate leniency over structure. Drives the
-// harvested STG dumps to a clean parse. See README.md.
+// pprStgExpr/pprStgRhs/pprGenStgBinding).
+//
+// Every STG binding ends with `;` (pprStgRhs <> semi), so the semicolon
+// self-delimits bindings and blank lines are ordinary whitespace. STG needs no
+// external layout scanner (unlike ghc-core's _item_sep).
+//
+// The [IdInfo] bracket is coarse balanced-delimiter soup, a deliberate leniency
+// over structure.
+//
+// Drives the harvested STG dumps to a clean parse. See README.md.
 
 export default grammar({
   name: "ghc_stg",
@@ -58,10 +63,16 @@ export default grammar({
         ";",
       ),
 
-    // An untagged binder. The signature is suppressed in some dumps (Final STG often
-    // prints bare `name = rhs`). When present, the pre-`::` bracket is an [InlPrag]/[Occ]
-    // note and a trailing bracket is the IdInfo. The bound Id may be upper-led (data-con
-    // worker/wrapper like MkW_F), so accept a constructor too.
+    // An untagged binder.
+    //
+    // The signature is suppressed in some dumps (Final STG often prints bare
+    // `name = rhs`).
+    //
+    // When present, the pre-`::` bracket is an [InlPrag]/[Occ] note and a
+    // trailing bracket is the IdInfo.
+    //
+    // The bound Id may be upper-led (data-con worker/wrapper like MkW_F), so
+    // accept a constructor too.
     _binder_lhs: ($) =>
       seq(
         field("name", choice($.variable, $.constructor, $.entry_name)),
@@ -92,12 +103,15 @@ export default grammar({
       ),
     tag: ($) => token(/<Tag[^>]*>/),
 
-    // A bare variable occurrence carrying its inferred tag sig, `wild<TagVal[TagEPT]>`,
-    // emitted in Final STG when tag inference annotates occurrences (the paren form
-    // (name, <tag>) is tagged_binder). The variable lexer's operator suffix munches
-    // `<TagVal` into the name, and the `<`/`>` it relies on for method selectors
-    // ($c<*>, dm<=) cannot be told apart from `<Tag` without lookahead, so match the
-    // whole occurrence as one maximal-munch token (cf. ghc-cmm's `special`).
+    // A bare variable occurrence carrying its inferred tag sig,
+    // `wild<TagVal[TagEPT]>`, emitted in Final STG when tag inference annotates
+    // occurrences (the paren form (name, <tag>) is tagged_binder).
+    //
+    // The variable lexer's operator suffix munches `<TagVal` into the name.
+    //
+    // The `<`/`>` it relies on for method selectors ($c<*>, dm<=) cannot be told
+    // apart from `<Tag` without lookahead, so match the whole occurrence as one
+    // maximal-munch token (cf. ghc-cmm's `special`).
     tagged_occurrence: ($) =>
       token(
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[a-z_$]([A-Za-z0-9_'$#]|"[^"]*")*<Tag[^>]*>/,
@@ -191,8 +205,10 @@ export default grammar({
 
     // StgOpApp over a foreign call (StgFCallOp): the FCall op prints as
     // `__ffi_static_ccall_<safety> pkg:sym ::` and the StgOpApp appends its
-    // bracketed value args. Unlike Core's FCallId there is no `{}` wrapper and
-    // no result type between the `::` and the args.
+    // bracketed value args.
+    //
+    // Unlike Core's FCallId there is no `{}` wrapper and no result type between
+    // the `::` and the args.
     foreign_call: ($) =>
       seq(
         $._ffi_keyword,
@@ -257,9 +273,12 @@ export default grammar({
       ),
 
     // A `:`-led data-constructor operator (:|, :*:, :~:), qualified or bare.
-    // The required non-colon second char keeps `::` (the dcolon) out. Unlike
-    // ghc-core's con_operator, `!` is excluded: an StgRhsCon prints `Con! [args]`
-    // with the bang abutting the con, so `:!`/`:*:!` must split as con + `!`.
+    //
+    // The required non-colon second char keeps `::` (the dcolon) out.
+    //
+    // Unlike ghc-core's con_operator, `!` is excluded: an StgRhsCon prints
+    // `Con! [args]` with the bang abutting the con, so `:!`/`:*:!` must split as
+    // con + `!`.
     con_operator: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*:[-+*/<>=~&|^%.][-+*/<>=~&|^%.:]*(\{[^}]*\})?/,

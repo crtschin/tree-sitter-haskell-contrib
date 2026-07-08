@@ -45,11 +45,11 @@ extract: build
 update-extractions: build
     ../test/runners/extract-golden.sh {{ slug }} --update
 
-# IL-grammar test flow (ghc-core/stg/cmm/dump only; cabal has no gen-corpus).
+# IL-grammar test flow (ghc-core/stg/cmm/dump only, cabal has no gen-corpus).
 # Runs queries, the harvested-corpus gate, the ephemeral generated matrix, the
-# extraction golden, any `extra` gate recipes (space-separated; ghc-dump passes
-# validate-injections), and the inline tests, each to completion. Exits non-zero
-# if any failed. Needs a built parser (build) and, for gen-corpus, a GHC compiler.
+# extraction golden, any `extra` gate recipes (ghc-dump passes validate-injections),
+# and the inline tests, each to completion. Exits non-zero if any failed. Needs a
+# built parser (build) and, for gen-corpus, a GHC compiler.
 _il-test *extra: build
     #!/usr/bin/env bash
     set -uo pipefail

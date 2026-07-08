@@ -11,7 +11,7 @@ import 'common/recipes.just'
 default: test
 
 # Full gate suite (queries, harvested-corpus gate, generated matrix, inline
-# tests); the shared flow is common/recipes.just `_il-test`.
+# tests). Shared flow is common/recipes.just `_il-test`.
 test: _il-test
 
 # Parse every harvested single-section STG dump in $GHC_SRC (a clean gate, also

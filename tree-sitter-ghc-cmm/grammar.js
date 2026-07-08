@@ -7,16 +7,25 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Models the native Cmm dump surface GHC prints (compiler/GHC/Cmm/Node.hs, Expr.hs,
-// Ppr/). A -ddump-cmm pass prints EACH proc under its own repeated banner, and the
-// container strips those banners to inject each `[..]` group body here, so banners are
-// optional. The per-stage pipeline passes (-ddump-cmm-sink and similar) print ungrouped,
-// so source_file also accepts a bare proc, data section, or `{offset ..}` graph.
+// Models the native Cmm dump surface GHC prints (compiler/GHC/Cmm/Node.hs,
+// Expr.hs, Ppr/).
 //
-// The info-table block is coarse balanced-delimiter soup (HeapRep/srt metadata, a leniency
-// over structure). Infix operators use one left-assoc precedence, since a dump parser need
-// not mirror MachOp precedence. Cmm is `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is
-// needed. Drives the harvested Cmm dumps to a clean parse. See README.md.
+//   - A -ddump-cmm pass prints each proc under its own repeated banner, and the
+//     container strips those banners to inject each `[..]` group body here, so
+//     banners are optional.
+//
+//   - The per-stage pipeline passes (-ddump-cmm-sink and similar) print
+//     ungrouped, so source_file also accepts a bare proc, data section, or
+//     `{offset ..}` graph.
+//
+//   - The info-table block is coarse balanced-delimiter soup (HeapRep/srt
+//     metadata, a leniency over structure).
+//
+//   - Infix operators use one left-assoc precedence, since a dump parser need
+//     not mirror MachOp precedence.
+//
+// Cmm is `;`/`{}`/`[]`/`:`-delimited, so no layout scanner is needed. This
+// drives the harvested Cmm dumps to a clean parse. See README.md.
 
 import { sepBy, sepBy1 } from "./common/grammar/combinators.mjs";
 import { makeSoupRules } from "./common/grammar/soup.mjs";
@@ -44,10 +53,13 @@ export default grammar({
   ],
 
   rules: {
-    // The codegen surface is `[ decl, .. ]` CmmGroups. The per-stage pipeline
-    // dumps (-ddump-cmm-sink/-sp/-switch/-cbe/-cfg, -ddump-opt-cmm,
-    // -ddump-cmm-info) print bare, ungrouped: a lone `{offset ..}` graph, a bare
-    // proc, or a bare `section ..`. -ddump-cmm-caf prints a CAFEnv instead.
+    // The codegen surface is `[ decl, .. ]` CmmGroups. Two other shapes appear:
+    //
+    //   - The per-stage pipeline dumps
+    //     (-ddump-cmm-sink/-sp/-switch/-cbe/-cfg, -ddump-opt-cmm,
+    //     -ddump-cmm-info) print bare and ungrouped: a lone `{offset ..}` graph,
+    //     a bare proc, or a bare `section ..`.
+    //   - -ddump-cmm-caf prints a CAFEnv instead.
     source_file: ($) =>
       repeat(choice($.banner, $.cmm_group, $._decl, $.offset_body, $.caf_env)),
 
@@ -124,10 +136,13 @@ export default grammar({
       ),
 
     // The pre-codegen high-level CmmForeignCall (in -ddump-cmm-from-stg and the
-    // passes run before lowering): `foreign call "conv" [hints] tgt(...) returns
-    // to L args: ([..]) ress: ([..]) ret_args: N ret_off: N;`. The callee args
-    // print as a `(...)` placeholder. The real argument and result registers are
-    // the `args:`/`ress:` lists. Distinct from the lowered `call "ccall" ..`.
+    // passes before lowering): `foreign call "conv" [hints] tgt(...) returns to
+    // L args: ([..]) ress: ([..]) ret_args: N ret_off: N;`.
+    //
+    //   - The callee args print as a `(...)` placeholder. The real argument and
+    //     result registers are the `args:`/`ress:` lists.
+    //
+    //   - Distinct from the lowered `call "ccall" ..`.
     foreign_call_statement: ($) =>
       seq(
         "foreign",

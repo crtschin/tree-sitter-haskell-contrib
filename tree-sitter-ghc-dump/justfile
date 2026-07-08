@@ -11,8 +11,8 @@ import 'common/recipes.just'
 default: test
 
 # Full gate suite (queries, dump-stream corpus, generated matrix, inline tests)
-# plus the injection-dispatch gate; the shared flow is common/recipes.just
-# `_il-test`, with validate-injections passed as its extra gate.
+# plus the injection-dispatch gate. Shared flow is common/recipes.just `_il-test`,
+# with validate-injections passed as its extra gate.
 test: (_il-test "validate-injections")
 
 # Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only

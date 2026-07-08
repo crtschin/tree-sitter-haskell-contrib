@@ -11,8 +11,8 @@ import 'common/recipes.just'
 default: test
 
 # Full gate suite (queries, harvested-corpus gate, generated matrix, inline
-# tests); the shared flow is common/recipes.just `_il-test`. The harvest is a
-# clean gate (0 ERROR/MISSING); coarse-soup leniency for IdInfo/coercions is
+# tests). Shared flow is common/recipes.just `_il-test`. The harvest is a
+# clean gate (0 ERROR/MISSING), coarse-soup leniency for IdInfo/coercions is
 # allowed but no errors are emitted.
 test: _il-test
 

@@ -9,15 +9,16 @@
 
 import { sepBy } from "./combinators.mjs";
 
-// The phase banner ==================== <phase> ====================, printed
-// around every GHC dump. The middle must hold a non-`=` char (the space-padded
-// title), so an all-`=` line (e.g. a `=========` divider in a dump body) is not
-// a banner. Used by all four grammars (members and the ghc-dump container).
+// GHC prints a phase banner around every dump, `==================== <phase>
+// ====================`, shared by all four grammars.
 //
-// A wide pass description wraps its parenthesised record across lines: GHC 9.12+
-// prints `Float out(FOS {Lam = .., Consts = .., JoinsToTop = .., OverSatApps =
-// ..})` over several lines. The second alternative absorbs those newlines inside
-// the `(..)` (bounded by the first `)`, so it can't span unrelated banners).
+//   - The middle must hold a non-`=` char (the space-padded title), so an
+//     all-`=` divider line in a dump body is not a banner.
+//
+//   - A wide pass description wraps its parenthesised record across lines
+//     (GHC 9.12+ prints `Float out(FOS {..})` over several). The second alt
+//     absorbs those newlines inside the `(..)`, bounded by the first `)` so it
+//     cannot span unrelated banners.
 export const banner = ($) =>
   token(
     prec(
@@ -44,32 +45,37 @@ export function makeLiteralRules() {
     // (`'\NUL'`). `\\.` takes the backslash + first escape char (covers `'\''`,
     // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
     _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
-    // A backslash escapes any char including a newline. GHC prints long strings with a
-    // string gap `\ <whitespace> \` (`..\n\` <newline> `   \..`): the resume `\` must NOT
-    // pair with the following escape (`\\"` = gap-resume + escaped quote, not escaped
-    // backslash + terminating quote), so the gap `\\\s+\\` is its own longest-match
-    // alternative, ahead of the `\\[\s\S]` escape and the `[^"\\]` char.
+    // A backslash escapes any char, including a newline. GHC also prints long
+    // strings with a string gap `\ <whitespace> \` (`..\n\` <newline> `   \..`),
+    // which the regex must not misread:
+    //
+    //   - The resume `\` must not pair with the following escape. `\\"` is a
+    //     gap-resume then an escaped quote, not an escaped backslash then a
+    //     terminating quote that would end the string early.
+    //
+    //   - So the gap `\\\s+\\` is its own longest-match alternative, ahead of
+    //     the `\\[\s\S]` escape and the `[^"\\]` char.
     _string_lit: ($) => token(/"(\\\s+\\|\\[\s\S]|[^"\\])*"#*/),
   };
 }
 
-// The tickish prefix on a ticked expression, `<tickish> e`. GHC prints six
-// forms (compiler/GHC/Core/Ppr.hs, `instance Outputable GenTickish`):
-//   src<span> scc<cc> tick<cc> scctick<cc> hpc<mod,ix> break<mod,ix>(vars)
-// Core and STG share this (StgTick reuses the same printer), so a grammar's
-// `_expr` lists $.tick_expr and spreads makeTickRules(). token(prec(1)) makes a
-// keyword-led `<..>` win the equal-length lex tie against $.variable, whose
-// operator-suffix class (kept for $c<$ / $c>>= selectors) would otherwise munch
-// the `<..>` into the name. A `Breakpoint` always prints its free-variable list
-// `(v,..)` (possibly empty `()`) glued to the angle part. That paren run belongs
-// to the tick, not the wrapped body, so the break form folds it in. Leaving it
-// as a following atom mis-attaches when the body is a non-atom (a `case`/`let`):
-// the `(vars)` fills the body slot and the real body has nowhere to go.
+// Tickish prefix on a ticked expression, `<tickish> e`. Core and STG share
+// GHC's GenTickish printer (compiler/GHC/Core/Ppr.hs). Six forms:
 //
-// The cost-centre label is the binder's name, which may be an operator that
-// contains `>` (aeson's `(<?>)` prints `scc<<?>>`). So the payload admits any
-// non-whitespace run, not just `[^>]`; GHC's `<+>` always separates the tick
-// from its body, so maximal munch terminates at the last `>` before the space.
+//   src<span>  scc<cc>  tick<cc>  scctick<cc>  hpc<mod,ix>  break<mod,ix>(vars)
+//
+// Lexing subtleties:
+//
+//   - token(prec(1)) makes a keyword-led `<..>` win the equal-length lex tie
+//     against $.variable, whose operator-suffix class would else munch it.
+//
+//   - The `break` form folds in its glued free-var list `(v,..)`. Left as a
+//     trailing atom it fills the body slot, so a non-atom body (`case`/`let`)
+//     has nowhere to go.
+//
+//   - The scc label may be an operator holding `>` (`scc<<?>>`), so the payload
+//     takes any non-whitespace run, ending at the last `>` before the space
+//     GHC always prints before the body.
 export function makeTickRules() {
   return {
     tick_expr: ($) => seq($.tickish, $._expr),
@@ -83,24 +89,29 @@ export function makeTickRules() {
   };
 }
 
-// Qualified GHC names.
-//   variable: optional `pkg-ver:` package qualifier and `Module.Sub.` qualifier,
-//     then a lower/underscore/$-led name. `#` may appear within (unboxed
-//     workers). The name body admits embedded `"..."` segments: a
-//     HasField/HasCField instance dfun glues its type-level Symbol literal into
-//     the Id name (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`,
-//     `$fHasCFieldCTm"tm_sec"1`). Trailing operator/colon segments cover method
-//     selectors ($c==, $c<$, the dot-bearing $c.&./$c.|.) and operator-TyCon
-//     names ($tc:~:1). A `.` is admitted in an operator run only when it sits
-//     with a non-dot op char, so a `forall a.` dot (a lone `.` after the tyvar)
-//     is left as the forall separator, not munched into `a.`.
-//   constructor: upper-led, with trailing `:Upper` segments for class-dictionary
-//     cons (C:C, C:Show, D:R:FInt).
-//   operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
-//   special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()), qualified.
-// A trailing `{..}` is a -dppr-debug decoration glued to the name (`f{v r1iT}`,
-// `Int{(w) tc 32}`). A name is never glued to a structural `{` in a dump, so
-// folding the tag into the token is safe and keeps the tree flat.
+// Qualified GHC names. Each may carry an optional `pkg-ver:` package qualifier
+// and a `Module.Sub.` qualifier.
+//
+//   - variable: a lower/underscore/$-led name (`#` may appear, for unboxed
+//     workers). Its body also admits:
+//       - Embedded `"..."` segments, where a HasField/HasCField dfun glues its
+//         type-level Symbol literal into the Id name
+//         (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`, `$fHasCFieldCTm"tm_sec"1`).
+//       - Trailing operator/colon segments for method selectors (`$c==`,
+//         `$c<$`, `$c.&.`) and operator-TyCon names (`$tc:~:1`).
+//       - A `.` in an operator run only beside a non-dot op char, so a
+//         `forall a.` dot stays the forall separator, not munched into `a.`.
+//
+//   - constructor: upper-led, with trailing `:Upper` segments for
+//     class-dictionary cons (C:C, C:Show, D:R:FInt).
+//
+//   - operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
+//
+//   - special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()).
+//
+// A trailing `{..}` is a -dppr-debug tag glued to the name (`f{v r1iT}`,
+// `Int{(w) tc 32}`). A name is never glued to a structural `{`, so folding the
+// tag into the token is safe and keeps the tree flat.
 export function makeLexicalRules() {
   return {
     variable: ($) =>
@@ -111,22 +122,31 @@ export function makeLexicalRules() {
       token(
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*(\{[^}]*\})?/,
       ),
-    // A symbolic operator. `:` is allowed only after the first char (a leading
-    // `:` is a data constructor, see con_operator), so `>::`, `|>:` lex as one
-    // operator while a bare `::` stays the dcolon. A lone `=` is the binding
-    // separator, never an operator (mirrors type_operator); without this a `=`
-    // lexes as a type atom and a signature's type over-munches the binding line
-    // below it (the `name =` never bounds the GLR type branch). A `=`-led op
-    // (==#, =<<) keeps a second symbol char.
+    // A symbolic operator. Two placement rules keep it distinct from the
+    // data-con operator and the binding separator:
+    //
+    //   - `:` is allowed only after the first char (a leading `:` is a data
+    //     constructor, see con_operator), so `>::`, `|>:` lex as one operator
+    //     while a bare `::` stays the dcolon.
+    //
+    //   - A lone `=` is the binding separator, never an operator (mirrors
+    //     type_operator). Without it a `=` lexes as a type atom and a
+    //     signature's type over-munches the binding line below. A `=`-led op
+    //     (==#, =<<) keeps a second symbol char.
     operator: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*([-+*/<>!&|^%.~?][-+*/<>=!&|^%.~?:]*|=[-+*/<>=!&|^%.~?:]+)#*(\{[^}]*\})?/,
       ),
-    // Built-in/parenthesised cons, plus the unboxed-sum injection con with `_` slot
-    // markers and `|` separators (`(# _| #)`, `(# |_ #)`, `(# _|| #)`). The nullary
-    // unboxed tuple prints `(##)`, or a spaced `(# #)` in unarised STG, both covered by
-    // `\(#[ #]*#\)`. The sum alt needs a `|` to stay off the unit and the tuple con
-    // `(#,#)`. Spaces inside are part of the token.
+    // Built-in and parenthesised cons. Two variants need care:
+    //
+    //   - The unboxed-sum injection con carries `_` slot markers and `|`
+    //     separators (`(# _| #)`, `(# |_ #)`, `(# _|| #)`). The `|` keeps it off
+    //     the unit `()` and the tuple con `(#,#)`.
+    //
+    //   - The nullary unboxed tuple prints `(##)`, or a spaced `(# #)` in
+    //     unarised STG, both matched by `\(#[ #]*#\)`.
+    //
+    // Spaces inside are part of the token.
     special_con: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#[ #]*#\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,

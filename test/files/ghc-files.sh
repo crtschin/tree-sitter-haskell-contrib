@@ -4,11 +4,13 @@
 # corpus gate (no GHC compiler needed, since $GHC_SRC is a flake input). The
 # comprehensive generated matrix is ephemeral. See test/runners/gen-corpus.sh.
 #
-# Selection is by banner content, not extension: a .stderr captures every
-# enabled -ddump-* pass (Core, STG, Cmm, ...) plus warnings, so the file name
-# does not identify the IL. A .stderr that enabled several passes can therefore
-# appear in more than one IL's corpus. That is accepted while the grammars are
-# scaffolds. The container grammar is the proper home for such mixed streams.
+# Selection is by banner content, not extension:
+#
+#   - A .stderr captures every enabled -ddump-* pass (Core, STG, Cmm, ...) plus
+#     warnings, so the file name does not identify the IL.
+#   - A .stderr that enabled several passes can appear in more than one IL's
+#     corpus. That is accepted while the grammars are scaffolds. The container
+#     grammar is the proper home for such mixed streams.
 #
 # Usage: ghc-files.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump>
 #
@@ -31,11 +33,15 @@ esac
 
 matches="$(grep -rlE "$banner" "$GHC_SRC/testsuite/tests" --include='*.stderr')"
 
-# ghc-core models a single Core dump. Keep only files whose first non-blank line
-# is a `Tidy Core` banner AND that contain at most one `Result size of` line.
-# This drops multi-dump captures: compile logs (`[N of M] Compiling`/warnings/
-# TYPE SIGNATURES), Demand/Cpr-signature dumps, and second full Core passes
-# appended to the Tidy Core (e.g. CorePrep, which has its own `Result size`).
+# ghc-core models a single Core dump, so keep only files whose first non-blank
+# line is a `Tidy Core` banner and that contain at most one `Result size of`
+# line. This drops multi-dump captures:
+#
+#   - Compile logs (`[N of M] Compiling`/warnings/TYPE SIGNATURES).
+#   - Demand/Cpr-signature dumps.
+#   - Second full Core passes appended to the Tidy Core (e.g. CorePrep, which
+#     has its own `Result size`).
+#
 # All of those are the container grammar's domain. A trailing `Tidy Core rules`
 # appendix (no `Result size`) is kept and handled.
 if [[ "$lang" == ghc-core ]]; then

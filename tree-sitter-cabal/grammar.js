@@ -22,8 +22,10 @@ export default grammar({
   // whitespace.
   extras: ($) => [$.comment, /[ \t\r ]/],
 
-  // Order must match the shared scanner's enum Token. _indented and _continuation are both
-  // declared for valid_symbols sizing. cabal references only _indented.
+  // Order must match the shared scanner's enum Token.
+  //
+  // _indented and _continuation are both declared for valid_symbols sizing.
+  // cabal references only _indented.
   externals: ($) => [
     $._newline,
     $.indent,
@@ -143,9 +145,12 @@ export default grammar({
         optional(field("properties", $.property_or_conditional_block)),
       ),
 
-    // ASCII via DFA, Unicode via the scanner's `_section_name`. ci-regex section_type
-    // aliases win by specificity. The scanner fires only on a non-ASCII byte, so ASCII
-    // keywords are never preempted.
+    // ASCII via DFA, Unicode via the scanner's `_section_name`.
+    //
+    // ci-regex section_type aliases win by specificity.
+    //
+    // The scanner fires only on a non-ASCII byte, so ASCII keywords are never
+    // preempted.
     section_name: ($) => choice(/\w*[a-zA-Z]\w*(-\w+)*/, $._section_name),
 
     property_block: ($) =>
@@ -219,7 +224,7 @@ export default grammar({
             choice(
               /[A-Za-z_][A-Za-z0-9_.\-]*/,
               "*",
-              // A sublibrary set `{a, b}`; Cabal allows spaces after `{`, around
+              // A sublibrary set `{a, b}`. Cabal allows spaces after `{`, around
               // the commas, and before `}`, so fold `[ \t]*` into the token.
               seq(
                 "{",

@@ -196,7 +196,7 @@
     // {
       # Single source of truth for test/runners/gen-corpus.sh's opt-in multi-version
       # matrix (`gen-corpus.sh <lang> all`). Attr names resolve against the pinned
-      # nixpkgs; bumping nixpkgs may require adjusting them. A plain string list,
+      # nixpkgs, so bumping nixpkgs may require adjusting them. A plain string list,
       # not built packages, so `nix flake check`/CI never realise the GHC closures.
       ghcVersions = [
         "ghc910"
