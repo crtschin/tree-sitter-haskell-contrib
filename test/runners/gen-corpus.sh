@@ -159,6 +159,11 @@ case "$GEN_LANG" in
             mod="$(basename "$hs" .hs)"
             ghc -c -fforce-recomp -O2 -ddump-simpl -ddump-stg-final -ddump-cmm \
                 -outputdir "$GEN_TMP/o" "$hs" >"$GEN_TMP/$mod.mixed.dump" 2>/dev/null || true
+            # -g3 keeps SourceNotes, so every sub-IL in the stream carries
+            # src<...> ticks: the container must span them across the multi-IL
+            # boundaries too, not just each grammar in isolation.
+            ghc -c -fforce-recomp -O2 -g3 -ddump-simpl -ddump-stg-final -ddump-cmm \
+                -outputdir "$GEN_TMP/o-ticks" "$hs" >"$GEN_TMP/$mod.mixed-ticks.dump" 2>/dev/null || true
         done
         ;;
 esac

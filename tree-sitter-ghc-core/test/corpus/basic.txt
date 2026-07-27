@@ -313,6 +313,26 @@ k = case x of { (a, b) -> src<F:1:2> a }
           (variable))))))
 
 ================================
+Stacked -g3 source notes with a multi-line paren span
+================================
+
+area = \ w h -> src<Ticks.hs:(7,1)-(9,24)> src<Ticks.hs:7:16> w
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (lambda
+      (variable)
+      (variable)
+      (tick_expr
+        (tickish)
+        (tick_expr
+          (tickish)
+          (variable))))))
+
+================================
 Operator-labelled cost-centre tick (payload contains '>')
 ================================
 
