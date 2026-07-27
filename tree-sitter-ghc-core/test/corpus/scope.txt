@@ -1,0 +1,104 @@
+================================
+Curried lambda binds multiple parameters
+================================
+
+f = \ x y -> x
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (lambda
+      (variable)
+      (variable)
+      (variable))))
+
+================================
+Nested lambdas nest the body in scope
+================================
+
+f = \ x -> \ y -> y
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (lambda
+      (variable)
+      (lambda
+        (variable)
+        (variable)))))
+
+================================
+Inner lambda binder shadows the outer
+================================
+
+f = \ x -> \ x -> x
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (lambda
+      (variable)
+      (lambda
+        (variable)
+        (variable)))))
+
+================================
+Letrec binding group and body
+================================
+
+f = letrec { g = g } in g
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (let
+      (binding
+        name: (variable)
+        rhs: (variable))
+      body: (variable))))
+
+================================
+Join point let and body
+================================
+
+f = join { j = x } in j
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (let
+      (binding
+        name: (variable)
+        rhs: (variable))
+      body: (variable))))
+
+================================
+Nested let scopes
+================================
+
+f = let { y = x } in let { z = y } in z
+
+--------------------------------
+
+(source_file
+  (binding
+    name: (variable)
+    rhs: (let
+      (binding
+        name: (variable)
+        rhs: (variable))
+      body: (let
+        (binding
+          name: (variable)
+          rhs: (variable))
+        body: (variable)))))
