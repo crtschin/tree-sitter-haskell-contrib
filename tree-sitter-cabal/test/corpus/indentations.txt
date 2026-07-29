@@ -19,25 +19,19 @@ flag bar
   (properties
     (field
       (field_name)
-      (indent)
       (field_value
-        (identifier))
-      (field_value
-        (identifier))
-      (field_value
-        (identifier))
-      (dedent)))
+        (identifier)
+        (identifier)
+        (identifier))))
   (sections
     (flag
       (section_type)
       (section_name)
       (property_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Indentation between sections
@@ -69,23 +63,16 @@ executable foo
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier))
-          (indent)
-          (field_value
-            (identifier))
-          (dedent))
-        (dedent)))
+            (identifier)
+            (identifier)))))
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))

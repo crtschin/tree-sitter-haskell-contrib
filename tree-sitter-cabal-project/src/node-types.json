@@ -171,6 +171,10 @@
           "named": true
         },
         {
+          "type": "text_fragment",
+          "named": true
+        },
+        {
           "type": "url",
           "named": true
         },
@@ -242,6 +246,11 @@
   },
   {
     "type": "package_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "path",
     "named": true,
     "fields": {}
   },
@@ -475,32 +484,6 @@
     }
   },
   {
-    "type": "qualified_name",
-    "named": true,
-    "fields": {
-      "package": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "package_name",
-            "named": true
-          }
-        ]
-      },
-      "sublibrary": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "sublibrary_name",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
     "type": "source_file",
     "named": true,
     "root": true,
@@ -585,11 +568,6 @@
     }
   },
   {
-    "type": "sublibrary_name",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "!",
     "named": false
   },
@@ -663,7 +641,7 @@
     "named": true
   },
   {
-    "type": "path",
+    "type": "qualified_name",
     "named": true
   },
   {
@@ -672,6 +650,10 @@
   },
   {
     "type": "repo_name",
+    "named": true
+  },
+  {
+    "type": "text_fragment",
     "named": true
   },
   {

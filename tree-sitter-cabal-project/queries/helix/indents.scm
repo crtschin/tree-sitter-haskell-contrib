@@ -1,5 +1,7 @@
-; Each stanza body indents one level relative to its header.
-(stanza) @indent @extend
+; ===== shared with tree-sitter-cabal =====
+;
+; Kept byte-identical between the two files (see highlights.scm for why it is
+; duplicated rather than generated).
 
 ; if / elif / else bodies indent one level.
 [
@@ -8,8 +10,13 @@
   (else_clause)
 ] @indent @extend
 
-; Multi-line field values. `_indent` is a hidden external here, so we
-; detect multi-line values via the predicate. The structure does not mark them.
+; Multi-line field values. The indent token is a hidden external, so detect
+; multi-line values with the predicate; the structure does not mark them.
 ((field (field_value) @v) @indent
   (#not-one-line? @v)
   (#set! "scope" "tail"))
+
+; ===== cabal-project-only =====
+
+; Each stanza body indents one level relative to its header.
+(stanza) @indent @extend

@@ -1,3 +1,23 @@
+; ===== shared with tree-sitter-cabal-project =====
+;
+; Kept byte-identical between the two files (see highlights.scm for why it is
+; duplicated rather than generated).
+
+; if / elif / else bodies indent one level.
+[
+  (if_clause)
+  (elif_clause)
+  (else_clause)
+] @indent @extend
+
+; Multi-line field values. The indent token is a hidden external, so detect
+; multi-line values with the predicate; the structure does not mark them.
+((field (field_value) @v) @indent
+  (#not-one-line? @v)
+  (#set! "scope" "tail"))
+
+; ===== cabal-only =====
+
 ; Each section body indents one level relative to its header line.
 [
   (library)
@@ -10,14 +30,3 @@
   (source_repository)
   (custom_setup)
 ] @indent @extend
-
-; if / elif / else bodies indent one level.
-[
-  (condition_if)
-  (condition_elseif)
-  (condition_else)
-] @indent @extend
-
-; Multi-line field values: the (indent) child is only present when the
-; value spans more than the header line, so this pattern is exact.
-((field (indent)) @indent @extend)

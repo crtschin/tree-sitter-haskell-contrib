@@ -1,36 +1,21 @@
+; ===== shared with tree-sitter-cabal =====
+;
+; Every node named below exists in both grammars, so this block is kept
+; byte-identical between the two files. Diff them before changing it. It is
+; duplicated rather than generated: tree-sitter has no query include, and Helix's
+; `; inherits:` pulls a whole language's queries, which would drag in the
+; grammar-specific tail below and fail to compile against the sibling.
+
 ; comments
 (comment) @comment
 
 ; field names
 (field_name) @property
 
-; keywords
-(keyword) @keyword
-
+; conditional keywords
 "if"   @keyword.conditional
 "elif" @keyword.conditional
 "else" @keyword.conditional
-
-; stanza headers
-(stanza_header (package_name) @type)
-(repo_name)    @module
-
-; literals
-(boolean)   @constant.builtin.boolean
-(integer)   @number
-(version)   @number.float
-(iso_date)  @string.special
-(url)       @string.special.url
-(path)      @string.special.path
-
-; identifiers
-(qualified_name (package_name)    @string)
-(qualified_name (sublibrary_name) @string)
-(flag_token)                      @constant
-
-; quoted strings and bare identifiers in field values
-(quoted_string) @string
-(field_value (identifier) @string)
 
 ; predicates
 (predicate_call
@@ -46,6 +31,21 @@
 (predicate_paren (identifier) @variable)
 (if_clause   condition: (identifier) @variable)
 (elif_clause condition: (identifier) @variable)
+
+; literals
+(boolean)        @constant.builtin.boolean
+(integer)        @number
+(version)        @number.float
+(iso_date)       @string.special
+(url)            @string.special.url
+(path)           @string.special.path
+(flag_token)     @constant
+(qualified_name) @string
+
+; quoted strings and bare identifiers in field values
+(quoted_string) @string
+(text_fragment) @string
+(field_value (identifier) @string)
 
 ; operators
 (constraint_op) @operator
@@ -65,11 +65,10 @@
 "{" @punctuation.bracket
 "}" @punctuation.bracket
 
-; `<URL>`: when constraint_op nodes flank a URL they're acting as bracket
-; punctuation, not as version comparison operators. The default operator
-; highlight above is overridden by this more-specific pattern.
-((constraint_op) @punctuation.bracket
-  .
-  (url)
-  .
-  (constraint_op) @punctuation.bracket)
+; ===== cabal-project-only =====
+
+; stanza headers
+(keyword) @keyword
+
+(stanza_header (package_name) @type)
+(repo_name) @module

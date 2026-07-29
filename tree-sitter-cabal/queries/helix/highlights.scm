@@ -1,67 +1,80 @@
-; Comments
+; ===== shared with tree-sitter-cabal-project =====
+;
+; Every node named below exists in both grammars, so this block is kept
+; byte-identical between the two files. Diff them before changing it. It is
+; duplicated rather than generated: tree-sitter has no query include, and Helix's
+; `; inherits:` pulls a whole language's queries, which would drag in the
+; grammar-specific tail below and fail to compile against the sibling.
+
+; comments
 (comment) @comment
 
-; cabal-version directive
-(spec_version) @number
+; field names
+(field_name) @property
 
-; Field structure
-(field_name)   @property
-(section_type) @keyword.type
-(section_name) @type
+; conditional keywords
+"if"   @keyword.conditional
+"elif" @keyword.conditional
+"else" @keyword.conditional
 
-; Conditional keywords
-[
-  "if"
-  "elif"
-  "else"
-] @keyword.conditional
-
-; Predicates in conditions
+; predicates
 (predicate_call
   fn: (identifier) @function.builtin)
 
+; identifier arguments to predicate calls
 (predicate_arg (identifier) @variable.parameter)
 
+; bare identifier used as a predicate atom
 (predicate_or    (identifier) @variable)
 (predicate_and   (identifier) @variable)
 (predicate_not   (identifier) @variable)
 (predicate_paren (identifier) @variable)
-(condition_if      condition: (identifier) @variable)
-(condition_elseif  condition: (identifier) @variable)
+(if_clause   condition: (identifier) @variable)
+(elif_clause condition: (identifier) @variable)
 
-"||" @operator
-"&&" @operator
+; literals
+(boolean)        @constant.builtin.boolean
+(integer)        @number
+(version)        @number.float
+(iso_date)       @string.special
+(url)            @string.special.url
+(path)           @string.special.path
+(flag_token)     @constant
+(qualified_name) @string
 
-; Literals in field values
-(boolean)         @constant.builtin.boolean
-(integer)         @number
-(version)         @number.float
-(iso_date)        @string.special
-(url)             @string.special.url
-(module_name)     @module
-(qualified_name)  @string
-(flag_token)      @constant
-(text_fragment)   @string
-
-; Quoted strings and bare identifiers in field values
+; quoted strings and bare identifiers in field values
 (quoted_string) @string
+(text_fragment) @string
 (field_value (identifier) @string)
 
-; Operators
+; operators
 (constraint_op) @operator
 "!"             @operator
+"||"            @operator
+"&&"            @operator
 "="             @operator
 
-; Wildcards / globs
+; wildcards / globs
 "*" @character.special
 
-; Punctuation
+; punctuation
 "," @punctuation.delimiter
 ":" @punctuation.delimiter
 "(" @punctuation.bracket
 ")" @punctuation.bracket
 "{" @punctuation.bracket
 "}" @punctuation.bracket
+
+; ===== cabal-only =====
+
+; cabal-version directive
+(spec_version) @number
+
+; section headers
+(section_type) @keyword.type
+(section_name) @type
+
+(module_name)    @module
 
 ; `<URL>`: when constraint_op nodes flank a URL they're acting as bracket
 ; punctuation, not as version comparison operators. The default operator

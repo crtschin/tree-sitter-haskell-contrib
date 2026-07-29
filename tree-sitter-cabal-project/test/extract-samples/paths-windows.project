@@ -1,0 +1,14 @@
+x-無: unicode-field-value
+with-compiler: C:\ghc\bin\ghc.exe
+extra-lib-dirs: /usr/lib;/usr/local/lib
+ghc-options: -fplugin=Foo@1 -optP-Wno-nonportable-include-path
+packages: ./pkg-a
+          vendor/*
+constraints: foo ^>=1.0
+
+if os(windows)
+  with-compiler: C:/msys64/ghc.exe
+elif impl(ghc)
+  ghc-options: -O2
+else
+  ghc-options: -O0

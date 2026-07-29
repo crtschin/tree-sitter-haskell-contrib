@@ -1,23 +1,28 @@
 ================================================================================
-Common section
+Unicode field name
 ================================================================================
 
-cabal-version : 3.4
-name: name-of-package
-
-common base
-  field: value
+x-無: value
 
 --------------------------------------------------------------------------------
 
 (cabal
-  (cabal_version
-    (spec_version))
   (properties
     (field
       (field_name)
       (field_value
-        (identifier))))
+        (identifier)))))
+
+================================================================================
+Unicode in a section name
+================================================================================
+
+common Fünfstück
+  build-depends: base
+
+--------------------------------------------------------------------------------
+
+(cabal
   (sections
     (common
       (section_type)
@@ -29,25 +34,15 @@ common base
             (identifier)))))))
 
 ================================================================================
-Library section (without name)
+NBSP indentation in a section body
 ================================================================================
-
-cabal-version : 3.4
-name: pkg-foo
 
 library
-  foo: hello
+  build-depends: base
 
 --------------------------------------------------------------------------------
 
 (cabal
-  (cabal_version
-    (spec_version))
-  (properties
-    (field
-      (field_name)
-      (field_value
-        (identifier))))
   (sections
     (library
       (section_type)
@@ -58,31 +53,20 @@ library
             (identifier)))))))
 
 ================================================================================
-Library section (with name)
+NBSP indentation in a field continuation
 ================================================================================
 
-cabal-version : 3.4
-name: pkg-foo
-
-library named-lib
-  foo: hello
+description: line one
+             line two
 
 --------------------------------------------------------------------------------
 
 (cabal
-  (cabal_version
-    (spec_version))
   (properties
     (field
       (field_name)
       (field_value
-        (identifier))))
-  (sections
-    (library
-      (section_type)
-      (section_name)
-      (property_or_conditional_block
-        (field
-          (field_name)
-          (field_value
-            (identifier)))))))
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)))))

@@ -1,7 +1,13 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-import { makePredicateRules, makeValueTokenRules } from "./common/utils.mjs";
+import {
+  CABAL_WHITESPACE,
+  makeCabalExternals,
+  makeQualifiedNameRules,
+  makePredicateRules,
+  makeValueTokenRules,
+} from "./common/utils.mjs";
 
 // Case-insensitive regex for a keyword: each ASCII letter becomes [aA].
 function ci(str) {
@@ -18,25 +24,9 @@ function ci(str) {
 export default grammar({
   name: "cabal",
 
-  // U+00A0 (non-breaking space) appears in some old cabal files. Treat it as
-  // whitespace.
-  extras: ($) => [$.comment, /[ \t\r ]/],
+  extras: ($) => [$.comment, CABAL_WHITESPACE],
 
-  // Order must match the shared scanner's enum Token.
-  //
-  // _indented and _continuation are both declared for valid_symbols sizing.
-  // cabal references only _indented.
-  externals: ($) => [
-    $._newline,
-    $.indent,
-    $.dedent,
-    $._indented,
-    $._continuation,
-    // Hidden Unicode externals, emitted only on a non-ASCII byte. Visible section_name /
-    // field_name wrap them via `choice` with the ASCII regex. See scanner.c.
-    $._section_name,
-    $._field_name,
-  ],
+  externals: makeCabalExternals,
 
   word: ($) => $.identifier,
 
@@ -44,7 +34,7 @@ export default grammar({
   // Inlining shrinks the parse table without altering the AST.
   inline: ($) => [$._value_token],
 
-  // Empty condition_if/elseif bodies make `else`/`elif` reachable both as a continuation
+  // Empty if_clause/elif_clause bodies make `else`/`elif` reachable both as a continuation
   // here and as the start of an outer conditional.
   conflicts: ($) => [[$.conditional]],
 
@@ -155,33 +145,28 @@ export default grammar({
 
     property_block: ($) =>
       seq(
-        $.indent,
+        $._indent,
         repeat($._newline),
         repeat1(seq($.field, repeat($._newline))),
-        $.dedent,
+        $._dedent,
       ),
 
     field: ($) =>
       seq(
-        $.field_name,
+        field("name", $.field_name),
         ":",
-        choice(
-          seq(optional($.field_value), $._newline),
-          seq(
-            optional($.field_value),
-            $.indent,
-            // field_value is optional on every line so comment-only lines parse
-            // cleanly.
-            optional($.field_value),
-            repeat(seq($._indented, optional($.field_value))),
-            $.dedent,
-          ),
-        ),
+        optional(field("value", $.field_value)),
+        $._newline,
       ),
 
     field_name: ($) => choice(/\w(\w|-)+/, $._field_name),
 
-    field_value: ($) => repeat1($._value_token),
+    // Mixing `_continuation` and `_value_token` in one `repeat1` lets a value start on a
+    // continuation line and span indented continuation lines, without opening an indent
+    // block. Opening one would force the looser `_indented` reference column; upstream
+    // Cabal measures continuations against the field's own column for both formats
+    // (Distribution.Fields.Parser.fieldLayoutOrBraces).
+    field_value: ($) => repeat1(choice($._value_token, $._continuation)),
 
     _value_token: ($) =>
       choice(
@@ -195,6 +180,7 @@ export default grammar({
         $.integer,
         $.identifier,
         $.quoted_string,
+        $.path,
         $.text_fragment,
         $.constraint_op,
         ",",
@@ -212,68 +198,41 @@ export default grammar({
     module_name: ($) =>
       token(prec(5, /[A-Z][A-Za-z0-9_']*(\.[A-Z][A-Za-z0-9_']*)+/)),
 
-    // Atomic token. Rejects the `:` unless a valid sublibrary follows, so prose colons
-    // aren't taken as qualified-name separators.
-    qualified_name: ($) =>
-      token(
-        prec(
-          4,
-          seq(
-            /[A-Za-z_][A-Za-z0-9_.\-]*/,
-            ":",
-            choice(
-              /[A-Za-z_][A-Za-z0-9_.\-]*/,
-              "*",
-              // A sublibrary set `{a, b}`. Cabal allows spaces after `{`, around
-              // the commas, and before `}`, so fold `[ \t]*` into the token.
-              seq(
-                "{",
-                /[ \t]*[A-Za-z_][A-Za-z0-9_.\-]*/,
-                repeat(/[ \t]*,[ \t]*[A-Za-z_][A-Za-z0-9_.\-]*/),
-                /[ \t]*/,
-                "}",
-              ),
-            ),
-          ),
-        ),
-      ),
-
     identifier: ($) => token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-]*/)),
-
-    text_fragment: ($) => token(prec(-1, /[^\s,()!*<>{}=\n"]+/)),
 
     property_or_conditional_block: ($) =>
       seq(
-        $.indent,
+        $._indent,
         repeat($._newline),
         repeat1(seq(choice($.field, $.conditional), repeat($._newline))),
-        $.dedent,
+        $._dedent,
       ),
 
     conditional: ($) =>
       seq(
-        $.condition_if,
+        $.if_clause,
         // Newlines between clauses let `else`/`elif` be found even when the preceding
         // `if`/`elif` has an empty body.
-        repeat(seq(repeat($._newline), $.condition_elseif)),
-        optional(seq(repeat($._newline), $.condition_else)),
+        repeat(seq(repeat($._newline), $.elif_clause)),
+        optional(seq(repeat($._newline), $.else_clause)),
       ),
 
     // if/elif body can be empty (`if flag(x)` then `else`), so the block is optional.
-    condition_if: ($) =>
+    if_clause: ($) =>
       seq(
         "if",
         field("condition", $._predicate_expr),
         optional($.property_or_conditional_block),
       ),
-    condition_elseif: ($) =>
+    elif_clause: ($) =>
       seq(
         "elif",
         field("condition", $._predicate_expr),
         optional($.property_or_conditional_block),
       ),
-    condition_else: ($) => seq("else", $.property_or_conditional_block),
+    else_clause: ($) => seq("else", $.property_or_conditional_block),
 
+    ...makeQualifiedNameRules({ precedence: 4 }),
     ...makePredicateRules({ extraArgChoices: ["text_fragment"] }),
     ...makeValueTokenRules({
       precs: {
@@ -282,6 +241,11 @@ export default grammar({
         url: 9,
         version: 6,
         flag_token: 3,
+        // Above identifier (1) so a name-leading relative path is one node; below
+        // flag_token (3) so `-optP-I/usr/include` keeps its flag.
+        path: 2,
+        // Above qualified_name (4): see the drive-letter note in makeValueTokenRules.
+        path_drive: 5,
         integer: 2,
       },
     }),

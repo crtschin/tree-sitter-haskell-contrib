@@ -111,121 +111,6 @@
     }
   },
   {
-    "type": "condition_else",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "property_or_conditional_block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "condition_elseif",
-    "named": true,
-    "fields": {
-      "condition": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "boolean",
-            "named": true
-          },
-          {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "predicate_and",
-            "named": true
-          },
-          {
-            "type": "predicate_call",
-            "named": true
-          },
-          {
-            "type": "predicate_not",
-            "named": true
-          },
-          {
-            "type": "predicate_or",
-            "named": true
-          },
-          {
-            "type": "predicate_paren",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "property_or_conditional_block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "condition_if",
-    "named": true,
-    "fields": {
-      "condition": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "boolean",
-            "named": true
-          },
-          {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "predicate_and",
-            "named": true
-          },
-          {
-            "type": "predicate_call",
-            "named": true
-          },
-          {
-            "type": "predicate_not",
-            "named": true
-          },
-          {
-            "type": "predicate_or",
-            "named": true
-          },
-          {
-            "type": "predicate_paren",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "property_or_conditional_block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "conditional",
     "named": true,
     "fields": {},
@@ -234,15 +119,15 @@
       "required": true,
       "types": [
         {
-          "type": "condition_else",
+          "type": "elif_clause",
           "named": true
         },
         {
-          "type": "condition_elseif",
+          "type": "else_clause",
           "named": true
         },
         {
-          "type": "condition_if",
+          "type": "if_clause",
           "named": true
         }
       ]
@@ -272,6 +157,71 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "elif_clause",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "boolean",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "predicate_and",
+            "named": true
+          },
+          {
+            "type": "predicate_call",
+            "named": true
+          },
+          {
+            "type": "predicate_not",
+            "named": true
+          },
+          {
+            "type": "predicate_or",
+            "named": true
+          },
+          {
+            "type": "predicate_paren",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "property_or_conditional_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "property_or_conditional_block",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -313,28 +263,27 @@
   {
     "type": "field",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "dedent",
-          "named": true
-        },
-        {
-          "type": "field_name",
-          "named": true
-        },
-        {
-          "type": "field_value",
-          "named": true
-        },
-        {
-          "type": "indent",
-          "named": true
-        }
-      ]
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "field_name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "field_value",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -376,6 +325,10 @@
         },
         {
           "type": "module_name",
+          "named": true
+        },
+        {
+          "type": "path",
           "named": true
         },
         {
@@ -474,6 +427,56 @@
     }
   },
   {
+    "type": "if_clause",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "boolean",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "predicate_and",
+            "named": true
+          },
+          {
+            "type": "predicate_call",
+            "named": true
+          },
+          {
+            "type": "predicate_not",
+            "named": true
+          },
+          {
+            "type": "predicate_or",
+            "named": true
+          },
+          {
+            "type": "predicate_paren",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "property_or_conditional_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "library",
     "named": true,
     "fields": {
@@ -508,6 +511,11 @@
         ]
       }
     }
+  },
+  {
+    "type": "path",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "predicate_and",
@@ -762,15 +770,7 @@
       "required": true,
       "types": [
         {
-          "type": "dedent",
-          "named": true
-        },
-        {
           "type": "field",
-          "named": true
-        },
-        {
-          "type": "indent",
           "named": true
         }
       ]
@@ -789,15 +789,7 @@
           "named": true
         },
         {
-          "type": "dedent",
-          "named": true
-        },
-        {
           "type": "field",
-          "named": true
-        },
-        {
-          "type": "indent",
           "named": true
         }
       ]
@@ -977,10 +969,6 @@
     "named": true
   },
   {
-    "type": "dedent",
-    "named": true
-  },
-  {
     "type": "elif",
     "named": false
   },
@@ -999,10 +987,6 @@
   {
     "type": "if",
     "named": false
-  },
-  {
-    "type": "indent",
-    "named": true
   },
   {
     "type": "integer",

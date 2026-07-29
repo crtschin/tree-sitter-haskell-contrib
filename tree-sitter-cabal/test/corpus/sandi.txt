@@ -192,19 +192,14 @@ benchmark sandi-bench
         (identifier)))
     (field
       (field_name)
-      (indent)
       (field_value
-        (identifier)
-        (text_fragment))
-      (field_value
-        (identifier))
-      (dedent)))
+        (path)
+        (identifier))))
   (sections
     (source_repository
       (section_type)
       (section_name)
       (property_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -212,13 +207,11 @@ benchmark sandi-bench
         (field
           (field_name)
           (field_value
-            (url)))
-        (dedent)))
+            (url)))))
     (flag
       (section_type)
       (section_name)
       (property_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -226,36 +219,23 @@ benchmark sandi-bench
         (field
           (field_name)
           (field_value
-            (boolean)))
-        (dedent)))
+            (boolean)))))
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
-          (indent)
           (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (dedent))
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)))
         (field
           (field_name)
           (field_value
@@ -273,75 +253,53 @@ benchmark sandi-bench
         (field
           (field_name)
           (field_value
-            (identifier)
-            (text_fragment)))
+            (path)))
         (field
           (field_name)
-          (indent)
           (field_value
             (identifier)
             (constraint_op)
-            (integer))
-          (field_value
-            (identifier))
-          (dedent))
+            (integer)
+            (identifier)))
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
-                (indent)
                 (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (field_value
-                  (module_name))
-                (dedent))
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)
+                  (module_name)))
               (field
                 (field_name)
                 (field_value
                   (module_name)))
               (field
                 (field_name)
-                (indent)
                 (field_value
                   (identifier)
                   (constraint_op)
-                  (version))
-                (field_value
-                  (identifier))
-                (dedent))
-              (dedent))))
+                  (version)
+                  (identifier))))))
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (test_suite
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -352,64 +310,41 @@ benchmark sandi-bench
             (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (identifier))
-          (dedent))
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (identifier)))
         (field
           (field_name)
           (field_value
             (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)))
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (benchmark
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -420,48 +355,30 @@ benchmark sandi-bench
             (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (module_name))
-          (field_value
-            (identifier))
-          (dedent))
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (module_name)
+            (identifier)))
         (field
           (field_name)
           (field_value
             (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)))
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))

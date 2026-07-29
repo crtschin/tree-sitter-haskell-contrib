@@ -24,18 +24,16 @@
       {
         "name": "Curtis Chin Jen Sem",
         "email": "csochinjensem@gmail.com",
-        "url": "crtschin.com"
+        "url": "https://crtschin.com/"
       }
     ],
     "links": {
-      "repository": "https://github.com/crtschin/tree-sitter-cabal",
-      "funding": ""
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
     }
   },
   "bindings": {
     "c": false,
     "go": false,
-    "java": false,
     "node": false,
     "python": false,
     "rust": false,

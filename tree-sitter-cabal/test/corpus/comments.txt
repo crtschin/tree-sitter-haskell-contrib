@@ -24,7 +24,6 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -33,8 +32,7 @@ library
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Column-0 comment between a field and a conditional (hls pattern)
@@ -64,26 +62,22 @@ test-suite ts
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
             (identifier)))
         (comment)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (flag_token)))
-              (dedent))))
-        (dedent)))))
+                  (flag_token))))))))))
 
 ================================================================================
 Multiple consecutive column-0 comments inside an indented section
@@ -113,7 +107,6 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -124,8 +117,7 @@ library
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Column-0 comment between two conditionals inside a library
@@ -155,35 +147,29 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (flag_token)))
-              (dedent))))
+                  (flag_token))))))
         (comment)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (flag_token)))
-              (dedent))))
-        (dedent)))))
+                  (flag_token))))))))))
 
 ================================================================================
 Column-0 comment between sections stays outside both sections
@@ -213,23 +199,19 @@ executable bin
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (comment)
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Inline trailing comment after a field value
@@ -256,7 +238,6 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -265,8 +246,7 @@ library
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Comments at same indent as if, between condition and deeper body
@@ -295,9 +275,8 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_and
               (predicate_not
                 (predicate_call
@@ -309,12 +288,9 @@ library
                 (predicate_arg
                   (identifier))))
             (property_or_conditional_block
-              (indent)
               (comment)
               (comment)
               (field
                 (field_name)
                 (field_value
-                  (flag_token)))
-              (dedent))))
-        (dedent)))))
+                  (flag_token))))))))))

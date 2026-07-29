@@ -25,20 +25,16 @@ executable foo
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
             (identifier)
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))

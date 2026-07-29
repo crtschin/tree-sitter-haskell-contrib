@@ -12,6 +12,43 @@ Tree-sitter grammars for Haskell-ecosystem file formats.
 
 The `.cabal` grammar was initially forked from [magus/tree-sitter-cabal](https://gitlab.com/magus/tree-sitter-cabal/).
 
+## Design: why the cabal pair is two grammars
+
+Tree-sitter binds one language id, one `parser.c`, and one query set per grammar,
+so the two file formats cannot share a single grammar even where their syntax
+agrees. They also differ where it matters to an editor: `.cabal` has a fixed
+section vocabulary (`library`, `executable`, ...) and a `cabal-version` preamble,
+`cabal.project` has stanzas and paths.
+
+What they do share is the layout law, so both link the same external scanner:
+`common/scanners/cabal.c`, checked in as each grammar's `src/scanner.c` symlink.
+Upstream Cabal draws the line in the same place. One `Lexer.x` and one
+`Distribution.Fields.Parser.readFields` serve both formats, and the paths only
+diverge once fields are interpreted into typed config.
+
+Consequences the code relies on:
+
+- The `externals` array comes from `makeCabalExternals` in `common/utils.mjs`.
+  Its order is the scanner's `enum Token` order, and a grammar declares even the
+  tokens it never uses so the indices line up.
+- Value tokens and predicate expressions come from `common/utils.mjs` factories.
+  The lexical precedence map stays per-grammar because `.cabal` inserts
+  `module_name` into the ladder and shifts everything above it.
+- Node names for concepts present in both grammars are kept identical, so one
+  query pattern works against either tree. Each `queries/helix/*.scm` pair is
+  split into a byte-identical shared block and a grammar-specific tail; diff the
+  two files before editing the shared half.
+- Value tokens, predicate expressions, `path`, and `qualified_name` all come from
+  factories in `common/utils.mjs`, so the two grammars cannot disagree about what
+  a path or a package-qualified name is. Only the lexical precedence *numbers*
+  stay per-grammar, because `.cabal` inserts `module_name` into the ladder.
+- `qualified_name` is one atomic token rather than a rule with `package:` and
+  `sublibrary:` fields. The friendlier structured form is not available: it
+  commits at the colon, and `.cabal` prose (`Libraries: a framework ...`) then
+  parses as a package with a missing sublibrary. The reasoning and the evidence
+  are recorded at the rule; split the node text on the first `:` if you need the
+  halves.
+
 ## Setup
 
 ```sh
@@ -34,9 +71,10 @@ All commands run across every grammar via the top-level justfile.
 | `just clean`       | Remove build artifacts                                       |
 
 Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one
-of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`. The
-cabal grammars also carry `flamegraph`, `bench`, `valgrind`, and `stats` targets
-for profiling the scanner over their corpora.
+of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`. Every
+grammar carries `bench` and `alloc`; the two cabal grammars additionally carry
+`flamegraph`, `valgrind`, and `stats` for profiling the scanner over their
+corpora (`common/cabal-recipes.just`).
 
 ## Testing
 

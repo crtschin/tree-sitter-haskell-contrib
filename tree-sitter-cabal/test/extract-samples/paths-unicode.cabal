@@ -1,0 +1,32 @@
+cabal-version: 2.4
+name:          paths-demo
+version:       1.0
+x-無:          unicode-field-value
+description:
+  Prose with a slash read/write and a trailing period.
+  See <https://example.org/docs> for details.
+extra-source-files:
+  csrc/codec.h
+  /abs/include/vendor.h
+  data/**/*.json
+  ./relative/file.txt
+data-files:      data/table.csv
+license-file:    LICENSE
+tested-with:     GHC ==9.4.8
+x-release-date:  2026-07-30
+x-build-number:  42
+x-quoted:        "a quoted value"
+x-misc:          alpha;beta -optP-DFOO@1
+
+common Fünfstück
+  ghc-options: -Wall
+
+library
+  hs-source-dirs: src
+  build-depends:  base
+  if impl(ghc >= 9.4)
+    ghc-options: -O2
+  elif flag(dev)
+    ghc-options: -O0
+  else
+    ghc-options: -O1

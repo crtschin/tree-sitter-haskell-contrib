@@ -87,7 +87,6 @@ executable oenc
         (identifier)))
     (field
       (field_name)
-      (indent)
       (field_value
         (identifier)
         (identifier)
@@ -98,8 +97,7 @@ executable oenc
         (identifier)
         (identifier)
         (url)
-        (text_fragment))
-      (dedent))
+        (path)))
     (field
       (field_name)
       (field_value
@@ -130,7 +128,6 @@ executable oenc
       (section_type)
       (section_name)
       (property_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -138,13 +135,11 @@ executable oenc
         (field
           (field_name)
           (field_value
-            (url)))
-        (dedent)))
+            (url)))))
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -163,32 +158,23 @@ executable oenc
             (flag_token)))
         (field
           (field_name)
-          (indent)
           (field_value
             (identifier)
             (constraint_op)
-            (integer))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
+            (integer)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)))
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -207,24 +193,16 @@ executable oenc
             (flag_token)))
         (field
           (field_name)
-          (indent)
           (field_value
             (identifier)
             (constraint_op)
-            (integer))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
+            (integer)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)
+            (identifier)))
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))

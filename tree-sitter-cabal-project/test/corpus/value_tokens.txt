@@ -98,9 +98,7 @@ allow-newer: pkga-1.1.2:dep-pkg
   (field
     name: (field_name)
     value: (field_value
-      (qualified_name
-        package: (package_name)
-        sublibrary: (sublibrary_name)))))
+      (qualified_name))))
 
 ================================================================================
 ghc-options with -with-rtsopts=-N
@@ -179,3 +177,33 @@ program-options
       name: (field_name)
       value: (field_value
         (quoted_string)))))
+
+================================================================================
+Qualified name with sublibrary set
+================================================================================
+
+constraints: mypkg:{internal, extra} >=1.0
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (field
+    (field_name)
+    (field_value
+      (qualified_name)
+      (constraint_op)
+      (version))))
+
+================================================================================
+Wildcard package and sublibrary
+================================================================================
+
+allow-newer: *:*
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (field
+    (field_name)
+    (field_value
+      (qualified_name))))

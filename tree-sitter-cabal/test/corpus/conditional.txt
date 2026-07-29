@@ -28,39 +28,31 @@ library
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))
+                  (identifier))))))))
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))))
+                  (identifier))))))))))
 
 ================================================================================
 Conditional with else
@@ -95,56 +87,44 @@ test-suite foo-test
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_else
+                  (identifier)))))
+          (else_clause
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))
+                  (identifier))))))))
     (test_suite
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_else
+                  (identifier)))))
+          (else_clause
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))))
+                  (identifier))))))))))
 
 ================================================================================
 Conditional with elif
@@ -184,76 +164,60 @@ library
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_elseif
+                  (identifier)))))
+          (elif_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_else
+                  (identifier)))))
+          (else_clause
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))
+                  (identifier))))))))
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (conditional
-          (condition_if
+          (if_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_elseif
+                  (identifier)))))
+          (elif_clause
             (predicate_call
               (identifier)
               (predicate_arg
                 (identifier)))
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent)))
-          (condition_else
+                  (identifier)))))
+          (else_clause
             (property_or_conditional_block
-              (indent)
               (field
                 (field_name)
                 (field_value
-                  (identifier)))
-              (dedent))))
-        (dedent)))))
+                  (identifier))))))))))

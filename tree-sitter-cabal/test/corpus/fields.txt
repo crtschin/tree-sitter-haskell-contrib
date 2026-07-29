@@ -25,18 +25,14 @@ common section
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
             (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (identifier))
-          (dedent))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Comment in continuation list
@@ -65,17 +61,12 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
-          (indent)
           (field_value
-            (module_name))
-          (comment)
-          (field_value
-            (module_name))
-          (dedent))
-        (dedent)))))
+            (module_name)
+            (comment)
+            (module_name)))))))
 
 ================================================================================
 build-depends with version constraints
@@ -104,25 +95,19 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
-          (indent)
           (field_value
             (identifier)
             (constraint_op)
             (version)
             (constraint_op)
             (constraint_op)
-            (integer))
-          (field_value
+            (integer)
             (identifier)
             (constraint_op)
-            (version))
-          (field_value
-            (identifier))
-          (dedent))
-        (dedent)))))
+            (version)
+            (identifier)))))))
 
 ================================================================================
 exposed-modules with module and bare-uppercase items
@@ -150,16 +135,11 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
-          (indent)
           (field_value
-            (module_name))
-          (field_value
-            (identifier))
-          (dedent))
-        (dedent)))))
+            (module_name)
+            (identifier)))))))
 
 ================================================================================
 Multiple value fields
@@ -193,7 +173,6 @@ common section
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
@@ -203,24 +182,15 @@ common section
         (field
           (field_name)
           (field_value
-            (identifier))
-          (indent)
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
+            (identifier)
+            (identifier)
+            (identifier)))
         (field
           (field_name)
-          (indent)
           (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (field_value
-            (identifier))
-          (dedent))
-        (dedent)))))
+            (identifier)
+            (identifier)
+            (identifier)))))))
 
 ================================================================================
 tested-with with brace version set
@@ -257,12 +227,10 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 ghc-options with -with-rtsopts=-N
@@ -289,15 +257,13 @@ executable foo
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
             (flag_token)
             (flag_token)
             (flag_token)
-            (flag_token)))
-        (dedent)))))
+            (flag_token)))))))
 
 ================================================================================
 build-depends with sublibrary qualified name
@@ -325,16 +291,11 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
-          (indent)
           (field_value
-            (identifier))
-          (field_value
-            (qualified_name))
-          (dedent))
-        (dedent)))))
+            (identifier)
+            (qualified_name)))))))
 
 ================================================================================
 description with angle-bracketed URL
@@ -368,12 +329,10 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 quoted string with -- inside (not a comment)
@@ -400,9 +359,28 @@ executable foo
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (quoted_string)))
-        (dedent)))))
+            (quoted_string)))))))
+
+================================================================================
+Prose colon is not a qualified name
+================================================================================
+
+description:
+  Libraries: a framework. Note:this is one.
+
+--------------------------------------------------------------------------------
+
+(cabal
+  (properties
+    (field
+      (field_name)
+      (field_value
+        (text_fragment)
+        (identifier)
+        (identifier)
+        (qualified_name)
+        (identifier)
+        (identifier)))))

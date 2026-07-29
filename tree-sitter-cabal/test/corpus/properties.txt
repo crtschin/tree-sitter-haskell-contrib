@@ -29,12 +29,10 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Properties, with Cabal version
@@ -75,12 +73,10 @@ library
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))
 
 ================================================================================
 Properties, with comment
@@ -130,25 +126,21 @@ executable foo
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (comment)
         (field
           (field_name)
           (field_value
             (identifier)))
-        (comment)
-        (dedent)))
+        (comment)))
     (comment)
     (executable
       (section_type)
       (section_name)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))
+            (identifier)))))
     (comment)))
 
 ================================================================================
@@ -192,15 +184,13 @@ library
         (identifier)))
     (field
       (field_name)
-      (indent)
       (field_value
         (identifier)
         (identifier)
         (identifier)
         (identifier)
         (identifier)
-        (identifier))
-      (dedent))
+        (identifier)))
     (field
       (field_name)
       (field_value
@@ -209,25 +199,9 @@ library
         (identifier)
         (identifier)
         (identifier)
-        (identifier))
-      (indent)
-      (field_value
-        (identifier)
-        (identifier))
-      (dedent))
-    (field
-      (field_name)
-      (indent)
-      (field_value
         (identifier)
         (identifier)
-        (identifier)
-        (identifier)
-        (identifier))
-      (field_value
-        (identifier)
-        (identifier))
-      (dedent))
+        (identifier)))
     (field
       (field_name)
       (field_value
@@ -236,39 +210,39 @@ library
         (identifier)
         (identifier)
         (identifier)
-        (identifier))
-      (indent)
-      (field_value
         (identifier)
-        (identifier))
-      (field_value
-        (identifier)
-        (identifier))
-      (dedent))
+        (identifier)))
     (field
       (field_name)
-      (indent)
       (field_value
         (identifier)
         (identifier)
         (identifier)
         (identifier)
         (identifier)
-        (identifier))
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)))
+    (field
+      (field_name)
       (field_value
         (identifier)
-        (identifier))
-      (field_value
         (identifier)
-        (identifier))
-      (dedent)))
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier))))
   (sections
     (library
       (section_type)
       (property_or_conditional_block
-        (indent)
         (field
           (field_name)
           (field_value
-            (identifier)))
-        (dedent)))))
+            (identifier)))))))

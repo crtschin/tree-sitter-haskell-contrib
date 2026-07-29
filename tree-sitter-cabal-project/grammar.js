@@ -7,7 +7,13 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-import { makePredicateRules, makeValueTokenRules } from "./common/utils.mjs";
+import {
+  CABAL_WHITESPACE,
+  makeCabalExternals,
+  makeQualifiedNameRules,
+  makePredicateRules,
+  makeValueTokenRules,
+} from "./common/utils.mjs";
 
 function indented_block($) {
   return optional(seq($._indent, repeat($._block_item), $._dedent));
@@ -16,23 +22,9 @@ function indented_block($) {
 export default grammar({
   name: "cabal_project",
 
-  // Order must match the shared scanner's enum Token.
-  //
-  // _section_name is declared only for that enum alignment (cabal-project has no
-  // section concept).
-  //
-  // _field_name is the hidden Unicode-fallback external used by field_name below.
-  externals: ($) => [
-    $._newline,
-    $._indent,
-    $._dedent,
-    $._indented,
-    $._continuation,
-    $._section_name,
-    $._field_name,
-  ],
+  externals: makeCabalExternals,
 
-  extras: ($) => [$.comment, /[ \t]/],
+  extras: ($) => [$.comment, CABAL_WHITESPACE],
 
   conflicts: ($) => [],
 
@@ -79,6 +71,7 @@ export default grammar({
         $.quoted_string,
         $.constraint_op,
         $.path,
+        $.text_fragment,
         ",",
         "*",
         "(",
@@ -87,73 +80,26 @@ export default grammar({
         "}",
         "=",
         "!",
+        // Fallback when `qualified_name` declines a colon (see makeQualifiedNameRules).
+        ":",
       ),
 
-    qualified_name: ($) =>
-      prec(
-        4,
-        seq(
-          // The package may be a wildcard (`*:*` in an allow-newer/constraints
-          // list), not only a name.
-          field(
-            "package",
-            choice(
-              alias($.identifier, $.package_name),
-              alias("*", $.package_name),
-            ),
-          ),
-          ":",
-          field(
-            "sublibrary",
-            choice(
-              alias($.identifier, $.sublibrary_name),
-              alias("*", $.sublibrary_name),
-            ),
-          ),
-        ),
-      ),
-
-    // Covers names, enum-ish values, versionish tokens (ghc-9.4), and
-    // dotted/slashy path fragments.
+    // Enum-ish values, versionish tokens (ghc-9.4), and git refs.
     //
-    // Allows `/`, `.`, `-`, and glob `*`/`?` so a path-like value or a glob with
-    // an alphanumeric prefix (`vendor/*`, `pkg-*/`, `packages/**/*.cabal`) lexes
-    // as one token instead of splitting at the wildcard. A glob that leads with
-    // `*`/`?` is a `path`.
+    // Slashes and glob characters are deliberately NOT included: `path` (shared, in
+    // common/utils.mjs) claims those, so `vendor/*` is one path node rather than an
+    // identifier. Keeping them here made a single `packages:` list emit both kinds.
     //
-    // Second alt: a digit-leading token that contains a letter and no `.` (a git
-    // commit SHA / ref in `tag:`), which would otherwise split into `integer`
-    // (the leading digits) + `identifier`.
+    // Second alt: a digit-leading token that contains a letter and no `.` (a git commit
+    // SHA / ref in `tag:`), which would otherwise split into `integer` (the leading digits)
+    // + `identifier`. Its own token above `integer` (2) so it wins the shared prefix, but
+    // below `iso_date`/`url` so a date or URL still wins.
     //
-    // Its own token at a prec above `integer` (2) so it wins the shared prefix,
-    // but below `iso_date` (7)/`url` (8) so a date/URL still wins.
-    //
-    // A pure number stays `integer` and a dotted `1.2.3` stays `version`
-    // (neither this alt nor they overlap).
+    // A pure number stays `integer` and a dotted `1.2.3` stays `version`.
     identifier: ($) =>
       choice(
-        token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-\/*?]*/)),
-        token(prec(4, /[0-9][A-Za-z0-9_\-\/*?]*[A-Za-z][A-Za-z0-9_\-\/*?]*/)),
-      ),
-
-    // Bare `.`/`..`, absolute, relative `./`/`../`, and glob paths. `*`/`?` for
-    // globs like `/*.cabal`.
-    //
-    // The third alternative is a glob-leading segment (`*.cabal`, `*/*.cabal`)
-    // so its leading `*` folds into the path instead of splitting off as the
-    // standalone `*` token.
-    //
-    // A trailing char is required, so a bare `*` (glob-all) stays that token.
-    path: ($) =>
-      token(
-        prec(
-          1,
-          choice(
-            /\/[A-Za-z0-9_*?.\-\/]+/,
-            /\.\.?(\/[A-Za-z0-9_*?.\-\/]*)?/,
-            /[*?][A-Za-z0-9_*?.\-\/]+/,
-          ),
-        ),
+        token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-]*/)),
+        token(prec(4, /[0-9][A-Za-z0-9_\-]*[A-Za-z][A-Za-z0-9_\-]*/)),
       ),
 
     // ---------- Stanzas ----------
@@ -197,6 +143,7 @@ export default grammar({
 
     else_clause: ($) => seq("else", indented_block($)),
 
+    ...makeQualifiedNameRules({ precedence: 4 }),
     ...makePredicateRules({ extraArgChoices: ["path"] }),
     ...makeValueTokenRules({
       precs: {
@@ -205,6 +152,11 @@ export default grammar({
         url: 8,
         version: 5,
         flag_token: 3,
+        // Above identifier (1) so a name-leading relative path is one node; below
+        // flag_token (3) so `-optP-I/usr/include` keeps its flag.
+        path: 2,
+        // Above qualified_name (4): see the drive-letter note in makeValueTokenRules.
+        path_drive: 5,
         integer: 2,
       },
     }),

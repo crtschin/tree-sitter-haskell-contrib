@@ -7,7 +7,11 @@
 
 ; Field names, and each meaningful value leaf split by kind so a mis-split of a
 ; build-depends list (package vs constraint vs version) fails the diff.
-(field (field_name) @field.name)
+; Via the labelled fields, so dropping either label fails the gate. `value` is one
+; node spanning every continuation line, which pins the layout rule: a regression
+; that reopened an indent block per value line would split it.
+(field name: (field_name) @field.name)
+(field value: (field_value) @field.value)
 
 (field_value (identifier) @value.identifier)
 (field_value (module_name) @value.module)
@@ -17,6 +21,11 @@
 (field_value (flag_token) @value.flag)
 (field_value (url) @value.url)
 (field_value (constraint_op) @value.constraint)
+(field_value (path) @value.path)
+(field_value (text_fragment) @value.text)
+(field_value (quoted_string) @value.string)
+(field_value (iso_date) @value.date)
+(field_value (integer) @value.integer)
 
 ; Section headers: kind (library/executable/...) and optional name.
 (_ type: (section_type) @section.type name: (section_name) @section.name)
@@ -30,3 +39,9 @@
   arg: (predicate_arg (identifier) @predicate.arg))
 (predicate_arg (constraint_op) @predicate.constraint)
 (predicate_arg (version) @predicate.version)
+
+; Clause spans, so a change to where an if/elif/else body starts and ends shows up
+; as a span diff rather than passing silently.
+(if_clause) @clause.if
+(elif_clause) @clause.elif
+(else_clause) @clause.else

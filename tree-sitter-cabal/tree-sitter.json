@@ -36,7 +36,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/crtschin/tree-sitter-cabal"
+      "repository": "https://github.com/crtschin/tree-sitter-haskell-contrib"
     }
   },
   "bindings": {

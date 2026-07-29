@@ -25,7 +25,6 @@ typedef enum {
     SP_EOF_NEWLINE,
     SP_INDENT,
     SP_CONTINUATION,
-    SP_INDENTED,
     SP_DEDENT_UNWIND,
     SP_NEWLINE,
     SP_FALSE_NO_NL,   // bailed before measuring next line (no '\n' in lookahead)
@@ -35,7 +34,7 @@ typedef enum {
 
 static const char *stats_path_name[SP_COUNT] = {
     "pending", "eof_ded", "eof_nl", "indent", "cont",
-    "indented", "dedent", "newline", "no_nl", "no_match"
+    "dedent", "newline", "no_nl", "no_match"
 };
 
 static uint64_t stats_calls = 0;
@@ -107,10 +106,12 @@ static void stats_dump(void) {
 // Layout-sensitive scanner shared by tree-sitter-cabal and tree-sitter-cabal-project.
 // Cabal-syntax uses one lexer for both formats. The .cabal/.project split is semantic.
 //
-// ABI constraint: both grammars must list all seven externals in this exact order.
+// ABI constraint: both grammars must list all six externals in this exact order.
 // Tree-sitter indexes valid_symbols by declared position, so reordering or removing one
-// shifts the rest and causes out-of-bounds reads here. cabal-project declares
-// _section_name only for that alignment and never references it, so its slot stays unset.
+// shifts the rest and causes out-of-bounds reads here. Both grammars get the array from
+// makeCabalExternals in common/utils.mjs, which is what keeps the order in step.
+// cabal-project declares _section_name only for that alignment and never references it,
+// so its slot stays unset.
 //
 // Leniencies beyond Cabal's own lexer (Distribution.Fields.Lexer): we accept input Cabal
 // rejects so editors don't fail fast. Tracked here so the divergence stays visible.
@@ -124,19 +125,20 @@ static void stats_dump(void) {
 // NEWLINE      End of a logical line. Fires when the next non-blank line is at the same
 //              or greater indent, or to pre-queue a DEDENT not yet valid.
 // INDENT       Opens an indented block (pushes the column). Only valid right after a
-//              block header. Never valid alongside INDENTED or CONTINUATION.
+//              block header. Never valid alongside CONTINUATION.
 // DEDENT       Closes an indented block. Multi-level unwinds queue the extra DEDENTs in
 //              pending_dedents, drained on later calls.
-// INDENTED     Lenient continuation: next line deeper than prev_indent_lvl (the level
-//              before the last INDENT push). Lets a .cabal multi-line field's value lines
-//              sit at the first value line's column, which CONTINUATION rejects.
-// CONTINUATION Strict continuation: next line deeper than cur_indent_lvl. Keeps
-//              cabal-project sibling fields at the field-name column out of the value.
+// CONTINUATION A field value's continuation line: next line deeper than cur_indent_lvl.
+//              Keeps a sibling field at the field-name column out of the value. Both
+//              grammars use this one rule, matching upstream, which measures continuations
+//              against the field's own column for both formats
+//              (Distribution.Fields.Parser.fieldLayoutOrBraces). A field value must
+//              therefore not open an indent block, or the pushed column would make its own
+//              continuation lines fail this test.
 enum Token {
     NEWLINE,
     INDENT,
     DEDENT,
-    INDENTED,
     CONTINUATION,
     // Hidden Unicode-fallback name externals (see the dispatch in scanner_scan).
     // SECTION_NAME is cabal-only. cabal-project declares but never uses it.
@@ -147,8 +149,6 @@ enum Token {
 typedef struct {
     // Indent columns (spaces). Always holds the sentinel 0 at the root.
     //   back()    == cur_indent_lvl  (innermost open block)
-    //   [size-2]  == prev_indent_lvl (level before the last INDENT, the INDENTED check),
-    //                defined only when size >= 2.
     Array(uint16_t) indents;
     // DEDENTs queued for later calls: when NEWLINE fires but the next line is already
     // shallower, the stack is pre-popped and the deficit stored here, one drained per
@@ -401,11 +401,6 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
     }
 
     uint16_t cur_indent_lvl = *array_back(&scanner->indents);
-    // prev_indent_lvl: level before the last INDENT push (see INDENTED up top).
-    uint16_t prev_indent_lvl =
-        scanner->indents.size >= 2
-            ? *array_get(&scanner->indents, scanner->indents.size - 2)
-            : 0;
 
     // Past the '\n', then measure the next significant line's indent.
     lexer->advance(lexer, true);
@@ -452,10 +447,6 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
         // make both valid.
         lexer->result_symbol = CONTINUATION;
         STATS_PATH(SP_CONTINUATION); return true;
-    } else if (valid_symbols[INDENTED] && indent > prev_indent_lvl) {
-        // Deeper than prev: a continuation at the first value line's column still passes.
-        lexer->result_symbol = INDENTED;
-        STATS_PATH(SP_INDENTED); return true;
     } else if (valid_symbols[DEDENT] && indent < cur_indent_lvl) {
         // unwind_to queues one DEDENT per pop. Return one here and drop its count.
         unwind_to(scanner, indent);
