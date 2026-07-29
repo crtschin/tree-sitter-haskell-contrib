@@ -45,6 +45,18 @@ extract: build
 update-extractions: build
     ../test/runners/extract-golden.sh {{ slug }} --update
 
+# Benchmark parsing the corpus with hyperfine. Relative, machine-dependent
+# throughput; nothing is committed. Reached via `just test --performance`.
+bench: build
+    ../test/perf/bench-corpus.sh {{ slug }}
+
+# Rewrite the committed allocation baseline test/alloc.golden (input_bytes, node
+# count, dhat allocation count over the pinned corpus) in place, then fail if
+# that drifted from what is committed (review `git diff`, commit to accept).
+# Local devShell only (needs valgrind); slow. Reached via `just test --allocation`.
+alloc: build
+    ../test/perf/alloc-golden.sh {{ slug }} | tapview
+
 # IL-grammar test flow (ghc-core/stg/cmm/dump only, cabal has no gen-corpus).
 # Runs queries, the harvested-corpus gate, the ephemeral generated matrix, the
 # extraction golden, any `extra` gate recipes (ghc-dump passes validate-injections),

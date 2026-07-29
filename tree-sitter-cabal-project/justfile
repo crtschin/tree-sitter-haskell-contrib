@@ -30,10 +30,6 @@ parse-corpus:
 flamegraph:
     ../test/perf/flamegraph-corpus.sh {{ slug }} ../flamegraph-{{ slug }}.svg
 
-# Benchmark parsing the corpus with hyperfine.
-bench:
-    ../test/perf/bench-corpus.sh {{ slug }}
-
 # Profile parsing the corpus under valgrind (tool = callgrind | cachegrind |
 # memcheck | massif). Emits valgrind-{{ slug }}.{out,txt} at the repo root.
 valgrind tool="callgrind":

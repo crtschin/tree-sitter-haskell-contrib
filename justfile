@@ -12,14 +12,25 @@ default: test
 # exit non-zero if any grammar failed. The IL grammars' gen-corpus step validates
 # against every flake `ghcVersions` GHC by default (heavy; pulls each closure);
 # `--fast` restricts it to the single default GHC (see test/runners/gen-corpus.sh).
+#
+# Suite selectors (local devShell only; the ci shell lacks valgrind/hyperfine):
+#   --allocation   rewrite+drift-check each grammar's test/alloc.golden (dhat)
+#   --performance  hyperfine throughput per grammar (relative, nothing committed)
+# With either selector the correctness suite is skipped; without one it runs.
 test *flags:
     #!/usr/bin/env bash
     set -uo pipefail
-    [[ " {{ flags }} " == *" --fast "* ]] || export GEN_GHC=all
+    f=" {{ flags }} "
+    [[ "$f" == *" --fast "* ]] || export GEN_GHC=all
     rc=0
     for g in cabal cabal-project ghc-core ghc-core-explain ghc-stg ghc-cmm ghc-dump; do
         echo "==> $g"
-        just "$g::test" || rc=1
+        if [[ "$f" == *" --allocation "* || "$f" == *" --performance "* ]]; then
+            [[ "$f" == *" --performance "* ]] && { just "$g::bench" || rc=1; }
+            [[ "$f" == *" --allocation "* ]] && { just "$g::alloc" || rc=1; }
+        else
+            just "$g::test" || rc=1
+        fi
     done
     exit "$rc"
 
@@ -50,7 +61,8 @@ update-extractions: cabal::update-extractions cabal-project::update-extractions 
 # Generate flamegraphs for the corpus-backed grammars.
 flamegraph: cabal::flamegraph cabal-project::flamegraph
 
-# Benchmark the corpus-backed grammars with hyperfine.
+# Benchmark the corpus-backed grammars with hyperfine. (Every grammar via
+# `just test --performance`.)
 bench: cabal::bench cabal-project::bench
 
 # Profile the corpus-backed grammars under valgrind (tool = callgrind |
