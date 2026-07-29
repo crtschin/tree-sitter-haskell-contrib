@@ -3,23 +3,12 @@
 
 import {
   CABAL_WHITESPACE,
+  ci,
   makeCabalExternals,
   makeQualifiedNameRules,
   makePredicateRules,
   makeValueTokenRules,
 } from "./common/utils.mjs";
-
-// Case-insensitive regex for a keyword: each ASCII letter becomes [aA].
-function ci(str) {
-  return new RegExp(
-    str
-      .split("")
-      .map((c) =>
-        /[a-zA-Z]/.test(c) ? `[${c.toLowerCase()}${c.toUpperCase()}]` : c,
-      )
-      .join(""),
-  );
-}
 
 export default grammar({
   name: "cabal",

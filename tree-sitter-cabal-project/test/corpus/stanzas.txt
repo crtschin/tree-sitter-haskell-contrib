@@ -100,3 +100,55 @@ repository hackage.haskell.org
       name: (field_name)
       value: (field_value
         (url)))))
+
+================================================================================
+Stanza keywords are case-insensitive
+================================================================================
+
+Package foo
+  ghc-options: -O2
+PACKAGE bar
+  ghc-options: -O0
+packages: ./a
+Source-Repository-Package
+  type: git
+Program-Options
+  ghc-options: -O1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (stanza
+    (stanza_header
+      (keyword)
+      (package_name))
+    (field
+      (field_name)
+      (field_value
+        (flag_token))))
+  (stanza
+    (stanza_header
+      (keyword)
+      (package_name))
+    (field
+      (field_name)
+      (field_value
+        (flag_token))))
+  (field
+    (field_name)
+    (field_value
+      (path)))
+  (stanza
+    (stanza_header
+      (keyword))
+    (field
+      (field_name)
+      (field_value
+        (identifier))))
+  (stanza
+    (stanza_header
+      (keyword))
+    (field
+      (field_name)
+      (field_value
+        (flag_token)))))

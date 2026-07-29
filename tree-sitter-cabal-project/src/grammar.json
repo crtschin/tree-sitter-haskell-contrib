@@ -306,8 +306,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "STRING",
-            "value": "package"
+            "type": "SYMBOL",
+            "name": "_kw_package"
           },
           "named": true,
           "value": "keyword"
@@ -328,8 +328,8 @@
         {
           "type": "ALIAS",
           "content": {
-            "type": "STRING",
-            "value": "repository"
+            "type": "SYMBOL",
+            "name": "_kw_repository"
           },
           "named": true,
           "value": "keyword"
@@ -347,8 +347,8 @@
     "_source_repository_package_header": {
       "type": "ALIAS",
       "content": {
-        "type": "STRING",
-        "value": "source-repository-package"
+        "type": "SYMBOL",
+        "name": "_kw_source_repository_package"
       },
       "named": true,
       "value": "keyword"
@@ -356,8 +356,8 @@
     "_program_options_header": {
       "type": "ALIAS",
       "content": {
-        "type": "STRING",
-        "value": "program-options"
+        "type": "SYMBOL",
+        "name": "_kw_program_options"
       },
       "named": true,
       "value": "keyword"
@@ -365,11 +365,66 @@
     "_program_locations_header": {
       "type": "ALIAS",
       "content": {
-        "type": "STRING",
-        "value": "program-locations"
+        "type": "SYMBOL",
+        "name": "_kw_program_locations"
       },
       "named": true,
       "value": "keyword"
+    },
+    "_kw_package": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "[pP][aA][cC][kK][aA][gG][eE]"
+        }
+      }
+    },
+    "_kw_repository": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "[rR][eE][pP][oO][sS][iI][tT][oO][rR][yY]"
+        }
+      }
+    },
+    "_kw_source_repository_package": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "[sS][oO][uU][rR][cC][eE]-[rR][eE][pP][oO][sS][iI][tT][oO][rR][yY]-[pP][aA][cC][kK][aA][gG][eE]"
+        }
+      }
+    },
+    "_kw_program_options": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "[pP][rR][oO][gG][rR][aA][mM]-[oO][pP][tT][iI][oO][nN][sS]"
+        }
+      }
+    },
+    "_kw_program_locations": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "[pP][rR][oO][gG][rR][aA][mM]-[lL][oO][cC][aA][tT][iI][oO][nN][sS]"
+        }
+      }
     },
     "package_name": {
       "type": "CHOICE",

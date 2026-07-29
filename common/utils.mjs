@@ -1,6 +1,28 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+// Case-insensitive regex for a keyword: each ASCII letter becomes [aA].
+//
+// Both formats need it. Cabal lowercases every field and section name as it builds them
+// (Distribution.Fields.Field.mkName), and that module is shared by the .cabal and
+// cabal.project parsers, so `Library` and `Package foo` are both legal.
+//
+// Not applied to `if`/`elif`/`else`, which the same lowercasing also makes case-insensitive.
+// Both grammars match them as plain literals, so `IF flag(dev)` is legal input they reject.
+// Left alone on the evidence: capitalised section headers appear in ~700 files of the Cabal
+// tree, capitalised conditionals in none. Fixing it would mean named keyword nodes in place
+// of the anonymous `"if"` tokens the shared highlight queries capture, for no real input.
+export function ci(str) {
+  return new RegExp(
+    str
+      .split("")
+      .map((c) =>
+        /[a-zA-Z]/.test(c) ? `[${c.toLowerCase()}${c.toUpperCase()}]` : c,
+      )
+      .join(""),
+  );
+}
+
 // Horizontal whitespace for both cabal grammars. U+00A0 (non-breaking space) shows up in
 // some old .cabal files, and the scanner already counts it as indentation
 // (common/scanners/cabal.c), so the grammars have to accept it mid-line as well. Written

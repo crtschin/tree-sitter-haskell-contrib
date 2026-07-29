@@ -32,11 +32,11 @@ enum ts_symbol_identifiers {
   anon_sym_BANG = 10,
   aux_sym_identifier_token1 = 11,
   aux_sym_identifier_token2 = 12,
-  anon_sym_package = 13,
-  anon_sym_repository = 14,
-  anon_sym_source_DASHrepository_DASHpackage = 15,
-  anon_sym_program_DASHoptions = 16,
-  anon_sym_program_DASHlocations = 17,
+  sym__kw_package = 13,
+  sym__kw_repository = 14,
+  sym__kw_source_repository_package = 15,
+  sym__kw_program_options = 16,
+  sym__kw_program_locations = 17,
   sym_repo_name = 18,
   anon_sym_if = 19,
   anon_sym_elif = 20,
@@ -112,11 +112,11 @@ static const char * const ts_symbol_names[] = {
   [anon_sym_BANG] = "!",
   [aux_sym_identifier_token1] = "identifier_token1",
   [aux_sym_identifier_token2] = "identifier_token2",
-  [anon_sym_package] = "keyword",
-  [anon_sym_repository] = "keyword",
-  [anon_sym_source_DASHrepository_DASHpackage] = "keyword",
-  [anon_sym_program_DASHoptions] = "keyword",
-  [anon_sym_program_DASHlocations] = "keyword",
+  [sym__kw_package] = "keyword",
+  [sym__kw_repository] = "keyword",
+  [sym__kw_source_repository_package] = "keyword",
+  [sym__kw_program_options] = "keyword",
+  [sym__kw_program_locations] = "keyword",
   [sym_repo_name] = "repo_name",
   [anon_sym_if] = "if",
   [anon_sym_elif] = "elif",
@@ -192,11 +192,11 @@ static const TSSymbol ts_symbol_map[] = {
   [anon_sym_BANG] = anon_sym_BANG,
   [aux_sym_identifier_token1] = aux_sym_identifier_token1,
   [aux_sym_identifier_token2] = aux_sym_identifier_token2,
-  [anon_sym_package] = anon_sym_package,
-  [anon_sym_repository] = anon_sym_package,
-  [anon_sym_source_DASHrepository_DASHpackage] = anon_sym_package,
-  [anon_sym_program_DASHoptions] = anon_sym_package,
-  [anon_sym_program_DASHlocations] = anon_sym_package,
+  [sym__kw_package] = sym__kw_package,
+  [sym__kw_repository] = sym__kw_package,
+  [sym__kw_source_repository_package] = sym__kw_package,
+  [sym__kw_program_options] = sym__kw_package,
+  [sym__kw_program_locations] = sym__kw_package,
   [sym_repo_name] = sym_repo_name,
   [anon_sym_if] = anon_sym_if,
   [anon_sym_elif] = anon_sym_elif,
@@ -311,23 +311,23 @@ static const TSSymbolMetadata ts_symbol_metadata[] = {
     .visible = false,
     .named = false,
   },
-  [anon_sym_package] = {
+  [sym__kw_package] = {
     .visible = true,
     .named = true,
   },
-  [anon_sym_repository] = {
+  [sym__kw_repository] = {
     .visible = true,
     .named = true,
   },
-  [anon_sym_source_DASHrepository_DASHpackage] = {
+  [sym__kw_source_repository_package] = {
     .visible = true,
     .named = true,
   },
-  [anon_sym_program_DASHoptions] = {
+  [sym__kw_program_options] = {
     .visible = true,
     .named = true,
   },
-  [anon_sym_program_DASHlocations] = {
+  [sym__kw_program_locations] = {
     .visible = true,
     .named = true,
   },
@@ -2704,11 +2704,16 @@ static bool ts_lex_keywords(TSLexer *lexer, TSStateId state) {
   eof = lexer->eof(lexer);
   switch (state) {
     case 0:
-      if (lookahead == 'e') ADVANCE(1);
-      if (lookahead == 'i') ADVANCE(2);
-      if (lookahead == 'p') ADVANCE(3);
-      if (lookahead == 'r') ADVANCE(4);
-      if (lookahead == 's') ADVANCE(5);
+      ADVANCE_MAP(
+        'e', 1,
+        'i', 2,
+        'P', 3,
+        'p', 3,
+        'R', 4,
+        'r', 4,
+        'S', 5,
+        's', 5,
+      );
       if (lookahead == '\t' ||
           lookahead == '\r' ||
           lookahead == ' ' ||
@@ -2721,14 +2726,18 @@ static bool ts_lex_keywords(TSLexer *lexer, TSStateId state) {
       if (lookahead == 'f') ADVANCE(7);
       END_STATE();
     case 3:
-      if (lookahead == 'a') ADVANCE(8);
-      if (lookahead == 'r') ADVANCE(9);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(8);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(9);
       END_STATE();
     case 4:
-      if (lookahead == 'e') ADVANCE(10);
+      if (lookahead == 'E' ||
+          lookahead == 'e') ADVANCE(10);
       END_STATE();
     case 5:
-      if (lookahead == 'o') ADVANCE(11);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(11);
       END_STATE();
     case 6:
       if (lookahead == 'i') ADVANCE(12);
@@ -2738,16 +2747,20 @@ static bool ts_lex_keywords(TSLexer *lexer, TSStateId state) {
       ACCEPT_TOKEN(anon_sym_if);
       END_STATE();
     case 8:
-      if (lookahead == 'c') ADVANCE(14);
+      if (lookahead == 'C' ||
+          lookahead == 'c') ADVANCE(14);
       END_STATE();
     case 9:
-      if (lookahead == 'o') ADVANCE(15);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(15);
       END_STATE();
     case 10:
-      if (lookahead == 'p') ADVANCE(16);
+      if (lookahead == 'P' ||
+          lookahead == 'p') ADVANCE(16);
       END_STATE();
     case 11:
-      if (lookahead == 'u') ADVANCE(17);
+      if (lookahead == 'U' ||
+          lookahead == 'u') ADVANCE(17);
       END_STATE();
     case 12:
       if (lookahead == 'f') ADVANCE(18);
@@ -2756,16 +2769,20 @@ static bool ts_lex_keywords(TSLexer *lexer, TSStateId state) {
       if (lookahead == 'e') ADVANCE(19);
       END_STATE();
     case 14:
-      if (lookahead == 'k') ADVANCE(20);
+      if (lookahead == 'K' ||
+          lookahead == 'k') ADVANCE(20);
       END_STATE();
     case 15:
-      if (lookahead == 'g') ADVANCE(21);
+      if (lookahead == 'G' ||
+          lookahead == 'g') ADVANCE(21);
       END_STATE();
     case 16:
-      if (lookahead == 'o') ADVANCE(22);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(22);
       END_STATE();
     case 17:
-      if (lookahead == 'r') ADVANCE(23);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(23);
       END_STATE();
     case 18:
       ACCEPT_TOKEN(anon_sym_elif);
@@ -2774,167 +2791,214 @@ static bool ts_lex_keywords(TSLexer *lexer, TSStateId state) {
       ACCEPT_TOKEN(anon_sym_else);
       END_STATE();
     case 20:
-      if (lookahead == 'a') ADVANCE(24);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(24);
       END_STATE();
     case 21:
-      if (lookahead == 'r') ADVANCE(25);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(25);
       END_STATE();
     case 22:
-      if (lookahead == 's') ADVANCE(26);
+      if (lookahead == 'S' ||
+          lookahead == 's') ADVANCE(26);
       END_STATE();
     case 23:
-      if (lookahead == 'c') ADVANCE(27);
+      if (lookahead == 'C' ||
+          lookahead == 'c') ADVANCE(27);
       END_STATE();
     case 24:
-      if (lookahead == 'g') ADVANCE(28);
+      if (lookahead == 'G' ||
+          lookahead == 'g') ADVANCE(28);
       END_STATE();
     case 25:
-      if (lookahead == 'a') ADVANCE(29);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(29);
       END_STATE();
     case 26:
-      if (lookahead == 'i') ADVANCE(30);
+      if (lookahead == 'I' ||
+          lookahead == 'i') ADVANCE(30);
       END_STATE();
     case 27:
-      if (lookahead == 'e') ADVANCE(31);
+      if (lookahead == 'E' ||
+          lookahead == 'e') ADVANCE(31);
       END_STATE();
     case 28:
-      if (lookahead == 'e') ADVANCE(32);
+      if (lookahead == 'E' ||
+          lookahead == 'e') ADVANCE(32);
       END_STATE();
     case 29:
-      if (lookahead == 'm') ADVANCE(33);
+      if (lookahead == 'M' ||
+          lookahead == 'm') ADVANCE(33);
       END_STATE();
     case 30:
-      if (lookahead == 't') ADVANCE(34);
+      if (lookahead == 'T' ||
+          lookahead == 't') ADVANCE(34);
       END_STATE();
     case 31:
       if (lookahead == '-') ADVANCE(35);
       END_STATE();
     case 32:
-      ACCEPT_TOKEN(anon_sym_package);
+      ACCEPT_TOKEN(sym__kw_package);
       END_STATE();
     case 33:
       if (lookahead == '-') ADVANCE(36);
       END_STATE();
     case 34:
-      if (lookahead == 'o') ADVANCE(37);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(37);
       END_STATE();
     case 35:
-      if (lookahead == 'r') ADVANCE(38);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(38);
       END_STATE();
     case 36:
-      if (lookahead == 'l') ADVANCE(39);
-      if (lookahead == 'o') ADVANCE(40);
+      if (lookahead == 'L' ||
+          lookahead == 'l') ADVANCE(39);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(40);
       END_STATE();
     case 37:
-      if (lookahead == 'r') ADVANCE(41);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(41);
       END_STATE();
     case 38:
-      if (lookahead == 'e') ADVANCE(42);
+      if (lookahead == 'E' ||
+          lookahead == 'e') ADVANCE(42);
       END_STATE();
     case 39:
-      if (lookahead == 'o') ADVANCE(43);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(43);
       END_STATE();
     case 40:
-      if (lookahead == 'p') ADVANCE(44);
+      if (lookahead == 'P' ||
+          lookahead == 'p') ADVANCE(44);
       END_STATE();
     case 41:
-      if (lookahead == 'y') ADVANCE(45);
+      if (lookahead == 'Y' ||
+          lookahead == 'y') ADVANCE(45);
       END_STATE();
     case 42:
-      if (lookahead == 'p') ADVANCE(46);
+      if (lookahead == 'P' ||
+          lookahead == 'p') ADVANCE(46);
       END_STATE();
     case 43:
-      if (lookahead == 'c') ADVANCE(47);
+      if (lookahead == 'C' ||
+          lookahead == 'c') ADVANCE(47);
       END_STATE();
     case 44:
-      if (lookahead == 't') ADVANCE(48);
+      if (lookahead == 'T' ||
+          lookahead == 't') ADVANCE(48);
       END_STATE();
     case 45:
-      ACCEPT_TOKEN(anon_sym_repository);
+      ACCEPT_TOKEN(sym__kw_repository);
       END_STATE();
     case 46:
-      if (lookahead == 'o') ADVANCE(49);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(49);
       END_STATE();
     case 47:
-      if (lookahead == 'a') ADVANCE(50);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(50);
       END_STATE();
     case 48:
-      if (lookahead == 'i') ADVANCE(51);
+      if (lookahead == 'I' ||
+          lookahead == 'i') ADVANCE(51);
       END_STATE();
     case 49:
-      if (lookahead == 's') ADVANCE(52);
+      if (lookahead == 'S' ||
+          lookahead == 's') ADVANCE(52);
       END_STATE();
     case 50:
-      if (lookahead == 't') ADVANCE(53);
+      if (lookahead == 'T' ||
+          lookahead == 't') ADVANCE(53);
       END_STATE();
     case 51:
-      if (lookahead == 'o') ADVANCE(54);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(54);
       END_STATE();
     case 52:
-      if (lookahead == 'i') ADVANCE(55);
+      if (lookahead == 'I' ||
+          lookahead == 'i') ADVANCE(55);
       END_STATE();
     case 53:
-      if (lookahead == 'i') ADVANCE(56);
+      if (lookahead == 'I' ||
+          lookahead == 'i') ADVANCE(56);
       END_STATE();
     case 54:
-      if (lookahead == 'n') ADVANCE(57);
+      if (lookahead == 'N' ||
+          lookahead == 'n') ADVANCE(57);
       END_STATE();
     case 55:
-      if (lookahead == 't') ADVANCE(58);
+      if (lookahead == 'T' ||
+          lookahead == 't') ADVANCE(58);
       END_STATE();
     case 56:
-      if (lookahead == 'o') ADVANCE(59);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(59);
       END_STATE();
     case 57:
-      if (lookahead == 's') ADVANCE(60);
+      if (lookahead == 'S' ||
+          lookahead == 's') ADVANCE(60);
       END_STATE();
     case 58:
-      if (lookahead == 'o') ADVANCE(61);
+      if (lookahead == 'O' ||
+          lookahead == 'o') ADVANCE(61);
       END_STATE();
     case 59:
-      if (lookahead == 'n') ADVANCE(62);
+      if (lookahead == 'N' ||
+          lookahead == 'n') ADVANCE(62);
       END_STATE();
     case 60:
-      ACCEPT_TOKEN(anon_sym_program_DASHoptions);
+      ACCEPT_TOKEN(sym__kw_program_options);
       END_STATE();
     case 61:
-      if (lookahead == 'r') ADVANCE(63);
+      if (lookahead == 'R' ||
+          lookahead == 'r') ADVANCE(63);
       END_STATE();
     case 62:
-      if (lookahead == 's') ADVANCE(64);
+      if (lookahead == 'S' ||
+          lookahead == 's') ADVANCE(64);
       END_STATE();
     case 63:
-      if (lookahead == 'y') ADVANCE(65);
+      if (lookahead == 'Y' ||
+          lookahead == 'y') ADVANCE(65);
       END_STATE();
     case 64:
-      ACCEPT_TOKEN(anon_sym_program_DASHlocations);
+      ACCEPT_TOKEN(sym__kw_program_locations);
       END_STATE();
     case 65:
       if (lookahead == '-') ADVANCE(66);
       END_STATE();
     case 66:
-      if (lookahead == 'p') ADVANCE(67);
+      if (lookahead == 'P' ||
+          lookahead == 'p') ADVANCE(67);
       END_STATE();
     case 67:
-      if (lookahead == 'a') ADVANCE(68);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(68);
       END_STATE();
     case 68:
-      if (lookahead == 'c') ADVANCE(69);
+      if (lookahead == 'C' ||
+          lookahead == 'c') ADVANCE(69);
       END_STATE();
     case 69:
-      if (lookahead == 'k') ADVANCE(70);
+      if (lookahead == 'K' ||
+          lookahead == 'k') ADVANCE(70);
       END_STATE();
     case 70:
-      if (lookahead == 'a') ADVANCE(71);
+      if (lookahead == 'A' ||
+          lookahead == 'a') ADVANCE(71);
       END_STATE();
     case 71:
-      if (lookahead == 'g') ADVANCE(72);
+      if (lookahead == 'G' ||
+          lookahead == 'g') ADVANCE(72);
       END_STATE();
     case 72:
-      if (lookahead == 'e') ADVANCE(73);
+      if (lookahead == 'E' ||
+          lookahead == 'e') ADVANCE(73);
       END_STATE();
     case 73:
-      ACCEPT_TOKEN(anon_sym_source_DASHrepository_DASHpackage);
+      ACCEPT_TOKEN(sym__kw_source_repository_package);
       END_STATE();
     default:
       return false;
@@ -3086,11 +3150,11 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [anon_sym_BANG] = ACTIONS(1),
     [aux_sym_identifier_token1] = ACTIONS(1),
     [aux_sym_identifier_token2] = ACTIONS(1),
-    [anon_sym_package] = ACTIONS(1),
-    [anon_sym_repository] = ACTIONS(1),
-    [anon_sym_source_DASHrepository_DASHpackage] = ACTIONS(1),
-    [anon_sym_program_DASHoptions] = ACTIONS(1),
-    [anon_sym_program_DASHlocations] = ACTIONS(1),
+    [sym__kw_package] = ACTIONS(1),
+    [sym__kw_repository] = ACTIONS(1),
+    [sym__kw_source_repository_package] = ACTIONS(1),
+    [sym__kw_program_options] = ACTIONS(1),
+    [sym__kw_program_locations] = ACTIONS(1),
     [anon_sym_if] = ACTIONS(1),
     [anon_sym_elif] = ACTIONS(1),
     [anon_sym_else] = ACTIONS(1),
@@ -3128,11 +3192,11 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [aux_sym_source_file_repeat1] = STATE(9),
     [ts_builtin_sym_end] = ACTIONS(5),
     [sym__word] = ACTIONS(7),
-    [anon_sym_package] = ACTIONS(9),
-    [anon_sym_repository] = ACTIONS(11),
-    [anon_sym_source_DASHrepository_DASHpackage] = ACTIONS(13),
-    [anon_sym_program_DASHoptions] = ACTIONS(13),
-    [anon_sym_program_DASHlocations] = ACTIONS(13),
+    [sym__kw_package] = ACTIONS(9),
+    [sym__kw_repository] = ACTIONS(11),
+    [sym__kw_source_repository_package] = ACTIONS(13),
+    [sym__kw_program_options] = ACTIONS(13),
+    [sym__kw_program_locations] = ACTIONS(13),
     [anon_sym_if] = ACTIONS(15),
     [sym_comment] = ACTIONS(3),
     [sym__newline] = ACTIONS(17),
@@ -3365,9 +3429,9 @@ static const uint16_t ts_small_parse_table[] = {
     ACTIONS(65), 1,
       sym__word,
     ACTIONS(68), 1,
-      anon_sym_package,
+      sym__kw_package,
     ACTIONS(71), 1,
-      anon_sym_repository,
+      sym__kw_repository,
     ACTIONS(77), 1,
       anon_sym_if,
     ACTIONS(80), 1,
@@ -3385,9 +3449,9 @@ static const uint16_t ts_small_parse_table[] = {
     STATE(118), 1,
       sym_field_name,
     ACTIONS(74), 3,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
     STATE(73), 3,
       sym__source_repository_package_header,
       sym__program_options_header,
@@ -3404,9 +3468,9 @@ static const uint16_t ts_small_parse_table[] = {
     ACTIONS(7), 1,
       sym__word,
     ACTIONS(9), 1,
-      anon_sym_package,
+      sym__kw_package,
     ACTIONS(11), 1,
-      anon_sym_repository,
+      sym__kw_repository,
     ACTIONS(15), 1,
       anon_sym_if,
     ACTIONS(19), 1,
@@ -3426,9 +3490,9 @@ static const uint16_t ts_small_parse_table[] = {
     STATE(118), 1,
       sym_field_name,
     ACTIONS(13), 3,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
     STATE(73), 3,
       sym__source_repository_package_header,
       sym__program_options_header,
@@ -3526,46 +3590,46 @@ static const uint16_t ts_small_parse_table[] = {
   [477] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(61), 7,
+    ACTIONS(59), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(61), 12,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
       anon_sym_LPAREN,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(59), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [501] = 4,
     ACTIONS(3), 1,
       sym_comment,
     ACTIONS(110), 1,
       anon_sym_LPAREN,
-    ACTIONS(106), 6,
+    ACTIONS(108), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(106), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(108), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [527] = 8,
     ACTIONS(27), 1,
       sym_comment,
@@ -3621,23 +3685,23 @@ static const uint16_t ts_small_parse_table[] = {
   [595] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(135), 6,
+    ACTIONS(137), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(135), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(137), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [618] = 7,
     ACTIONS(3), 1,
       sym_comment,
@@ -3647,21 +3711,21 @@ static const uint16_t ts_small_parse_table[] = {
       anon_sym_else,
     STATE(87), 1,
       sym_else_clause,
+    ACTIONS(141), 2,
+      sym__word,
+      anon_sym_if,
     STATE(19), 2,
       sym_elif_clause,
       aux_sym_conditional_repeat1,
-    ACTIONS(139), 3,
+    ACTIONS(139), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(141), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [649] = 7,
     ACTIONS(3), 1,
       sym_comment,
@@ -3671,21 +3735,21 @@ static const uint16_t ts_small_parse_table[] = {
       anon_sym_else,
     STATE(88), 1,
       sym_else_clause,
+    ACTIONS(149), 2,
+      sym__word,
+      anon_sym_if,
     STATE(27), 2,
       sym_elif_clause,
       aux_sym_conditional_repeat1,
-    ACTIONS(147), 3,
+    ACTIONS(147), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(149), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [680] = 6,
     ACTIONS(3), 1,
       sym_comment,
@@ -3695,20 +3759,20 @@ static const uint16_t ts_small_parse_table[] = {
       anon_sym_AMP_AMP,
     ACTIONS(159), 1,
       sym__indent,
-    ACTIONS(151), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(153), 9,
+    ACTIONS(153), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(151), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [709] = 6,
     ACTIONS(3), 1,
       sym_comment,
@@ -3718,121 +3782,121 @@ static const uint16_t ts_small_parse_table[] = {
       anon_sym_AMP_AMP,
     ACTIONS(165), 1,
       sym__indent,
-    ACTIONS(161), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(163), 9,
+    ACTIONS(163), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(161), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [738] = 4,
     ACTIONS(3), 1,
       sym_comment,
     ACTIONS(157), 1,
       anon_sym_AMP_AMP,
-    ACTIONS(167), 5,
+    ACTIONS(169), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(167), 10,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
-    ACTIONS(169), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [763] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(171), 6,
+    ACTIONS(173), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(171), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(173), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [786] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(175), 6,
+    ACTIONS(177), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(175), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(177), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [809] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(179), 6,
+    ACTIONS(181), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(179), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(181), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [832] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(183), 6,
+    ACTIONS(185), 4,
+      sym__word,
+      anon_sym_if,
+      anon_sym_elif,
+      anon_sym_else,
+    ACTIONS(183), 11,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
       anon_sym_PIPE_PIPE,
       anon_sym_AMP_AMP,
-    ACTIONS(185), 9,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_elif,
-      anon_sym_else,
   [855] = 5,
     ACTIONS(3), 1,
       sym_comment,
@@ -3841,19 +3905,19 @@ static const uint16_t ts_small_parse_table[] = {
     STATE(27), 2,
       sym_elif_clause,
       aux_sym_conditional_repeat1,
-    ACTIONS(187), 3,
+    ACTIONS(189), 3,
+      sym__word,
+      anon_sym_if,
+      anon_sym_else,
+    ACTIONS(187), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(189), 8,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
-      anon_sym_else,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [881] = 8,
     ACTIONS(3), 1,
       sym_comment,
@@ -4261,71 +4325,71 @@ static const uint16_t ts_small_parse_table[] = {
   [1419] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(250), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(252), 9,
+    ACTIONS(252), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(250), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1439] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(254), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(256), 9,
+    ACTIONS(256), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(254), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1459] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(258), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(260), 9,
+    ACTIONS(260), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(258), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1479] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(262), 3,
-      sym__newline,
-      sym__field_name,
-      ts_builtin_sym_end,
-    ACTIONS(264), 9,
+    ACTIONS(264), 4,
       sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
       anon_sym_if,
       anon_sym_elif,
       anon_sym_else,
+    ACTIONS(262), 8,
+      sym__newline,
+      sym__field_name,
+      ts_builtin_sym_end,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1499] = 9,
     ACTIONS(3), 1,
       sym_comment,
@@ -4439,35 +4503,35 @@ static const uint16_t ts_small_parse_table[] = {
   [1654] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(294), 4,
+    ACTIONS(296), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(294), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(296), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1673] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(298), 4,
+    ACTIONS(300), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(298), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(300), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1692] = 9,
     ACTIONS(3), 1,
       sym_comment,
@@ -4493,19 +4557,19 @@ static const uint16_t ts_small_parse_table[] = {
   [1723] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(306), 4,
+    ACTIONS(308), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(306), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(308), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1742] = 4,
     ACTIONS(3), 1,
       sym_comment,
@@ -4550,18 +4614,18 @@ static const uint16_t ts_small_parse_table[] = {
       sym_comment,
     ACTIONS(318), 1,
       sym__indent,
-    ACTIONS(314), 3,
+    ACTIONS(316), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(314), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(316), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1815] = 9,
     ACTIONS(3), 1,
       sym_comment,
@@ -4603,35 +4667,35 @@ static const uint16_t ts_small_parse_table[] = {
   [1865] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(324), 4,
+    ACTIONS(326), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(324), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(326), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1884] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(324), 4,
+    ACTIONS(326), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(324), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(326), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [1903] = 9,
     ACTIONS(3), 1,
       sym_comment,
@@ -4789,51 +4853,51 @@ static const uint16_t ts_small_parse_table[] = {
   [2120] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(350), 4,
+    ACTIONS(352), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(350), 9,
       sym__newline,
       sym__indent,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(352), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2139] = 4,
     ACTIONS(3), 1,
       sym_comment,
     ACTIONS(358), 1,
       sym__indent,
-    ACTIONS(354), 3,
+    ACTIONS(356), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(354), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(356), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2160] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(360), 3,
+    ACTIONS(362), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(360), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(362), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2178] = 7,
     ACTIONS(3), 1,
       sym_comment,
@@ -4889,33 +4953,33 @@ static const uint16_t ts_small_parse_table[] = {
   [2246] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(374), 3,
+    ACTIONS(376), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(374), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(376), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2264] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(378), 3,
+    ACTIONS(380), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(378), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(380), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2282] = 3,
     ACTIONS(3), 1,
       sym_comment,
@@ -4995,63 +5059,63 @@ static const uint16_t ts_small_parse_table[] = {
   [2374] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(382), 3,
+    ACTIONS(384), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(382), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(384), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2392] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(147), 3,
+    ACTIONS(149), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(147), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(149), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2410] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(386), 3,
+    ACTIONS(388), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(386), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(388), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2428] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(390), 3,
+    ACTIONS(392), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(390), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(392), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2446] = 7,
     ACTIONS(3), 1,
       sym_comment,
@@ -5092,18 +5156,18 @@ static const uint16_t ts_small_parse_table[] = {
   [2496] = 3,
     ACTIONS(3), 1,
       sym_comment,
-    ACTIONS(396), 3,
+    ACTIONS(398), 2,
+      sym__word,
+      anon_sym_if,
+    ACTIONS(396), 8,
       sym__newline,
       sym__field_name,
       ts_builtin_sym_end,
-    ACTIONS(398), 7,
-      sym__word,
-      anon_sym_package,
-      anon_sym_repository,
-      anon_sym_source_DASHrepository_DASHpackage,
-      anon_sym_program_DASHoptions,
-      anon_sym_program_DASHlocations,
-      anon_sym_if,
+      sym__kw_package,
+      sym__kw_repository,
+      sym__kw_source_repository_package,
+      sym__kw_program_options,
+      sym__kw_program_locations,
   [2514] = 5,
     ACTIONS(3), 1,
       sym_comment,
@@ -5521,9 +5585,9 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [3] = {.entry = {.count = 1, .reusable = true}}, SHIFT_EXTRA(),
   [5] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_source_file, 0, 0, 0),
   [7] = {.entry = {.count = 1, .reusable = false}}, SHIFT(117),
-  [9] = {.entry = {.count = 1, .reusable = false}}, SHIFT(115),
-  [11] = {.entry = {.count = 1, .reusable = false}}, SHIFT(122),
-  [13] = {.entry = {.count = 1, .reusable = false}}, SHIFT(73),
+  [9] = {.entry = {.count = 1, .reusable = true}}, SHIFT(115),
+  [11] = {.entry = {.count = 1, .reusable = true}}, SHIFT(122),
+  [13] = {.entry = {.count = 1, .reusable = true}}, SHIFT(73),
   [15] = {.entry = {.count = 1, .reusable = false}}, SHIFT(29),
   [17] = {.entry = {.count = 1, .reusable = true}}, SHIFT(9),
   [19] = {.entry = {.count = 1, .reusable = true}}, SHIFT(117),
@@ -5548,9 +5612,9 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [61] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_identifier, 1, 0, 0),
   [63] = {.entry = {.count = 1, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0),
   [65] = {.entry = {.count = 2, .reusable = false}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(117),
-  [68] = {.entry = {.count = 2, .reusable = false}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(115),
-  [71] = {.entry = {.count = 2, .reusable = false}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(122),
-  [74] = {.entry = {.count = 2, .reusable = false}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(73),
+  [68] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(115),
+  [71] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(122),
+  [74] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(73),
   [77] = {.entry = {.count = 2, .reusable = false}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(29),
   [80] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(8),
   [83] = {.entry = {.count = 2, .reusable = true}}, REDUCE(aux_sym_source_file_repeat1, 2, 0, 0), SHIFT_REPEAT(117),

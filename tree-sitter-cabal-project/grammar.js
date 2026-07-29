@@ -9,6 +9,7 @@
 
 import {
   CABAL_WHITESPACE,
+  ci,
   makeCabalExternals,
   makeQualifiedNameRules,
   makePredicateRules,
@@ -115,16 +116,27 @@ export default grammar({
         $._program_locations_header,
       ),
 
+    // Stanza keywords are case-insensitive: see `ci` in common/utils.mjs. The explicit
+    // precedence puts them above the `_word` token so a header is not read as a field name.
+    // Longest-match still protects longer field names, so the `packages` field is unaffected
+    // by the `package` keyword.
     _package_header: ($) =>
-      seq(alias("package", $.keyword), field("name", $.package_name)),
+      seq(alias($._kw_package, $.keyword), field("name", $.package_name)),
 
     _repository_header: ($) =>
-      seq(alias("repository", $.keyword), field("name", $.repo_name)),
+      seq(alias($._kw_repository, $.keyword), field("name", $.repo_name)),
 
     _source_repository_package_header: ($) =>
-      alias("source-repository-package", $.keyword),
-    _program_options_header: ($) => alias("program-options", $.keyword),
-    _program_locations_header: ($) => alias("program-locations", $.keyword),
+      alias($._kw_source_repository_package, $.keyword),
+    _program_options_header: ($) => alias($._kw_program_options, $.keyword),
+    _program_locations_header: ($) => alias($._kw_program_locations, $.keyword),
+
+    _kw_package: ($) => token(prec(2, ci("package"))),
+    _kw_repository: ($) => token(prec(2, ci("repository"))),
+    _kw_source_repository_package: ($) =>
+      token(prec(2, ci("source-repository-package"))),
+    _kw_program_options: ($) => token(prec(2, ci("program-options"))),
+    _kw_program_locations: ($) => token(prec(2, ci("program-locations"))),
 
     package_name: ($) => choice("*", $._word),
     // Allow domain-style names like `packages.example.org`.
