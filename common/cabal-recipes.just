@@ -16,8 +16,18 @@ _cabal-test: build
     ../test/runners/check-queries.sh {{ slug }} | tapview || rc=1
     ../test/runners/parse-corpus.sh {{ slug }} | tapview || rc=1
     ../test/runners/extract-golden.sh {{ slug }} | tapview || rc=1
+    ../test/runners/highlight-golden.sh {{ slug }} | tapview || rc=1
     tree-sitter test --lib-path result/parser --lang-name {{ lang }} || rc=1
     exit "$rc"
+
+# Assert which capture wins per token (test/highlights.golden). check-queries only
+# proves a query file compiles, so it cannot catch one pattern shadowing another.
+highlight-golden: build
+    ../test/runners/highlight-golden.sh {{ slug }} | tapview
+
+# Regenerate test/highlights.golden from the current queries (review the diff).
+update-highlights: build
+    ../test/runners/highlight-golden.sh {{ slug }} --update
 
 # Profile parsing the corpus and emit flamegraph-{{ slug }}.svg at the repo root.
 flamegraph:

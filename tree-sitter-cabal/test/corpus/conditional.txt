@@ -17,6 +17,7 @@ library
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field
@@ -77,6 +78,7 @@ test-suite foo-test
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field
@@ -153,6 +155,7 @@ library
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field

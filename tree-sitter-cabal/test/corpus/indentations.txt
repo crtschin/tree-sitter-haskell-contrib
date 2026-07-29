@@ -15,6 +15,7 @@ flag bar
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field
@@ -51,6 +52,7 @@ executable foo
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field

@@ -81,10 +81,13 @@
 ; sentence period. Recolour it as ordinary string text here, where the field name is in
 ; scope, rather than narrowing the grammar and giving up the 56 genuine `hs-source-dirs: .`
 ; cases in the Cabal tree. cabal.project needs no equivalent: it has no prose fields.
+; The field name is captured as @property, the same as the generic rule above, not as a
+; throwaway @_name: this pattern is more specific, so whatever it captures the name as wins,
+; and an unrecognised capture name would leave these field names unhighlighted.
 ((field
-  name: (field_name) @_prose_field
+  name: (field_name) @property
   value: (field_value (path) @string))
-  (#any-of? @_prose_field
+  (#any-of? @property
     "description" "synopsis" "author" "maintainer" "copyright"
     "category" "stability" "homepage" "bug-reports" "package-url"))
 

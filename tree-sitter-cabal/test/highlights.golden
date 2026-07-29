@@ -1,0 +1,307 @@
+## test/extract-samples/build-depends.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	>=1.10
+2	property	name
+2	punctuation delimiter	:
+2	string	depends-zoo
+3	property	version
+3	punctuation delimiter	:
+3	number float	0.3.1.0
+5	keyword type	library
+6	property	build-depends
+6	punctuation delimiter	:
+7	string	base
+7	operator	>=
+7	number float	4.14
+7	operator	&&
+7	operator	<
+7	number	5
+8	punctuation delimiter	,
+8	string	bytestring
+8	operator	^>=
+8	number float	0.11
+9	punctuation delimiter	,
+9	string	containers:internal
+10	punctuation delimiter	,
+10	string	mtl
+10	operator	>=
+10	number float	2.2
+10	operator	&&
+10	operator	<
+10	number float	2.4
+11	punctuation delimiter	,
+11	string	acme:{core,extra}
+12	punctuation delimiter	,
+12	string	text
+12	operator	==
+12	number float	1.2.*
+13	property	default-extensions
+13	punctuation delimiter	:
+13	string	OverloadedStrings
+13	punctuation delimiter	,
+13	string	LambdaCase
+13	punctuation delimiter	,
+13	string	TypeApplications
+15	keyword type	library
+15	type	internal
+16	property	build-depends
+16	punctuation delimiter	:
+16	string	base
+16	operator	^>=
+16	number float	4.14
+16	punctuation delimiter	,
+16	string	aeson
+17	property	visibility
+17	punctuation delimiter	:
+17	string	public
+## test/extract-samples/conditionals.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	3.0
+2	property	name
+2	punctuation delimiter	:
+2	string	cond-zoo
+4	keyword type	flag
+4	type	dev
+5	property	description
+5	punctuation delimiter	:
+5	string	development
+5	string	build
+6	property	default
+6	punctuation delimiter	:
+6	constant builtin boolean	True
+7	property	manual
+7	punctuation delimiter	:
+7	constant builtin boolean	False
+9	keyword type	executable
+9	type	foo
+10	property	main-is
+10	punctuation delimiter	:
+10	string	Main.hs
+11	keyword conditional	if
+11	function builtin	flag
+11	punctuation bracket	(
+11	variable parameter	dev
+11	punctuation bracket	)
+11	operator	&&
+11	operator	!
+11	function builtin	os
+11	punctuation bracket	(
+11	variable parameter	windows
+11	punctuation bracket	)
+12	property	ghc-options
+12	punctuation delimiter	:
+12	constant	-O0
+12	constant	-Wall
+13	keyword conditional	elif
+13	function builtin	impl
+13	punctuation bracket	(
+13	variable parameter	ghc
+13	operator	>=
+13	number float	9.4
+13	punctuation bracket	)
+14	property	ghc-options
+14	punctuation delimiter	:
+14	constant	-O2
+15	keyword conditional	else
+16	property	ghc-options
+16	punctuation delimiter	:
+16	constant	-O1
+17	property	build-depends
+17	punctuation delimiter	:
+17	string	base
+19	keyword type	source-repository
+19	type	head
+20	property	type
+20	punctuation delimiter	:
+20	string	git
+21	property	location
+21	punctuation delimiter	:
+21	string special url	https://github.com/acme/cond-zoo.git
+## test/extract-samples/edge-cases.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	3.0
+2	property	name
+2	punctuation delimiter	:
+2	string	edge-zoo
+3	property	homepage
+3	punctuation delimiter	:
+3	punctuation bracket	<
+3	string special url	https://example.com/home
+3	punctuation bracket	>
+4	property	bug-reports
+4	punctuation delimiter	:
+4	string special url	https://example.com/bugs
+6	keyword type	library
+7	property	description
+7	punctuation delimiter	:
+8	string	A
+8	string	long
+8	string	description
+9	string	spanning
+9	string	multiple
+9	string	lines.
+10	property	build-depends
+10	punctuation delimiter	:
+10	string	acme:{core, extra}
+## test/extract-samples/package.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	3.4
+2	property	name
+2	punctuation delimiter	:
+2	string	acme-widgets
+3	property	version
+3	punctuation delimiter	:
+3	number float	1.2.0
+4	property	homepage
+4	punctuation delimiter	:
+4	punctuation bracket	<
+4	string special url	https://example.com/acme
+4	punctuation bracket	>
+6	keyword type	library
+7	property	build-depends
+7	punctuation delimiter	:
+8	string	base
+8	operator	>=
+8	number float	4.14
+9	punctuation delimiter	,
+9	string	containers:internal
+10	property	exposed-modules
+10	punctuation delimiter	:
+11	module	Acme.Widgets
+## test/extract-samples/paths-unicode.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	2.4
+2	property	name
+2	punctuation delimiter	:
+2	string	paths-demo
+3	property	version
+3	punctuation delimiter	:
+3	number float	1.0
+4	property	x-無
+4	punctuation delimiter	:
+4	string	unicode-field-value
+5	property	description
+5	punctuation delimiter	:
+6	string	Prose
+6	string	with
+6	string	a
+6	string	slash
+6	string special path	read/write
+6	string	and
+6	string	a
+6	string	trailing
+6	string	period.
+7	string	See
+7	punctuation bracket	<
+7	string special url	https://example.org/docs
+7	punctuation bracket	>
+7	string	for
+7	string	details.
+8	string	Built
+8	string	on
+8	string	top
+8	string	of
+8	string	sandi
+8	punctuation bracket	(
+8	string special url	http://hackage.haskell.org/package/sandi
+8	punctuation bracket	)
+8	string	.
+9	property	extra-source-files
+9	punctuation delimiter	:
+10	string special path	csrc/codec.h
+11	string special path	/abs/include/vendor.h
+12	string special path	data/**/*.json
+13	string special path	./relative/file.txt
+14	property	data-files
+14	punctuation delimiter	:
+14	string special path	data/table.csv
+15	property	license-file
+15	punctuation delimiter	:
+15	string	LICENSE
+16	property	tested-with
+16	punctuation delimiter	:
+16	string	GHC
+16	operator	==
+16	number float	9.4.8
+17	property	x-release-date
+17	punctuation delimiter	:
+17	string special	2026-07-30
+18	property	x-build-number
+18	punctuation delimiter	:
+18	number	42
+19	property	x-quoted
+19	punctuation delimiter	:
+19	string	"a quoted value"
+20	property	x-misc
+20	punctuation delimiter	:
+20	string	alpha
+20	string	;beta
+20	constant	-optP-DFOO
+20	string	@1
+22	keyword type	common
+22	type	Fünfstück
+23	property	ghc-options
+23	punctuation delimiter	:
+23	constant	-Wall
+25	keyword type	library
+26	property	hs-source-dirs
+26	punctuation delimiter	:
+26	string special path	.
+26	punctuation delimiter	,
+26	string	src
+27	property	build-depends
+27	punctuation delimiter	:
+27	string	base
+28	keyword conditional	if
+28	function builtin	impl
+28	punctuation bracket	(
+28	variable parameter	ghc
+28	operator	>=
+28	number float	9.4
+28	punctuation bracket	)
+29	property	ghc-options
+29	punctuation delimiter	:
+29	constant	-O2
+30	keyword conditional	elif
+30	function builtin	flag
+30	punctuation bracket	(
+30	variable parameter	dev
+30	punctuation bracket	)
+31	property	ghc-options
+31	punctuation delimiter	:
+31	constant	-O0
+32	keyword conditional	else
+33	property	ghc-options
+33	punctuation delimiter	:
+33	constant	-O1
+## test/extract-samples/sections.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	2.4
+2	property	name
+2	punctuation delimiter	:
+2	string	acme-app
+4	keyword type	flag
+4	type	debug
+5	property	default
+5	punctuation delimiter	:
+5	constant builtin boolean	False
+7	keyword type	executable
+7	type	acme
+8	property	main-is
+8	punctuation delimiter	:
+8	string	Main.hs
+9	keyword conditional	if
+9	function builtin	flag
+9	punctuation bracket	(
+9	variable parameter	debug
+9	punctuation bracket	)
+10	property	ghc-options
+10	punctuation delimiter	:
+10	constant	-threaded
+10	constant	-rtsopts

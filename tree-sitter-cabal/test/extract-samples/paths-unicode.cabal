@@ -5,6 +5,7 @@ x-無:          unicode-field-value
 description:
   Prose with a slash read/write and a trailing period.
   See <https://example.org/docs> for details.
+  Built on top of sandi (http://hackage.haskell.org/package/sandi).
 extra-source-files:
   csrc/codec.h
   /abs/include/vendor.h
@@ -22,7 +23,7 @@ common Fünfstück
   ghc-options: -Wall
 
 library
-  hs-source-dirs: src
+  hs-source-dirs: ., src
   build-depends:  base
   if impl(ghc >= 9.4)
     ghc-options: -O2

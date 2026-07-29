@@ -62,8 +62,17 @@
           }
         },
         {
-          "type": "PATTERN",
-          "value": "[cC][aA][bB][aA][lL]-[vV][eE][rR][sS][iI][oO][nN]"
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "PATTERN",
+              "value": "[cC][aA][bB][aA][lL]-[vV][eE][rR][sS][iI][oO][nN]"
+            },
+            "named": true,
+            "value": "field_name"
+          }
         },
         {
           "type": "STRING",

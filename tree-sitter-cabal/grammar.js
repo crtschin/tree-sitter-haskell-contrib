@@ -36,8 +36,16 @@ export default grammar({
         optional($.sections),
       ),
 
+    // The keyword is aliased to `field_name`, which it is: without that it stays an
+    // anonymous regex token, unreachable from a query, and `cabal-version` renders
+    // unhighlighted while every other field name is a property.
     cabal_version: ($) =>
-      seq(repeat($._newline), ci("cabal-version"), ":", $.spec_version),
+      seq(
+        repeat($._newline),
+        field("name", alias(ci("cabal-version"), $.field_name)),
+        ":",
+        $.spec_version,
+      ),
 
     // Modern bare version (3.0), old range prefix (>= 1.8), and old -any/-none forms.
     spec_version: ($) => /(>=?\s*)?\d+\.\d+(\.\d+)*(\.\*)?|[+\-]any/,

@@ -1,0 +1,222 @@
+## test/extract-samples/conditionals.project
+1	keyword conditional	if
+1	function builtin	os
+1	punctuation bracket	(
+1	variable parameter	linux
+1	punctuation bracket	)
+1	operator	||
+1	function builtin	arch
+1	punctuation bracket	(
+1	variable parameter	arm
+1	punctuation bracket	)
+1	operator	&&
+1	operator	!
+1	function builtin	flag
+1	punctuation bracket	(
+1	variable parameter	fast
+1	punctuation bracket	)
+2	property	extra-lib-dirs
+2	punctuation delimiter	:
+2	string special path	/usr/lib
+3	keyword conditional	elif
+3	function builtin	os
+3	punctuation bracket	(
+3	variable parameter	windows
+3	punctuation bracket	)
+4	property	extra-lib-dirs
+4	punctuation delimiter	:
+4	string special path	/usr/local
+5	keyword conditional	else
+6	property	extra-lib-dirs
+6	punctuation delimiter	:
+6	string special path	/opt/lib
+8	keyword conditional	if
+8	constant builtin boolean	True
+9	property	tests
+9	punctuation delimiter	:
+9	constant builtin boolean	True
+## test/extract-samples/constraints-advanced.project
+1	property	constraints
+1	punctuation delimiter	:
+1	string	base
+1	operator	^>=
+1	number float	4.18
+1	operator	&&
+1	operator	<
+1	number float	4.20
+1	punctuation delimiter	,
+2	string	lens
+2	string	installed
+2	punctuation delimiter	,
+3	string	vector
+3	operator	>=
+3	number float	0.12
+3	operator	&&
+3	operator	<=
+3	number float	0.13.0.0
+3	punctuation delimiter	,
+4	string	text
+4	constant	+developer
+4	constant	-debug
+4	constant	+static
+4	punctuation delimiter	,
+5	string	mypkg:mylib
+5	operator	^>=
+5	number float	1.2.3
+5	punctuation delimiter	,
+6	string	other:*
+8	property	allow-newer
+8	punctuation delimiter	:
+8	string	*:*
+8	punctuation delimiter	,
+8	string	aeson:base
+8	punctuation delimiter	,
+8	string	containers:internal
+10	property	index-state
+10	punctuation delimiter	:
+10	string special	2025-06-27T20:43:14Z
+## test/extract-samples/package-globs.project
+1	property	packages
+1	punctuation delimiter	:
+1	string special path	.
+2	string special path	./pkg-a
+3	string special path	../sibling
+4	string special path	*/*.cabal
+5	string special path	packages/**/*.cabal
+6	string special path	pkg-*/
+7	string special path	vendor/*
+8	string special path	./src/**/*.cabal
+## test/extract-samples/packages-constraints.project
+1	property	packages
+1	punctuation delimiter	:
+1	string special path	./pkg-a
+1	punctuation delimiter	,
+1	string special path	*/*.cabal
+3	property	constraints
+3	punctuation delimiter	:
+3	string	base
+3	operator	>=
+3	number float	4.14
+3	operator	&&
+3	operator	<
+3	number	5
+3	punctuation delimiter	,
+4	string	aeson
+4	operator	==
+4	number float	2.1.0.0
+4	punctuation delimiter	,
+5	string	text
+5	constant	+developer
+5	constant	-debug
+5	punctuation delimiter	,
+6	string	pkga-1.1.2:internal-lib
+8	property	tests
+8	punctuation delimiter	:
+8	constant builtin boolean	True
+9	property	optimization
+9	punctuation delimiter	:
+9	number	2
+10	property	index-state
+10	punctuation delimiter	:
+10	string	hackage.haskell.org
+10	string special	2025-06-27T20:43:14Z
+## test/extract-samples/paths-windows.project
+1	property	x-無
+1	punctuation delimiter	:
+1	string	unicode-field-value
+2	property	with-compiler
+2	punctuation delimiter	:
+2	string special path	C:\ghc\bin\ghc.exe
+3	property	extra-lib-dirs
+3	punctuation delimiter	:
+3	string special path	/usr/lib
+3	string	;/usr/local/lib
+4	property	ghc-options
+4	punctuation delimiter	:
+4	constant	-fplugin
+4	operator	=
+4	string	Foo
+4	string	@1
+4	constant	-optP-Wno-nonportable-include-path
+5	property	packages
+5	punctuation delimiter	:
+5	string special path	./pkg-a
+6	string special path	vendor/*
+7	property	constraints
+7	punctuation delimiter	:
+7	string	foo
+7	operator	^>=
+7	number float	1.0
+9	keyword conditional	if
+9	function builtin	os
+9	punctuation bracket	(
+9	variable parameter	windows
+9	punctuation bracket	)
+10	property	with-compiler
+10	punctuation delimiter	:
+10	string special path	C:/msys64/ghc.exe
+11	keyword conditional	elif
+11	function builtin	impl
+11	punctuation bracket	(
+11	variable parameter	ghc
+11	punctuation bracket	)
+12	property	ghc-options
+12	punctuation delimiter	:
+12	constant	-O2
+13	keyword conditional	else
+14	property	ghc-options
+14	punctuation delimiter	:
+14	constant	-O0
+## test/extract-samples/source-repo.project
+1	keyword	source-repository-package
+2	property	type
+2	punctuation delimiter	:
+2	string	git
+3	property	location
+3	punctuation delimiter	:
+3	string special url	https://github.com/haskell/aeson.git
+4	property	tag
+4	punctuation delimiter	:
+4	string	8b2a1e3c9d4f0a5b6c7d8e9f0a1b2c3d4e5f6a7b
+5	property	subdir
+5	punctuation delimiter	:
+5	string	aeson-benchmarks
+7	keyword	source-repository-package
+8	property	type
+8	punctuation delimiter	:
+8	string	git
+9	property	location
+9	punctuation delimiter	:
+9	string special url	git://example.org/pkg.git
+10	property	tag
+10	punctuation delimiter	:
+10	string	v1.2.3
+12	keyword	program-options
+13	property	ghc-options
+13	punctuation delimiter	:
+13	string	"-with-rtsopts=-T --nonmoving-gc"
+## test/extract-samples/stanzas.project
+1	keyword	source-repository-package
+2	property	type
+2	punctuation delimiter	:
+2	string	git
+3	property	location
+3	punctuation delimiter	:
+3	string special url	https://github.com/haskell/cabal
+4	property	tag
+4	punctuation delimiter	:
+4	string	abc123
+6	keyword	package
+6	type	aeson
+7	property	ghc-options
+7	punctuation delimiter	:
+7	constant	-O2
+9	keyword	repository
+9	module	hackage.haskell.org
+10	property	url
+10	punctuation delimiter	:
+10	string special url	https://hackage.haskell.org/
+12	keyword	program-options
+13	property	ghc-options
+13	punctuation delimiter	:
+13	string	"-with-rtsopts=-T --disable-delayed-os-memory-return"

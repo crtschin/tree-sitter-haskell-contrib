@@ -12,6 +12,7 @@ common base
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field
@@ -42,6 +43,7 @@ library
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field
@@ -71,6 +73,7 @@ library named-lib
 
 (cabal
   (cabal_version
+    (field_name)
     (spec_version))
   (properties
     (field

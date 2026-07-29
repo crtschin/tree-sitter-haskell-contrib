@@ -73,8 +73,12 @@ All commands run across every grammar via the top-level justfile.
 Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one
 of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`. Every
 grammar carries `bench` and `alloc`; the two cabal grammars additionally carry
-`flamegraph`, `valgrind`, and `stats` for profiling the scanner over their
-corpora (`common/cabal-recipes.just`).
+`flamegraph`, `valgrind`, `stats`, and `highlight-golden` (`common/cabal-recipes.just`).
+
+`highlight-golden` asserts which capture wins per token, which `check-queries`
+cannot: it only proves a query file compiles, so a more specific pattern that
+shadows a general one passes it. Regenerate with `just <name>::update-highlights`
+and read the diff.
 
 ## Testing
 
