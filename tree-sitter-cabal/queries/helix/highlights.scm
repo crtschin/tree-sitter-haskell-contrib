@@ -76,6 +76,18 @@
 
 (module_name)    @module
 
+; Prose fields: `path` is the right node for a bare `.` (`hs-source-dirs: .` is a real
+; directory, and tooling reads node types, not colours), but in prose the same token is a
+; sentence period. Recolour it as ordinary string text here, where the field name is in
+; scope, rather than narrowing the grammar and giving up the 56 genuine `hs-source-dirs: .`
+; cases in the Cabal tree. cabal.project needs no equivalent: it has no prose fields.
+((field
+  name: (field_name) @_prose_field
+  value: (field_value (path) @string))
+  (#any-of? @_prose_field
+    "description" "synopsis" "author" "maintainer" "copyright"
+    "category" "stability" "homepage" "bug-reports" "package-url"))
+
 ; `<URL>`: when constraint_op nodes flank a URL they're acting as bracket
 ; punctuation, not as version comparison operators. The default operator
 ; highlight above is overridden by this more-specific pattern.
