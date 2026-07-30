@@ -76,14 +76,20 @@
 
 (module_name)    @module
 
-; Prose fields: `path` is the right node for a bare `.` (`hs-source-dirs: .` is a real
-; directory, and tooling reads node types, not colours), but in prose the same token is a
-; sentence period. Recolour it as ordinary string text here, where the field name is in
-; scope, rather than narrowing the grammar and giving up the 56 genuine `hs-source-dirs: .`
-; cases in the Cabal tree. cabal.project needs no equivalent: it has no prose fields.
-; The field name is captured as @property, the same as the generic rule above, not as a
-; throwaway @_name: this pattern is more specific, so whatever it captures the name as wins,
-; and an unrecognised capture name would leave these field names unhighlighted.
+; Note [Later pattern wins]
+;
+; Among the patterns covering a token, the last one in the file wins, whatever its
+; specificity. So every override below has to stay under the generic rules, and has to
+; recapture each node it matches under a name the theme knows. A throwaway @_name on a
+; field name would win and blank it, as the first draft of the prose rule did to
+; `description`.
+
+; Prose fields. A bare `.` parses as `path`. That node type is right for
+; `hs-source-dirs: .`, a real directory, and only the colour is wrong when the token is a
+; sentence period. Recolour it here, where the field name is in scope, rather than
+; narrowing the grammar and losing the 56 real `hs-source-dirs: .` cases in the Cabal tree.
+; cabal.project has no prose fields and needs none of this.
+; See Note [Later pattern wins].
 ((field
   name: (field_name) @property
   value: (field_value (path) @string))
@@ -91,9 +97,8 @@
     "description" "synopsis" "author" "maintainer" "copyright"
     "category" "stability" "homepage" "bug-reports" "package-url"))
 
-; `<URL>`: when constraint_op nodes flank a URL they're acting as bracket
-; punctuation, not as version comparison operators. The default operator
-; highlight above is overridden by this more-specific pattern.
+; `<URL>`. Flanking a URL, constraint_op nodes act as bracket punctuation rather than
+; version comparisons. See Note [Later pattern wins].
 ((constraint_op) @punctuation.bracket
   .
   (url)

@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
-# Assert RESOLVED highlighting, not merely that a query file compiles: run
-# `tree-sitter highlight` over a grammar's committed test/extract-samples/* and diff
-# the winning capture per token against test/highlights.golden.
+# Diff the resolved highlighting against a golden. Runs `tree-sitter highlight`
+# over a grammar's committed test/extract-samples/* and compares the winning
+# capture per token against test/highlights.golden.
 #
 # check-queries.sh only proves each queries/*.scm parses against the grammar. It
-# cannot see which pattern wins when two overlap, so a more specific pattern that
-# silently shadows a general one, or captures under a name nothing recognises,
-# passes it. Both happen in practice: the .cabal prose-period rule in
-# highlights.scm is exactly such an override, and its first draft blanked the
-# `description` field name by capturing it as `@_prose_field`.
+# cannot see which pattern wins where two overlap, nor that a capture name is one
+# nothing recognises. Both have bitten here. See Note [Later pattern wins] in
+# tree-sitter-cabal/queries/helix/highlights.scm.
 #
-# `--css-classes` emits the capture name as a class instead of a theme colour, so
-# the golden is theme-independent. The class is chosen from the config theme's
-# keys, though, and any capture missing from it collapses to its nearest ancestor
-# (`keyword.type` -> `keyword`). The theme is therefore derived from the query
-# files on every run rather than committed, so it cannot drift out of date.
+# `--css-classes` emits capture names as classes, so the golden carries no theme
+# colours. Classes still come from the config theme's keys, and a capture missing
+# there collapses to its nearest ancestor (`keyword.type` -> `keyword`), so the
+# theme is derived from the query files on every run instead of committed.
 #
-# Regenerate-and-diff, like the repo's other drift guards: `--update` rewrites the
-# golden. TAP 14 on stdout, one test per sample file. Run from anywhere.
+# `--update` rewrites the golden. TAP 14 on stdout, one test per sample file. Run
+# from anywhere.
 #
 # Usage: highlight-golden.sh <slug> [--update]
 
@@ -36,8 +33,8 @@ golden="$dir/test/highlights.golden"
 mapfile -t samples < <(find "$samples_dir" -type f 2>/dev/null | LC_ALL=C sort)
 [[ ${#samples[@]} -gt 0 ]] || { echo "Bail out! no samples in $samples_dir"; exit 1; }
 
-# A theme whose keys are every capture name any of this grammar's queries use, so
-# `--css-classes` reports each capture verbatim. Colours are irrelevant here.
+# Keys are every capture name this grammar's queries use, so `--css-classes`
+# reports each capture verbatim. The colours are never read.
 config="$(mktemp -d)/config.json"
 trap 'rm -rf "$(dirname "$config")"' EXIT
 {
@@ -48,10 +45,16 @@ trap 'rm -rf "$(dirname "$config")"' EXIT
     printf '}}\n'
 } >"$config"
 
-# One `<line>\t<capture>\t<text>` per highlighted token, in source order. Tokens no
-# pattern captured are skipped: a capture that stops matching shows up as a missing
-# line, which is the regression worth catching. Class names come back
-# space-separated (`string special path`); keep that form, it is what the CLI emits.
+# One `<line>\t<capture>\t<text>` per run of highlighted text, in source order. Text no
+# pattern captured is skipped, so a capture that stops matching shows up as a missing
+# line, the regression worth catching. Class names come back space-separated
+# (`string special path`). Keep that form, it is what the CLI emits.
+#
+# The stack decodes nesting. A capture on a container node wraps the captures on its
+# descendants, the CLI renders that as nested spans, and the innermost open class governs
+# the text. A non-greedy `<span ...>(.*?)</span>` would close the outer span on the inner
+# tag and silently record truncated text. Nothing nests today, but nesting is how one
+# capture spatially overrides another, which is what this gate watches.
 normalize() { # normalize <sample>
     ( cd "$dir" && tree-sitter highlight --html --css-classes --config-path "$config" "$1" 2>/dev/null ) \
         | sed -n '/<table>/,/<\/table>/p' \
@@ -59,22 +62,29 @@ normalize() { # normalize <sample>
 import html, re, sys
 
 LINE = re.compile(r"<td class=line-number>(\d+)</td>")
-SPAN = re.compile(r"<span class=.([^\x27\"]*).>(.*?)</span>", re.S)
+CELL = re.compile(r"<td class=line>(.*?)</td>", re.S)
+TOKEN = re.compile(r"<span class=[\x27\"]([^\x27\"]*)[\x27\"]>|</span>|([^<]+)")
 
-lineno = 0
 for row in sys.stdin.read().split("<tr>"):
-    m = LINE.search(row)
-    if not m:
+    num, cell = LINE.search(row), CELL.search(row)
+    if not (num and cell):
         continue
-    lineno = int(m.group(1))
-    for cap, text in SPAN.findall(row):
-        text = html.unescape(text)
-        if text.strip():
-            print(f"{lineno}\t{cap}\t{text}")
+    lineno, stack = int(num.group(1)), []
+    for m in TOKEN.finditer(cell.group(1)):
+        opened, text = m.group(1), m.group(2)
+        if opened is not None:
+            stack.append(opened)
+        elif text is None:
+            if stack:
+                stack.pop()
+        else:
+            text = html.unescape(text)
+            if stack and text.strip():
+                print(f"{lineno}\t{stack[-1]}\t{text}")
 '
 }
 
-block_for() { # block_for <sample> -> the sample's normalized highlight lines
+block_for() { # block_for <sample>
     normalize "$1"
 }
 
