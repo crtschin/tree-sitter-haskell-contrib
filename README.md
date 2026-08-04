@@ -33,16 +33,8 @@ All commands run across every grammar via the top-level justfile.
 | `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite for the default GHC; set `GEN_GHC=all` for every `ghcVersions` GHC (needs a GHC compiler) |
 | `just clean`       | Remove build artifacts                                       |
 
-Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is one
-of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`. Every
-grammar carries `bench` and `alloc`; the two cabal grammars additionally carry
-`flamegraph`, `valgrind`, `stats`, and `highlight-golden` (`common/cabal-recipes.just`).
-
-`highlight-golden` asserts which capture wins per token. `check-queries` cannot,
-because it only proves a query file compiles, and a pattern that shadows an
-earlier one compiles fine. Among the captures covering a token the last pattern
-in the file wins, so query order is part of the behaviour. Regenerate with
-`just <name>::update-highlights` and read the diff.
+Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is
+one of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`.
 
 ## Testing
 
@@ -56,7 +48,7 @@ On top of that, `gen-corpus` compiles a handful of fixtures with GHC across a
 matrix of dump and display flags.
 
 - `just test` runs the matrix once per version listed in `flake.nix`
-  `ghcVersions`, validating against several compilers (heavy: pulls each closure).
+  `ghcVersions`, validating against several compilers.
 
 - `just test --fast` and the CI pull-request gate restrict it to the one GHC in
   the pinned nixpkgs.
