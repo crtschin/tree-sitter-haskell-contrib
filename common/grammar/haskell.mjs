@@ -45,17 +45,17 @@ export function makeLiteralRules() {
     // (`'\NUL'`). `\\.` takes the backslash + first escape char (covers `'\''`,
     // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
     _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
-    // A backslash escapes any char, including a newline. GHC also prints long
-    // strings with a string gap `\ <whitespace> \` (`..\n\` <newline> `   \..`),
-    // which the regex must not misread:
+    // Backslash escapes any non-space char. GHC also emits long strings with a
+    // gap `\ <whitespace> \`, matched as its own alternative `\\\s+\\` for two
+    // reasons:
     //
-    //   - The resume `\` must not pair with the following escape. `\\"` is a
-    //     gap-resume then an escaped quote, not an escaped backslash then a
-    //     terminating quote that would end the string early.
+    //   - The gap's trailing `\` is consumed here, so it cannot pair with a
+    //     following `"` and end the string early.
     //
-    //   - So the gap `\\\s+\\` is its own longest-match alternative, ahead of
-    //     the `\\[\s\S]` escape and the `[^"\\]` char.
-    _string_lit: ($) => token(/"(\\\s+\\|\\[\s\S]|[^"\\])*"#*/),
+    //   - The escape stays `\\\S`, disjoint from the gap. An overlapping
+    //     `\\[\s\S]` lets a `\ \ \ ..` run split many ways inside the `*`
+    //     (quadratic).
+    _string_lit: ($) => token(/"(\\\s+\\|\\\S|[^"\\])*"#*/),
   };
 }
 
