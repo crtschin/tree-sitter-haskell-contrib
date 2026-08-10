@@ -68,6 +68,9 @@ export default grammar({
     // A parenthesised operator is either a binder name `(:|) = ..` or a
     // parenthesised atom (in a bare expression or an argument).
     [$.paren_operator, $._atom],
+    [$.paren_operator, $._operator_atom],
+    // A leading `/` opens a lambda or a prefix division. See `_operator_atom`.
+    [$._operator_atom, $.lambda],
     // A binding's trailing `;` (the -ddump-late-cc layout terminator) collides
     // with the `;` that separates bindings inside a `let { b1; b2 }`. GLR keeps
     // whichever completes: the separator reading inside a let, the terminator
@@ -91,6 +94,8 @@ export default grammar({
         optional($._item_sep),
         sepBy($._item_sep, $._group),
         optional($._item_sep),
+        optional($.rules_block),
+        optional($._item_sep),
         repeat($._later_section),
         optional($.trailing_sections),
         optional($._item_sep),
@@ -105,7 +110,14 @@ export default grammar({
         optional($._item_sep),
         sepBy($._item_sep, $._group),
         optional($._item_sep),
+        optional($.rules_block),
+        optional($._item_sep),
       ),
+
+    // GHC appends the local-rules block to the emitting pass's own dump_doc
+    // (GHC.Core.Lint pp_rules), so it tails that section and the next `====`
+    // banner still opens the next one.
+    rules_block: ($) => seq($.dash_header, repeat($._soup)),
 
     // Simplifier-iteration dumps print a counts preamble whose `---- .. ----` lines lex as
     // comments, so only the `Total ticks: N` line needs a rule.
@@ -150,7 +162,7 @@ export default grammar({
       choice(
         $.variable,
         $.constructor,
-        $.operator,
+        $._operator_atom,
         $.con_operator,
         $.operator_name,
         $.special_con,
@@ -160,12 +172,12 @@ export default grammar({
         $.foreign_call,
       ),
 
-    // Header-delimited sections after the Tidy Core: `==== .. ====` banners and `---- ..
-    // ----` markers (e.g. `------ Local rules for imported ids --------`, bannerless
-    // rules). Coarse balanced soup per section, stopping at the next header (which
-    // out-lexes a soup token by longest match).
-    trailing_sections: ($) =>
-      repeat1(seq(choice($.banner, $.dash_header), repeat($._soup))),
+    // Banner-led sections after the Tidy Core whose body is not Core, such as
+    // `==== Tidy Core rules ====` and CorePrep tails. Soup runs to the next
+    // header, which out-lexes a soup token by longest match.
+    //
+    // A dash header never opens a section, see `rules_block`.
+    trailing_sections: ($) => repeat1(seq($.banner, repeat($._soup))),
 
     // ------ Local rules for imported ids -------- (4+ dashes both ends, so it
     // out-precedences the `--` line comment).
@@ -299,11 +311,21 @@ export default grammar({
         seq($._soup_token, optional(seq($._dcolon, $._type))),
       ),
 
+    // A lone `/` lexes as the lambda head, because an anonymous string beats the
+    // `operator` regex. Spelling the token out as an operator too recovers Core's
+    // prefix division, `(/ @Double $fFractionalDouble x y)`.
+    //
+    // Both readings then complete, since an unparenthesised `->` also lexes as an
+    // `operator`. The negative dynamic precedence hands that tie to the lambda.
+    // Where no `->` follows, the lambda derivation has already died.
+    _operator_atom: ($) =>
+      choice($.operator, prec.dynamic(-1, alias("/", $.operator))),
+
     _atom: ($) =>
       choice(
         $.variable,
         $.constructor,
-        $.operator,
+        $._operator_atom,
         $.con_operator,
         $.operator_name,
         $.literal,
@@ -395,9 +417,16 @@ export default grammar({
     type_arg: ($) => seq("@", $._type_atom),
     coercion_arg: ($) => seq("@~", $.coercion),
 
-    // GHC prints the lambda head as `\`. Some newer dumps render it `/`.
+    // GHC prints the head as `\`, or `λ` under -fprint-unicode-syntax
+    // (Outputable.lambda). The `/` is the testsuite normaliser's, which rewrites
+    // `\` before comparing .stderr. See `_operator_atom` for what it costs.
     lambda: ($) =>
-      seq(choice("\\", "/"), repeat1($._binder), choice("->", "→"), $._expr),
+      seq(
+        choice("\\", "λ", "/"),
+        repeat1($._binder),
+        choice("->", "→"),
+        $._expr,
+      ),
 
     // The join target is a variable, or `(v :: t)` under -dppr-debug.
     jump: ($) => seq("jump", $._atom, repeat($._arg)),

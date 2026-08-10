@@ -404,7 +404,7 @@ Result size of Float out
   = {terms: 2, types: 1, coercions: 0, joins: 0/0}
 
 f ∷ Int → Int
-f = \ (x ∷ Int) → x
+f = λ (x ∷ Int) → x
 
 ==================== Simplifier iteration=1 ====================
   Total ticks: 5
@@ -767,5 +767,81 @@ poly = p
         (constructor)
         (tyvar
           (variable))))
+    name: (variable)
+    rhs: (variable)))
+
+================================
+Slash lambda head and prefix division operator
+================================
+
+==================== Tidy Core ====================
+Result size of Tidy Core
+  = {terms: 6, types: 4, coercions: 0, joins: 0/0}
+
+recip :: Double -> Double
+recip
+  = / (x :: Double) ->
+      / @Double $fFractionalDouble (D# 1.0##) x
+
+--------------------------------
+
+(source_file
+  (banner)
+  (result_size)
+  (binding
+    signature: (type_signature
+      (variable)
+      (function_type
+        (constructor)
+        (constructor)))
+    name: (variable)
+    rhs: (lambda
+      (typed_binder
+        (variable)
+        (constructor))
+      (application
+        (operator)
+        (type_arg
+          (constructor))
+        (variable)
+        (parens
+          (application
+            (constructor)
+            (literal)))
+        (variable)))))
+
+================================
+Local-rules block ends its section, not the dump
+================================
+
+==================== Simplifier ====================
+Result size of Simplifier = {terms: 1, types: 0, coercions: 0, joins: 0/0}
+
+f = x
+
+------ Local rules for imported ids --------
+"SPEC/M even @Int"
+    forall ($dIntegral :: Integral Int).
+      even @Int $dIntegral
+      = $seven
+
+==================== Float out ====================
+Result size of Float out = {terms: 1, types: 0, coercions: 0, joins: 0/0}
+
+g = y
+
+--------------------------------
+
+(source_file
+  (banner)
+  (result_size)
+  (binding
+    name: (variable)
+    rhs: (variable))
+  (rules_block
+    (dash_header))
+  (banner)
+  (result_size)
+  (binding
     name: (variable)
     rhs: (variable)))

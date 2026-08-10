@@ -37,7 +37,12 @@ data Point = Point {px :: Int, py :: Int}
 
 -- Newtype deriving: $fNumMetres reuses Num Double via a representation coercion.
 newtype Metres = Metres Double
-  deriving (Eq, Ord, Show, Num)
+  deriving (Eq, Ord, Show, Num, Fractional)
 
 stride :: Metres -> Metres
 stride m = m + Metres 1
+
+-- Core prints `/` in prefix position, where it collides with the `/` lambda
+-- head the GHC testsuite normaliser produces.
+halve :: Metres -> Metres
+halve m = m / 2
