@@ -4,14 +4,22 @@
 # capture per token against test/highlights.golden.
 #
 # check-queries.sh only proves each queries/*.scm parses against the grammar. It
-# cannot see which pattern wins where two overlap, nor that a capture name is one
-# nothing recognises. Both have bitten here. See Note [Later pattern wins] in
-# tree-sitter-cabal/queries/helix/highlights.scm.
+# cannot see which pattern wins where two overlap, which has bitten here. See
+# Note [Later pattern wins] in tree-sitter-cabal/queries/helix/highlights.scm.
 #
 # `--css-classes` emits capture names as classes, so the golden carries no theme
 # colours. Classes still come from the config theme's keys, and a capture missing
 # there collapses to its nearest ancestor (`keyword.type` -> `keyword`), so the
 # theme is derived from the query files on every run instead of committed.
+#
+# Two things this gate cannot see:
+#   - A capture name no editor theme defines. The theme comes from the queries under
+#     test, so every capture is a key by construction. `@keyword.import` is one such
+#     name, defined by 2 of the 214 themes Helix ships while 33 define
+#     `keyword.control.import`. Catching that needs a real theme.
+#   - A golden block whose sample file is gone. `find` builds the sample list and
+#     golden_block only pulls blocks for samples it found, so an untracked sample reads
+#     as green with its golden dead.
 #
 # `--update` rewrites the golden. TAP 14 on stdout, one test per sample file. Run
 # from anywhere.
