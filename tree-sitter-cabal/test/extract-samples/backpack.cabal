@@ -1,0 +1,39 @@
+cabal-version: 3.4
+name: backpack-zoo
+version: 0.1.0.0
+
+-- `signatures` is newline separated with no commas, and gets no grammar rule, so a
+-- single-segment name stays an identifier and a dotted one a module_name.
+library indef
+  signatures:
+    Str
+    Data.Str.Encoding
+  exposed-modules: Indef.Api
+  build-depends: base >=4.14 && <5
+  hs-source-dirs: indef
+
+library
+  build-depends: base, indef, str-string, containers
+  mixins:
+      str-string
+    , str-string (Str as Str.String)
+    , str-string hiding ( Foo )
+    , containers (Data.Map as Map)
+    , indef requires (Str as Str.String)
+    , backpack-zoo:indef (Indef.Api as Api)
+  reexported-modules:
+      Indef.Api as Api
+    , containers:Data.Map as DataMap
+  virtual-modules: Paths_backpack_zoo
+
+-- Cabal field names are case insensitive and the corpus carries both spellings.
+library mixed-case
+  Signatures: Sig
+  Mixins: str-string hiding ( Foo )
+  Reexported-Modules: Impl as Iface
+  build-depends: base
+
+-- Pins the head-position tradeoff in the golden. See `renaming_keyword` in grammar.js.
+library head-position
+  mixins: as (Foo)
+  build-depends: base

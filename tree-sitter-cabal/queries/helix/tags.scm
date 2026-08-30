@@ -13,3 +13,13 @@
 
 ; custom-setup has no name, so tag with the section_type token.
 (custom_setup (section_type) @name) @definition.section
+
+; Tag every `signatures` entry, so a Backpack package's holes reach the symbol picker.
+; Both node kinds appear here: a dotted name lexes as `module_name` and a single-segment
+; one as `identifier`. The field name matches case-insensitively because the corpus
+; carries `Signatures` as well as `signatures`. Tag queries are read match by match, so
+; the collapse in Note [Later pattern wins] does not reach here.
+((field
+  name: (field_name) @_field
+  value: (field_value [(identifier) (module_name)] @name)) @definition.module
+  (#match? @_field "(?i)^signatures$"))

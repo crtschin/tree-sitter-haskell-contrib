@@ -27,6 +27,11 @@
 (field_value (iso_date) @value.date)
 (field_value (integer) @value.integer)
 
+; Backpack renaming keywords, from both fields that use them. Dropping the keyword split
+; or the field dispatch moves these spans to @value.identifier, so the golden diff names
+; the regression.
+(field_value (renaming_keyword) @value.renaming)
+
 ; Section headers: kind (library/executable/...) and optional name.
 (_ type: (section_type) @section.type name: (section_name) @section.name)
 (library type: (section_type) @section.type . (property_or_conditional_block))

@@ -76,6 +76,14 @@
 
 (module_name)    @module
 
+; Backpack renaming keywords. This pattern shape does two jobs:
+;   - The `field_value` parent keeps these out of error recovery. The token is reachable
+;     there too, and would colour `as`, `hiding` and `requires` mid-sentence in a
+;     `description` sitting under a half-typed stanza header.
+;   - The parent stays uncaptured, so each keyword in one value wins its own match.
+;     Capturing it collapses them to one. See Note [Later pattern wins].
+(field_value (renaming_keyword) @keyword.import)
+
 ; Note [Later pattern wins]
 ;
 ; Among the patterns covering a token, the last one in the file wins, whatever its

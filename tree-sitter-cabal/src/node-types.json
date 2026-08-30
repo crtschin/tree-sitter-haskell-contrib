@@ -351,6 +351,10 @@
           "named": true
         },
         {
+          "type": "renaming_keyword",
+          "named": true
+        },
+        {
           "type": "text_fragment",
           "named": true
         },
@@ -1017,6 +1021,10 @@
   },
   {
     "type": "quoted_string",
+    "named": true
+  },
+  {
+    "type": "renaming_keyword",
     "named": true
   },
   {

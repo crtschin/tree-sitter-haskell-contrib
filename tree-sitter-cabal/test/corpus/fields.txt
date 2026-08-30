@@ -394,3 +394,86 @@ description:
         (qualified_name)
         (identifier)
         (identifier)))))
+
+================================================================================
+Renaming keywords are distinct from identifiers
+================================================================================
+
+library
+  mixins:
+      str-string hiding ( Foo )
+    , containers (Data.Map as Map)
+  reexported-modules: Impl as Iface
+
+--------------------------------------------------------------------------------
+
+(cabal
+  (sections
+    (library
+      (section_type)
+      (property_or_conditional_block
+        (field
+          (field_name)
+          (field_value
+            (identifier)
+            (renaming_keyword)
+            (identifier)
+            (identifier)
+            (module_name)
+            (renaming_keyword)
+            (identifier)))
+        (field
+          (field_name)
+          (field_value
+            (identifier)
+            (renaming_keyword)
+            (identifier)))))))
+
+================================================================================
+The renaming keywords stay identifiers in a prose field
+================================================================================
+
+description:
+  Use it as a library, hiding the details it requires now.
+
+--------------------------------------------------------------------------------
+
+(cabal
+  (properties
+    (field
+      (field_name)
+      (field_value
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Signatures entries keep their generic node kinds
+================================================================================
+
+library indef
+  signatures:
+    Str
+    Data.Str.Encoding
+
+--------------------------------------------------------------------------------
+
+(cabal
+  (sections
+    (library
+      (section_type)
+      (section_name)
+      (property_or_conditional_block
+        (field
+          (field_name)
+          (field_value
+            (identifier)
+            (module_name)))))))

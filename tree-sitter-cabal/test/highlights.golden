@@ -1,3 +1,128 @@
+## test/extract-samples/backpack.cabal
+1	property	cabal-version
+1	punctuation delimiter	:
+1	number	3.4
+2	property	name
+2	punctuation delimiter	:
+2	string	backpack-zoo
+3	property	version
+3	punctuation delimiter	:
+3	number float	0.1.0.0
+5	comment	-- `signatures` is newline separated with no commas, and gets no grammar rule, so a
+6	comment	-- single-segment name stays an identifier and a dotted one a module_name.
+7	keyword type	library
+7	type	indef
+8	property	signatures
+8	punctuation delimiter	:
+9	string	Str
+10	module	Data.Str.Encoding
+11	property	exposed-modules
+11	punctuation delimiter	:
+11	module	Indef.Api
+12	property	build-depends
+12	punctuation delimiter	:
+12	string	base
+12	operator	>=
+12	number float	4.14
+12	operator	&&
+12	operator	<
+12	number	5
+13	property	hs-source-dirs
+13	punctuation delimiter	:
+13	string	indef
+15	keyword type	library
+16	property	build-depends
+16	punctuation delimiter	:
+16	string	base
+16	punctuation delimiter	,
+16	string	indef
+16	punctuation delimiter	,
+16	string	str-string
+16	punctuation delimiter	,
+16	string	containers
+17	property	mixins
+17	punctuation delimiter	:
+18	string	str-string
+19	punctuation delimiter	,
+19	string	str-string
+19	punctuation bracket	(
+19	string	Str
+19	keyword import	as
+19	module	Str.String
+19	punctuation bracket	)
+20	punctuation delimiter	,
+20	string	str-string
+20	keyword import	hiding
+20	punctuation bracket	(
+20	string	Foo
+20	punctuation bracket	)
+21	punctuation delimiter	,
+21	string	containers
+21	punctuation bracket	(
+21	module	Data.Map
+21	keyword import	as
+21	string	Map
+21	punctuation bracket	)
+22	punctuation delimiter	,
+22	string	indef
+22	keyword import	requires
+22	punctuation bracket	(
+22	string	Str
+22	keyword import	as
+22	module	Str.String
+22	punctuation bracket	)
+23	punctuation delimiter	,
+23	string	backpack-zoo:indef
+23	punctuation bracket	(
+23	module	Indef.Api
+23	keyword import	as
+23	string	Api
+23	punctuation bracket	)
+24	property	reexported-modules
+24	punctuation delimiter	:
+25	module	Indef.Api
+25	keyword import	as
+25	string	Api
+26	punctuation delimiter	,
+26	string	containers:Data.Map
+26	keyword import	as
+26	string	DataMap
+27	property	virtual-modules
+27	punctuation delimiter	:
+27	string	Paths_backpack_zoo
+29	comment	-- Cabal field names are case insensitive and the corpus carries both spellings.
+30	keyword type	library
+30	type	mixed-case
+31	property	Signatures
+31	punctuation delimiter	:
+31	string	Sig
+32	property	Mixins
+32	punctuation delimiter	:
+32	string	str-string
+32	keyword import	hiding
+32	punctuation bracket	(
+32	string	Foo
+32	punctuation bracket	)
+33	property	Reexported-Modules
+33	punctuation delimiter	:
+33	string	Impl
+33	keyword import	as
+33	string	Iface
+34	property	build-depends
+34	punctuation delimiter	:
+34	string	base
+36	comment	-- Pins the head-position tradeoff in the golden. See `renaming_keyword` in grammar.js.
+37	keyword type	library
+37	type	head-position
+38	property	mixins
+38	punctuation delimiter	:
+38	keyword import	as
+38	punctuation bracket	(
+38	string	Foo
+38	punctuation bracket	)
+39	property	build-depends
+39	punctuation delimiter	:
+39	string	base
 ## test/extract-samples/build-depends.cabal
 1	property	cabal-version
 1	punctuation delimiter	:

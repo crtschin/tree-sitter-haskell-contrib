@@ -1,3 +1,99 @@
+## test/extract-samples/backpack.cabal
+cabal.version	0,15-0,18	3.4
+field.name	1,0-1,4	name
+field.value	1,6-1,18	backpack-zoo
+value.identifier	1,6-1,18	backpack-zoo
+field.name	2,0-2,7	version
+field.value	2,9-2,16	0.1.0.0
+value.version	2,9-2,16	0.1.0.0
+section.type	6,0-6,7	library
+section.name	6,8-6,13	indef
+field.name	7,2-7,12	signatures
+field.value	8,4-9,21	
+value.identifier	8,4-8,7	Str
+value.module	9,4-9,21	Data.Str.Encoding
+field.name	10,2-10,17	exposed-modules
+field.value	10,19-10,28	Indef.Api
+value.module	10,19-10,28	Indef.Api
+field.name	11,2-11,15	build-depends
+field.value	11,17-11,34	base >=4.14 && <5
+value.identifier	11,17-11,21	base
+value.constraint	11,22-11,24	>=
+value.version	11,24-11,28	4.14
+value.constraint	11,29-11,31	&&
+value.constraint	11,32-11,33	<
+value.integer	11,33-11,34	5
+field.name	12,2-12,16	hs-source-dirs
+field.value	12,18-12,23	indef
+value.identifier	12,18-12,23	indef
+section.type	14,0-14,7	library
+field.name	15,2-15,15	build-depends
+field.value	15,17-15,52	base, indef, str-string, containers
+value.identifier	15,17-15,21	base
+value.identifier	15,23-15,28	indef
+value.identifier	15,30-15,40	str-string
+value.identifier	15,42-15,52	containers
+field.name	16,2-16,8	mixins
+field.value	17,6-22,43	
+value.identifier	17,6-17,16	str-string
+value.identifier	18,6-18,16	str-string
+value.identifier	18,18-18,21	Str
+value.renaming	18,22-18,24	as
+value.module	18,25-18,35	Str.String
+value.identifier	19,6-19,16	str-string
+value.renaming	19,17-19,23	hiding
+value.identifier	19,26-19,29	Foo
+value.identifier	20,6-20,16	containers
+value.module	20,18-20,26	Data.Map
+value.renaming	20,27-20,29	as
+value.identifier	20,30-20,33	Map
+value.identifier	21,6-21,11	indef
+value.renaming	21,12-21,20	requires
+value.identifier	21,22-21,25	Str
+value.renaming	21,26-21,28	as
+value.module	21,29-21,39	Str.String
+value.qualified	22,6-22,24	backpack-zoo:indef
+value.module	22,26-22,35	Indef.Api
+value.renaming	22,36-22,38	as
+value.identifier	22,39-22,42	Api
+field.name	23,2-23,20	reexported-modules
+field.value	24,6-25,36	
+value.module	24,6-24,15	Indef.Api
+value.renaming	24,16-24,18	as
+value.identifier	24,19-24,22	Api
+value.qualified	25,6-25,25	containers:Data.Map
+value.renaming	25,26-25,28	as
+value.identifier	25,29-25,36	DataMap
+field.name	26,2-26,17	virtual-modules
+field.value	26,19-26,37	Paths_backpack_zoo
+value.identifier	26,19-26,37	Paths_backpack_zoo
+section.type	29,0-29,7	library
+section.name	29,8-29,18	mixed-case
+field.name	30,2-30,12	Signatures
+field.value	30,14-30,17	Sig
+value.identifier	30,14-30,17	Sig
+field.name	31,2-31,8	Mixins
+field.value	31,10-31,35	str-string hiding ( Foo )
+value.identifier	31,10-31,20	str-string
+value.renaming	31,21-31,27	hiding
+value.identifier	31,30-31,33	Foo
+field.name	32,2-32,20	Reexported-Modules
+field.value	32,22-32,35	Impl as Iface
+value.identifier	32,22-32,26	Impl
+value.renaming	32,27-32,29	as
+value.identifier	32,30-32,35	Iface
+field.name	33,2-33,15	build-depends
+field.value	33,17-33,21	base
+value.identifier	33,17-33,21	base
+section.type	36,0-36,7	library
+section.name	36,8-36,21	head-position
+field.name	37,2-37,8	mixins
+field.value	37,10-37,18	as (Foo)
+value.renaming	37,10-37,12	as
+value.identifier	37,14-37,17	Foo
+field.name	38,2-38,15	build-depends
+field.value	38,17-38,21	base
+value.identifier	38,17-38,21	base
 ## test/extract-samples/build-depends.cabal
 cabal.version	0,15-0,21	>=1.10
 field.name	1,0-1,4	name

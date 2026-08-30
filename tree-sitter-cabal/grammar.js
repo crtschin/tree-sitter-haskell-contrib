@@ -148,13 +148,52 @@ export default grammar({
         $._dedent,
       ),
 
-    field: ($) =>
+    // `mixins` and `reexported-modules` share one rule so their keywords stay
+    // consistent. Cabal parses `as` the same way in both, in ModuleRenaming.hs and
+    // ModuleReexport.hs. The value aliases back to `field_value`, so the node shape
+    // stays `(field name: (field_name) value: (field_value ...))` everywhere and only
+    // the leaf kinds differ.
+    //
+    // `signatures` deliberately gets no rule. Re-aliasing its identifiers to
+    // `module_name` accepts whatever the lexer produced, so `signatures: a-b` and a
+    // pasted `signatures: base >= 4.14` became module names and reached the symbol
+    // picker as definitions. Keep the grammar general and resolve a field-specific
+    // reading in a query.
+    field: ($) => choice($._renaming_field, $._plain_field),
+
+    _plain_field: ($) =>
       seq(
         field("name", $.field_name),
         ":",
         optional(field("value", $.field_value)),
         $._newline,
       ),
+
+    _renaming_field: ($) =>
+      seq(
+        field(
+          "name",
+          alias(choice(ci("mixins"), ci("reexported-modules")), $.field_name),
+        ),
+        ":",
+        optional(field("value", alias($.renaming_value, $.field_value))),
+        $._newline,
+      ),
+
+    // Flat like `field_value`, because nesting the mixin grammar would thread
+    // `_continuation` through every level. It takes a superset of what `field_value`
+    // takes, so no corpus file can regress.
+    renaming_value: ($) =>
+      repeat1(choice($._value_token, $.renaming_keyword, $._continuation)),
+
+    // Case-sensitive, matching Cabal's `P.string "hiding"` in ModuleRenaming.hs.
+    //
+    // Precedence 2 sits directly above `identifier` (1). Both match these words here, so
+    // dropping the bump lets `identifier` win and the keywords vanish.
+    //
+    // The flat repeat cannot tell a head position from a tail one, so `mixins: as (Foo)`
+    // reads the package name `as` as the keyword. No such package exists on Hackage.
+    renaming_keyword: ($) => token(prec(2, choice("as", "hiding", "requires"))),
 
     field_name: ($) => choice(/\w(\w|-)+/, $._field_name),
 

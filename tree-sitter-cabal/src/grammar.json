@@ -594,6 +594,19 @@
       ]
     },
     "field": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_renaming_field"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_plain_field"
+        }
+      ]
+    },
+    "_plain_field": {
       "type": "SEQ",
       "members": [
         {
@@ -629,6 +642,106 @@
           "name": "_newline"
         }
       ]
+    },
+    "_renaming_field": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "PATTERN",
+                  "value": "[mM][iI][xX][iI][nN][sS]"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "[rR][eE][eE][xX][pP][oO][rR][tT][eE][dD]-[mM][oO][dD][uU][lL][eE][sS]"
+                }
+              ]
+            },
+            "named": true,
+            "value": "field_name"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "value",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "renaming_value"
+                },
+                "named": true,
+                "value": "field_value"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_newline"
+        }
+      ]
+    },
+    "renaming_value": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_value_token"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "renaming_keyword"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_continuation"
+          }
+        ]
+      }
+    },
+    "renaming_keyword": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "as"
+            },
+            {
+              "type": "STRING",
+              "value": "hiding"
+            },
+            {
+              "type": "STRING",
+              "value": "requires"
+            }
+          ]
+        }
+      }
     },
     "field_name": {
       "type": "CHOICE",
