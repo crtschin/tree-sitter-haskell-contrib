@@ -1,10 +1,7 @@
-# Per-grammar boilerplate recipes, shared by every grammar. A grammar's justfile
-# sets `lang` (e.g. "ghc_core") and `slug` (e.g. "ghc-core"), then
-# `import 'common/recipes.just'` (resolved via the dir's `common` symlink), and
-# adds its own bespoke recipes (parse-corpus, gen-corpus, ...). The IL grammars
-# (ghc-core/stg/cmm/dump) share their whole `test` flow via `_il-test` below.
+# Recipes for every grammar. The importing justfile must set `lang` (e.g.
+# "ghc_core") and `slug` (e.g. "ghc-core").
 
-# Build the grammar via the nix flake (buildGrammar runs generate internally).
+# Build the grammar with the nix flake.
 build:
     nix build ..#tree-sitter-{{ slug }}
 
@@ -24,7 +21,7 @@ fmt mode="write":
 clean:
     rm -rf {{ lang }}.so result
 
-# Generate src/parser.c locally (needed by highlight).
+# Generate src/parser.c locally.
 generate:
     tree-sitter generate
 
@@ -36,32 +33,22 @@ parse file: build
 highlight file: generate
     tree-sitter highlight {{ file }}
 
-# Assert information extraction (not just no-error): run test/extractions_test.scm
-# over test/extract-samples/* and diff captures against test/extractions.golden.
+# Check the extraction captures against test/extractions.golden.
 extract: build
     ../test/runners/extract-golden.sh {{ slug }} | tapview
 
-# Regenerate test/extractions.golden from the current grammar (review the diff).
+# Regenerate test/extractions.golden from the current grammar.
 update-extractions: build
     ../test/runners/extract-golden.sh {{ slug }} --update
 
-# Benchmark parsing the corpus with hyperfine. Relative, machine-dependent
-# throughput; nothing is committed. Reached via `just test --performance`.
+# Benchmark parsing the corpus with hyperfine.
 bench: build
     ../test/perf/bench-corpus.sh {{ slug }}
 
-# Rewrite the committed allocation baseline test/alloc.golden (input_bytes, node
-# count, dhat allocation count over the pinned corpus) in place, then fail if
-# that drifted from what is committed (review `git diff`, commit to accept).
-# Local devShell only (needs valgrind); slow. Reached via `just test --allocation`.
+# Rewrite test/alloc.golden in place, then fail if it drifted from the committed copy.
 alloc: build
     ../test/perf/alloc-golden.sh {{ slug }} | tapview
 
-# IL-grammar test flow (ghc-core/stg/cmm/dump only, cabal has no gen-corpus).
-# Runs queries, the harvested-corpus gate, the ephemeral generated matrix, the
-# extraction golden, any `extra` gate recipes (ghc-dump passes validate-injections),
-# and the inline tests, each to completion. Exits non-zero if any failed. Needs a
-# built parser (build) and, for gen-corpus, a GHC compiler.
 _il-test *extra: build
     #!/usr/bin/env bash
     set -uo pipefail

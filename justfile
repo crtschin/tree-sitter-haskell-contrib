@@ -8,15 +8,7 @@ mod ghc-dump 'tree-sitter-ghc-dump'
 
 default: test
 
-# Run every grammar's full suite to completion (keep going past failures), then
-# exit non-zero if any grammar failed. The IL grammars' gen-corpus step validates
-# against every flake `ghcVersions` GHC by default (heavy; pulls each closure);
-# `--fast` restricts it to the single default GHC (see test/runners/gen-corpus.sh).
-#
-# Suite selectors (local devShell only; the ci shell lacks valgrind/hyperfine):
-#   --allocation   rewrite+drift-check each grammar's test/alloc.golden (dhat)
-#   --performance  hyperfine throughput per grammar (relative, nothing committed)
-# With either selector the correctness suite is skipped; without one it runs.
+# Run every suite to completion (--fast: one GHC, --allocation or --performance: perf alone)
 test *flags:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -47,31 +39,25 @@ fmt mode="write": (cabal::fmt mode) (cabal-project::fmt mode) (ghc-core::fmt mod
 # Clean build artifacts in every grammar
 clean: cabal::clean cabal-project::clean ghc-core::clean ghc-core-explain::clean ghc-stg::clean ghc-cmm::clean ghc-dump::clean
 
-# Build + parse the GHC dump-flag matrix per IL grammar as a TAP suite. Needs a
-# GHC compiler. Ephemeral. Uses the default GHC; set GEN_GHC=all (or a space-
-# separated list of nixpkgs haskell.compiler attrs) for the cross-version matrix.
+# Parse the generated GHC dump matrix (set GEN_GHC=all for every GHC version)
 gen-corpus: ghc-core::gen-corpus ghc-core-explain::gen-corpus ghc-stg::gen-corpus ghc-cmm::gen-corpus ghc-dump::gen-corpus
 
-# Run the extraction-golden gate (asserts info shape/extraction, not just no-error) for every grammar. Also run by `test`.
+# Check the extraction golden of every grammar
 extract: cabal::extract cabal-project::extract ghc-core::extract ghc-core-explain::extract ghc-stg::extract ghc-cmm::extract ghc-dump::extract
 
-# Regenerate every grammar's extraction golden (review the diff before committing).
+# Regenerate the extraction golden of every grammar
 update-extractions: cabal::update-extractions cabal-project::update-extractions ghc-core::update-extractions ghc-core-explain::update-extractions ghc-stg::update-extractions ghc-cmm::update-extractions ghc-dump::update-extractions
 
 # Generate flamegraphs for the corpus-backed grammars.
 flamegraph: cabal::flamegraph cabal-project::flamegraph
 
-# Benchmark the corpus-backed grammars with hyperfine. (Every grammar via
-# `just test --performance`.)
+# Benchmark the corpus-backed grammars with hyperfine.
 bench: cabal::bench cabal-project::bench
 
-# Profile the corpus-backed grammars under valgrind (tool = callgrind |
-# cachegrind | memcheck | massif). Emits valgrind-<preset>.{out,txt} at the
-# repo root.
+# Profile the corpus-backed grammars under valgrind (callgrind, cachegrind, memcheck or massif)
 valgrind tool="callgrind": (cabal::valgrind tool) (cabal-project::valgrind tool)
 
-# Parse both cabal corpora with scanner instrumentation enabled. Emits one
-# [scanner-stats] line per grammar on stderr.
+# Print the scanner call rates for both cabal corpora on stderr
 stats: cabal::stats cabal-project::stats
 
 # Update flake inputs.

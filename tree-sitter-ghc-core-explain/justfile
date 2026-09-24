@@ -5,23 +5,19 @@ slug := "ghc-core-explain"
 # propagates through `| tapview` (the script, not tapview, decides pass/fail).
 set shell := ["bash", "-o", "pipefail", "-c"]
 
-# Shared build/check/fmt/clean/generate/parse/highlight recipes.
 import 'common/recipes.just'
 
 default: test
 
-# Full gate suite (queries, committed-sample gate, generated matrix, inline
-# tests). Shared flow is common/recipes.just `_il-test`.
+# Full gate suite: queries, committed samples, generated matrix, inline tests.
 test: _il-test
 
-# Parse the committed sample dumps in test/samples (a clean gate, also run by
-# `test`). Unlike the other IL grammars these logs carry no phase banner, so the
-# corpus is committed samples rather than harvested from $GHC_SRC.
+# Parse the committed sample dumps in test/samples. These logs have no phase
+# banner, so no harvest from $GHC_SRC can find them.
 parse-corpus:
     ../test/runners/parse-corpus.sh {{ slug }} | tapview
 
-# Ephemeral coverage check: generate rule-firings/inlinings dumps with GHC into a
-# temp dir (default + -dppr-debug verbose), parse them, report errors, tear down
-# (nothing committed, see test/runners/gen-corpus.sh).
+# Generate rule-firings and inlinings dumps with GHC, with and without
+# -dppr-debug, into a temporary directory and parse them.
 gen-corpus: build
     ../test/runners/gen-corpus.sh {{ slug }} | tapview

@@ -1,37 +1,29 @@
 lang := "ghc_dump"
 slug := "ghc-dump"
 
-# Run recipe lines under bash with pipefail so a gate script's non-zero exit
-# propagates through `| tapview` (the script, not tapview, decides pass/fail).
+# pipefail lets the exit code of a gate script pass through `| tapview`.
 set shell := ["bash", "-o", "pipefail", "-c"]
 
-# Shared build/check/fmt/clean/generate/parse/highlight recipes.
 import 'common/recipes.just'
 
 default: test
 
-# Full gate suite (queries, dump-stream corpus, generated matrix, inline tests)
-# plus the injection-dispatch gate. Shared flow is common/recipes.just `_il-test`,
-# with validate-injections passed as its extra gate.
+# Run the IL gate suite plus the injection dispatch gate.
 test: (_il-test "validate-injections")
 
-# Parse every harvested GHC dump stream in $GHC_SRC (any IL banner). This only
-# checks the banner/body split. `validate-injections` checks the dispatch.
+# Parse every harvested dump stream in $GHC_SRC. This checks only the split
+# into banner and body.
 parse-corpus:
     ../test/runners/parse-corpus.sh {{ slug }} | tapview
 
-# End-to-end injection check: split each harvested dump stream into its
-# banner-delimited sections, classify each with injections.scm's own dispatch
-# table, and parse it with the dispatched member grammar (asserting no errors
-# beyond the documented known gaps). Needs the member parsers, so build them.
+# Parse each harvested section with the member grammar that injections.scm
+# picks. Builds the member parsers first.
 validate-injections:
     nix build ..#tree-sitter-ghc-core -o ../tree-sitter-ghc-core/result
     nix build ..#tree-sitter-ghc-stg -o ../tree-sitter-ghc-stg/result
     nix build ..#tree-sitter-ghc-cmm -o ../tree-sitter-ghc-cmm/result
     ../test/runners/validate-injections.sh | tapview
 
-# Ephemeral coverage check: generate a mixed multi-IL stream with GHC into a
-# temp dir, parse it, report errors, tear down (nothing committed, see
-# test/runners/gen-corpus.sh).
+# Generate a multi-IL stream with GHC in a temp dir and parse it.
 gen-corpus: build
     ../test/runners/gen-corpus.sh {{ slug }} | tapview
