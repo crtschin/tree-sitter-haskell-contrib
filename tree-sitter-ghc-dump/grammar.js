@@ -10,39 +10,24 @@
 
 import { banner } from "./common/grammar/haskell.mjs";
 
-// GHC can emit several intermediate-language dumps into one stream, e.g.
-//
-//   ghc -ddump-simpl -ddump-stg-final -ddump-cmm
-//
-// each introduced by a `==================== <pass> ====================`
-// banner.
-//
-// This grammar only splits that structure into (banner, body) sections and
-// leaves each body as one opaque node.
-//
-// queries/injections.scm dispatches a body to the matching member grammar
-// (ghc_core / ghc_stg / ghc_cmm) by banner text.
-//
-// Injection resolves at query/highlight time, so a bare parse keeps the bodies
-// opaque.
+// Splits a stream of GHC dumps (e.g. `-ddump-simpl -ddump-stg-final`) into
+// banner and body sections. queries/injections.scm hands each body to the
+// member grammar that its banner names, so a bare parse keeps bodies opaque.
 export default grammar({
   name: "ghc_dump",
 
   extras: ($) => [/\s/],
 
   rules: {
-    // Optional leading output (e.g. warnings before the first dump), then the
-    // banner-delimited sections.
+    // The leading body holds output before the first banner, e.g. warnings.
     source_file: ($) => seq(optional($.body), repeat($.section)),
 
     section: ($) => seq($.banner, optional($.body)),
 
-    // ==================== Tidy Core ==================== (shared). Wins over
-    // `_line` on a banner line via token precedence (equal length).
+    // Token precedence lets the banner beat `_line` on an equal-length match.
     banner,
 
-    // Everything up to the next banner, as a single node so injections.scm can
-    // hand the whole range to a member grammar.
+    // One node, so an injection gets the whole range up to the next banner.
     body: ($) => repeat1($._line),
 
     _line: ($) => token(/[^\n]+/),

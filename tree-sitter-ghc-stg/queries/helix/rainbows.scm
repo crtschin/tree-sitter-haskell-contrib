@@ -1,8 +1,5 @@
-; GHC STG dump rainbow brackets.
-
 [ "(" ")" "[" "]" "{" "}" "(#" "#)" ] @rainbow.bracket
 
-; Nodes that open a new nesting level.
 [
   (arg_list)
   (stg_arg_list)

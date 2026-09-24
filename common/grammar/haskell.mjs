@@ -1,24 +1,20 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Surface shared by the GHC Core and STG grammars: the System-FC type grammar
-// (compiler/GHC/Iface/Type.hs), the qualified-name and literal tokens, and the phase
-// banner. Spread the makeXRules() results into a grammar's `rules` after its own
-// `source_file` (which must stay the start rule). makeTypeRules needs makeLexicalRules:
-// the type rules reference $.variable/constructor/special_con/operator.
+// Rules that the GHC Core and STG grammars share: System-FC types, names,
+// literals and the phase banner. Spread each makeXRules() into `rules` after
+// `source_file`, the start rule. makeTypeRules needs makeLexicalRules.
 
 import { sepBy } from "./combinators.mjs";
 
-// GHC prints a phase banner around every dump, `==================== <phase>
-// ====================`, shared by all four grammars.
+// GHC prints a phase banner, `==== <phase> ====`, around every dump:
 //
-//   - The middle must hold a non-`=` char (the space-padded title), so an
-//     all-`=` divider line in a dump body is not a banner.
+//   - The middle must hold a non-`=` char, so an all-`=` divider is not a
+//     banner.
 //
-//   - A wide pass description wraps its parenthesised record across lines
-//     (GHC 9.12+ prints `Float out(FOS {..})` over several). The second alt
-//     absorbs those newlines inside the `(..)`, bounded by the first `)` so it
-//     cannot span unrelated banners.
+//   - The second alternative absorbs a pass record that wraps across lines
+//     (GHC 9.12+ `Float out(FOS {..})`). The first `)` bounds it, so it cannot
+//     span two banners.
 export const banner = ($) =>
   token(
     prec(
@@ -30,52 +26,40 @@ export const banner = ($) =>
     ),
   );
 
-// Integer / float / char / string literals (Core and STG print these the same).
 export function makeLiteralRules() {
   return {
     literal: ($) =>
       choice($._int_lit, $._float_lit, $._char_lit, $._string_lit),
 
-    // Unboxed numeric literals carry `#`/`##` (Int#/Word#) and, in some dumps, a
-    // glued type tag (`0#Word64`, `97#Word8`, `0#Int64`). The tag only follows a
-    // `#`, so a bare `0` never absorbs a trailing word.
+    // Some dumps glue a type tag to an unboxed literal (`0#Word64`). The tag
+    // only follows a `#`, so a bare `0` never absorbs a following word.
     _int_lit: ($) => token(/-?[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)/),
     _float_lit: ($) => token(/-?[0-9]+\.[0-9]+(#+[A-Za-z][A-Za-z0-9_]*|#*)/),
-    // A char escape may be multi-char: numeric (`'\2048'`, `'\65536'`) or named
-    // (`'\NUL'`). `\\.` takes the backslash + first escape char (covers `'\''`,
-    // `'\n'`, `'\\'`), then `[^']*` absorbs the rest up to the closing quote.
+    // An escape can be multi-char, e.g. `'\2048'` or `'\NUL'`, so `[^']*` takes
+    // the rest of it up to the closing quote.
     _char_lit: ($) => token(/'(\\.[^']*|[^'\\])'#*/),
-    // Backslash escapes any non-space char. GHC also emits long strings with a
-    // gap `\ <whitespace> \`, matched as its own alternative `\\\s+\\` for two
-    // reasons:
+    // GHC splits a long string with a gap, `\ <whitespace> \`. The gap has its
+    // own alternative for two reasons:
     //
-    //   - The gap's trailing `\` is consumed here, so it cannot pair with a
-    //     following `"` and end the string early.
+    //   - It consumes the trailing `\`, so that `\` cannot escape the closing
+    //     `"`.
     //
-    //   - The escape stays `\\\S`, disjoint from the gap. An overlapping
-    //     `\\[\s\S]` lets a `\ \ \ ..` run split many ways inside the `*`
-    //     (quadratic).
+    //   - The escape `\\\S` stays disjoint from the gap. An overlapping
+    //     `\\[\s\S]` lets a `\ \ \` run split many ways, which is quadratic.
     _string_lit: ($) => token(/"(\\\s+\\|\\\S|[^"\\])*"#*/),
   };
 }
 
-// Tickish prefix on a ticked expression, `<tickish> e`. Core and STG share
-// GHC's GenTickish printer (compiler/GHC/Core/Ppr.hs). Six forms:
+// The tickish prefix of a ticked expression, `<tickish> e`:
 //
-//   src<span>  scc<cc>  tick<cc>  scctick<cc>  hpc<mod,ix>  break<mod,ix>(vars)
+//   - token(prec(1)) wins the equal-length lex tie against $.variable, which
+//     otherwise munches the `<..>`.
 //
-// Lexing subtleties:
+//   - The `break` form includes its free-var list `(v,..)`. As a separate atom,
+//     that list takes the body slot, and a `case` or `let` body has no slot.
 //
-//   - token(prec(1)) makes a keyword-led `<..>` win the equal-length lex tie
-//     against $.variable, whose operator-suffix class would else munch it.
-//
-//   - The `break` form folds in its glued free-var list `(v,..)`. Left as a
-//     trailing atom it fills the body slot, so a non-atom body (`case`/`let`)
-//     has nowhere to go.
-//
-//   - The scc label may be an operator holding `>` (`scc<<?>>`), so the payload
-//     takes any non-whitespace run, ending at the last `>` before the space
-//     GHC always prints before the body.
+//   - An scc label can hold `>` (`scc<<?>>`), so the payload runs to the last
+//     `>` before the space that GHC prints before the body.
 export function makeTickRules() {
   return {
     tick_expr: ($) => seq($.tickish, $._expr),
@@ -89,29 +73,23 @@ export function makeTickRules() {
   };
 }
 
-// Qualified GHC names. Each may carry an optional `pkg-ver:` package qualifier
-// and a `Module.Sub.` qualifier.
+// Qualified GHC names, each with an optional `pkg-ver:` and `Module.` prefix.
+// A trailing `{..}` is a -dppr-debug tag (`f{v r1iT}`). No name touches a
+// structural `{`, so the tag folds into the token.
 //
-//   - variable: a lower/underscore/$-led name (`#` may appear, for unboxed
-//     workers). Its body also admits:
-//       - Embedded `"..."` segments, where a HasField/HasCField dfun glues its
-//         type-level Symbol literal into the Id name
-//         (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`, `$fHasCFieldCTm"tm_sec"1`).
-//       - Trailing operator/colon segments for method selectors (`$c==`,
-//         `$c<$`, `$c.&.`) and operator-TyCon names (`$tc:~:1`).
-//       - A `.` in an operator run only beside a non-dot op char, so a
-//         `forall a.` dot stays the forall separator, not munched into `a.`.
+// A variable also admits:
 //
-//   - constructor: upper-led, with trailing `:Upper` segments for
-//     class-dictionary cons (C:C, C:Show, D:R:FInt).
+//   - `"..."` segments, where a HasField dfun glues a Symbol literal into the
+//     name (`$fHasFieldSymbol"toFirstElemPtr"PtrPtr`).
 //
-//   - operator: symbolic primops/ops in prefix position (+#, ==#, (.), (.&.)).
+//   - Trailing operator segments for method selectors (`$c==`) and operator
+//     TyCons (`$tc:~:1`).
 //
-//   - special_con: built-in/parenthesised cons ([] : (,) (##) (#,#) ()).
+//   - A `.` in an operator run only beside a non-dot operator char, so the
+//     dot in `forall a.` stays the separator.
 //
-// A trailing `{..}` is a -dppr-debug tag glued to the name (`f{v r1iT}`,
-// `Int{(w) tc 32}`). A name is never glued to a structural `{`, so folding the
-// tag into the token is safe and keeps the tree flat.
+// A constructor admits trailing `:Upper` segments for class dictionary cons
+// (`C:Show`, `D:R:FInt`).
 export function makeLexicalRules() {
   return {
     variable: ($) =>
@@ -122,31 +100,21 @@ export function makeLexicalRules() {
       token(
         /([a-z][A-Za-z0-9.-]*:)?([A-Z][A-Za-z0-9_']*\.)*[A-Z][A-Za-z0-9_'#]*(:[A-Z][A-Za-z0-9_'#]*)*(\{[^}]*\})?/,
       ),
-    // A symbolic operator. Two placement rules keep it distinct from the
-    // data-con operator and the binding separator:
+    // Two rules keep an operator apart from other tokens:
     //
-    //   - `:` is allowed only after the first char (a leading `:` is a data
-    //     constructor, see con_operator), so `>::`, `|>:` lex as one operator
-    //     while a bare `::` stays the dcolon.
+    //   - `:` only follows the first char, because a leading `:` is a data con.
+    //     So `>::` is one operator and a bare `::` stays the dcolon.
     //
-    //   - A lone `=` is the binding separator, never an operator (mirrors
-    //     type_operator). Without it a `=` lexes as a type atom and a
-    //     signature's type over-munches the binding line below. A `=`-led op
-    //     (==#, =<<) keeps a second symbol char.
+    //   - A `=`-led operator needs a second symbol char (`==#`, `=<<`). A lone
+    //     `=` is the binding separator. As a type atom, a lone `=` makes a
+    //     signature eat the binding line under it.
     operator: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*([-+*/<>!&|^%.~?][-+*/<>=!&|^%.~?:]*|=[-+*/<>=!&|^%.~?:]+)#*(\{[^}]*\})?/,
       ),
-    // Built-in and parenthesised cons. Two variants need care:
-    //
-    //   - The unboxed-sum injection con carries `_` slot markers and `|`
-    //     separators (`(# _| #)`, `(# |_ #)`, `(# _|| #)`). The `|` keeps it off
-    //     the unit `()` and the tuple con `(#,#)`.
-    //
-    //   - The nullary unboxed tuple prints `(##)`, or a spaced `(# #)` in
-    //     unarised STG, both matched by `\(#[ #]*#\)`.
-    //
-    // Spaces inside are part of the token.
+    // The unboxed-sum con has `_` slots and `|` separators (`(# _| #)`). The
+    // `|` keeps it apart from `()` and `(#,#)`. The nullary unboxed tuple prints
+    // `(##)`, or `(# #)` in unarised STG.
     special_con: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*(\[\]|:|\(,+\)|\(#[ #]*#\)|\(#(,+)#\)|\(#[ _]*\|[ _|]*#\)|\(\))(\{[^}]*\})?/,
@@ -154,7 +122,6 @@ export function makeLexicalRules() {
   };
 }
 
-// The System-FC type grammar. Depends on the lexical rules above and on `sepBy`.
 export function makeTypeRules() {
   return {
     _type: ($) => choice($.forall_type, $.function_type, $._type_btype),
@@ -168,8 +135,8 @@ export function makeTypeRules() {
           $._type,
         ),
       ),
-    // A `(a :: k)` binder is a type_paren_form. -dppr-debug decorates it with
-    // junk before the kind, `(a Nothing [tv] :: k)`, which is one too.
+    // A `(a :: k)` binder is a type_paren_form, which also covers the
+    // -dppr-debug form `(a Nothing [tv] :: k)`.
     _forall_binder: ($) => choice($.tyvar, $.inferred_tyvar, $.type_paren_form),
     inferred_tyvar: ($) =>
       seq(
@@ -179,15 +146,13 @@ export function makeTypeRules() {
         "}",
       ),
 
-    // `::` and its -fprint-unicode-syntax glyph.
     _dcolon: ($) => choice("::", "∷"),
 
     function_type: ($) => prec.right(seq($._type_btype, $._type_op, $._type)),
     _type_op: ($) =>
       choice("->", "→", "⊸", "=>", "⇒", "~R#", $.mult_arrow, $.type_operator),
-    // Two shapes: symbolic (possibly qualified) and colon-led. A lone `=` is
-    // never a type operator (it's the binding separator), so a `=`-led op needs
-    // a second symbolic char (==#, =<<). Literal arrows win by string precedence.
+    // A lone `=` is the binding separator, so a `=`-led operator needs a second
+    // symbol char. Literal arrows win over this token by string precedence.
     type_operator: ($) =>
       token(
         choice(
@@ -198,15 +163,19 @@ export function makeTypeRules() {
     mult_arrow: ($) => seq("%", $._type_atom, choice("->", "→")),
 
     _type_btype: ($) => choice($.type_apply, $._type_atom),
-    // A signature type greedily keeps a trailing atom rather than ceding it to the binding
-    // `name` slot: `table :: Map Int String` / `table = ..` else mis-parses as a
-    // data-con-wrapper `String` binding, and `foo :: Map a` steals `a`. Both derivations
-    // complete, so without a bias GLR tie-breaks it unpredictably (surfaces in a linked
-    // parser, not always the CLI). Only `constructor` and `tyvar` are stealable (the type
-    // atoms that are also valid `_def_name`s), so the prec.dynamic covers exactly those.
-    // They are spelled against _type_atom_rest, not _type_atom, so the boosted atoms do not
-    // overlap the plain ones (an unresolved [type_apply, _type_atom] conflict); a trailing
-    // `[..]` stays unboosted so a following `[IdInfo]` bracket still reduces to idinfo.
+    // A signature type keeps its trailing atom, so the next binding cannot take
+    // it as its name. Both parses complete, so with no bias GLR picks one
+    // unpredictably, and a linked parser can differ from the CLI. With no bias,
+    // `table :: Map Int String` makes `String` a binding.
+    //
+    //   - Only `constructor` and `tyvar` can also be a `_def_name`, so only
+    //     those get the prec.dynamic.
+    //
+    //   - They sit beside _type_atom_rest, which excludes them, so boosted and
+    //     plain atoms do not overlap in an unresolved conflict.
+    //
+    //   - A trailing `[..]` stays unboosted, so an `[IdInfo]` after the type
+    //     still reduces to idinfo.
     type_apply: ($) =>
       prec.left(
         seq(
@@ -234,7 +203,6 @@ export function makeTypeRules() {
         $.star,
         $.ellipsis,
       ),
-    // `*` is the lifted-type kind, printed `★` under -fprint-unicode-syntax.
     star: ($) => choice("*", "★"),
     ellipsis: ($) => "...",
 

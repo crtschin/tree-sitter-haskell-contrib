@@ -13,8 +13,7 @@
 
 #define NBSP 0x00A0
 
-// Optional call-rate instrumentation. Build with `-DSCANNER_STATS` (see
-// `just stats`). Off in normal builds.
+// Call-rate counters for `just stats`, compiled in only with `-DSCANNER_STATS`.
 #ifdef SCANNER_STATS
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,12 +38,10 @@ static const char *stats_path_name[SP_COUNT] = {
 
 static uint64_t stats_calls = 0;
 static uint64_t stats_path[SP_COUNT] = {0};
-// Iteration counts across all calls. avg = total / calls.
-static uint64_t stats_iter_entry_ws = 0; // pre-'\n' whitespace skip
-static uint64_t stats_iter_consume = 0;  // consume_blanks loop body
-static uint64_t stats_iter_comment = 0;  // comment skip char loop
+static uint64_t stats_iter_entry_ws = 0;
+static uint64_t stats_iter_consume = 0;
+static uint64_t stats_iter_comment = 0;
 static uint16_t stats_max_depth = 0;
-// NEWLINE-branch unwinds that actually popped. Near-zero means the pre-queue is idle.
 static uint64_t stats_newline_prequeued = 0;
 static bool stats_registered = false;
 
@@ -103,66 +100,59 @@ static void stats_dump(void) {
 #define STATS_PREQUEUE_END() ((void)0)
 #endif
 
-// Layout-sensitive scanner shared by tree-sitter-cabal and tree-sitter-cabal-project.
-// Cabal-syntax uses one lexer for both formats. The .cabal/.project split is semantic.
+// Layout scanner shared by tree-sitter-cabal and tree-sitter-cabal-project.
+// Cabal-syntax lexes both formats with one lexer, and the formats differ only in
+// meaning.
 //
-// ABI constraint: both grammars must list all six externals in this exact order.
-// Tree-sitter indexes valid_symbols by declared position, so reordering or removing one
-// shifts the rest and causes out-of-bounds reads here. Both grammars get the array from
-// makeCabalExternals in common/utils.mjs, which is what keeps the order in step.
-// cabal-project declares _section_name only for that alignment and never references it,
-// so its slot stays unset.
+// Both grammars must declare the six externals in the order of `enum Token`.
+// Tree-sitter indexes valid_symbols by that position, so a change in the order
+// causes out-of-bounds reads here. makeCabalExternals in common/utils.mjs gives
+// both grammars the same array. cabal-project never uses _section_name and
+// declares it only to keep the order.
 //
-// Leniencies beyond Cabal's own lexer (Distribution.Fields.Lexer): we accept input Cabal
-// rejects so editors don't fail fast. Tracked here so the divergence stays visible.
-//   1. Tabs in indentation, advanced to the next 8-space stop. Real HLS/Cabal corpus
-//      files carry stray tabs.
-//   2. NBSP (U+00A0) in indentation, counted as one space. Cheap to tolerate paste slips.
-//   3. CR (\r) anywhere, skipped, so CRLF parses identically to LF.
-//   4. Comment indent. Cabal `--` comments are layout-transparent at any column, which we
-//      match. Haskell's layout rule respects comment columns in places, so worth flagging.
+// The scanner accepts some input that Cabal (Distribution.Fields.Lexer) rejects,
+// so that editors do not fail on it:
+//   - A tab in indentation advances to the next 8-column stop. Real HLS and Cabal
+//     files contain stray tabs.
+//   - An NBSP (U+00A0) in indentation counts as one space.
+//   - The scanner skips every CR, so CRLF parses the same as LF.
 
-// NEWLINE      End of a logical line. Fires when the next non-blank line is at the same
-//              or greater indent, or to pre-queue a DEDENT not yet valid.
-// INDENT       Opens an indented block (pushes the column). Only valid right after a
-//              block header. Never valid alongside CONTINUATION.
-// DEDENT       Closes an indented block. Multi-level unwinds queue the extra DEDENTs in
-//              pending_dedents, drained on later calls.
-// CONTINUATION A field value's continuation line: next line deeper than cur_indent_lvl.
-//              Keeps a sibling field at the field-name column out of the value. Both
-//              grammars use this one rule, matching upstream, which measures continuations
-//              against the field's own column for both formats
-//              (Distribution.Fields.Parser.fieldLayoutOrBraces). A field value must
-//              therefore not open an indent block, or the pushed column would make its own
-//              continuation lines fail this test.
+// NEWLINE       Ends a logical line. Fires when the next non-blank line is at the
+//               same or a deeper indent, or to queue a DEDENT that is not valid yet.
+// INDENT        Opens an indented block and pushes its column. Valid only directly
+//               after a block header, and never together with CONTINUATION.
+// DEDENT        Closes an indented block. An unwind of more than one level queues
+//               the extra DEDENTs in pending_dedents.
+// CONTINUATION  Continues a field value on a line deeper than cur_indent_lvl. Both
+//               grammars measure against the column of the field, as upstream does
+//               (Distribution.Fields.Parser.fieldLayoutOrBraces). Thus a field value
+//               must not open an indent block, because the pushed column would make
+//               its own continuation lines fail this test.
 enum Token {
     NEWLINE,
     INDENT,
     DEDENT,
     CONTINUATION,
-    // Hidden Unicode-fallback name externals (see the dispatch in scanner_scan).
-    // SECTION_NAME is cabal-only. cabal-project declares but never uses it.
+    // Hidden externals for names that contain Unicode. See the name dispatch in
+    // scanner_scan.
     SECTION_NAME,
     FIELD_NAME,
 };
 
 typedef struct {
-    // Indent columns (spaces). Always holds the sentinel 0 at the root.
-    //   back()    == cur_indent_lvl  (innermost open block)
+    // Indent columns in spaces. The bottom entry is always the sentinel 0, and the
+    // top entry is cur_indent_lvl.
     Array(uint16_t) indents;
-    // DEDENTs queued for later calls: when NEWLINE fires but the next line is already
-    // shallower, the stack is pre-popped and the deficit stored here, one drained per
-    // DEDENT call without advancing.
+    // DEDENTs queued for later calls. If NEWLINE fires and the next line is already
+    // shallower, the scanner pops the stack at once and stores the count here. Each
+    // later DEDENT call drains one with no advance.
     uint16_t pending_dedents;
-    // Latches after the virtual NEWLINE at EOF. A file with no trailing newline needs one
-    // NEWLINE to close its last line, but the lexer can't advance past EOF, so firing it
-    // unconditionally would loop on the grammar's repeat($._newline). After this, only
-    // DEDENT-at-EOF may fire.
+    // Set after the virtual NEWLINE at EOF. A file with no trailing newline needs one
+    // NEWLINE to close its last line. The lexer cannot advance past EOF, so a NEWLINE
+    // with no latch would loop on repeat($._newline).
     bool eof_newline_emitted;
 } Scanner;
 
-// Reset to initial state (sentinel-0 stack, no queued dedents, EOF flag clear). Used at
-// construction and when scanner_deserialize gets a missing or invalid buffer.
 static void scanner_reset(Scanner *scanner) {
     array_clear(&scanner->indents);
     array_push(&scanner->indents, 0);
@@ -183,8 +173,7 @@ static void scanner_destroy(void *payload) {
     ts_free(scanner);
 }
 
-// Name-char predicates for the section_name / field_name dispatch. The `>= 0x80` clause
-// lets Unicode names parse without a DFA-bloating Unicode regex (see the dispatch).
+// `>= 0x80` accepts Unicode names. See the name dispatch in scanner_scan.
 static inline bool is_name_start(int32_t c) {
     return (c >= 'a' && c <= 'z')
         || (c >= 'A' && c <= 'Z')
@@ -197,12 +186,10 @@ static inline bool is_name_cont(int32_t c) {
     return is_name_start(c) || c == '-';
 }
 
-// Skip spaces and blank lines, returning the next significant char's column. Tab/NBSP/CR
-// handling follows the leniencies up top.
 static uint16_t consume_blanks(TSLexer *lexer) {
     uint32_t indent = 0;
     while (true) {
-        // Ordered by frequency in real .cabal files: space, newline, tab, CR, NBSP.
+        // Ordered by frequency in real .cabal files.
         if (lexer->lookahead == ' ') {
             indent++;
             lexer->advance(lexer, true);
@@ -225,11 +212,11 @@ static uint16_t consume_blanks(TSLexer *lexer) {
     return indent > UINT16_MAX ? UINT16_MAX : (uint16_t)indent;
 }
 
-// Wire format for tree-sitter's incremental parse cache.
+// Serialized layout, little-endian:
 //   [pending lo][pending hi][stack_size lo][stack_size hi][eof_flag]
 //   then stack_size pairs of [col lo][col hi].
-// Little-endian (the buffer is unaligned) and aliased as unsigned char so 128..255 store
-// well-definedly (plain char would be implementation-defined, C17 6.3.1.3p3).
+// The code writes the buffer as unsigned char, because a plain char store of 128..255
+// is implementation-defined (C17 6.3.1.3p3).
 enum {
     SERIAL_HEADER_BYTES = 5,
     SERIAL_ENTRY_BYTES = 2,
@@ -237,8 +224,6 @@ enum {
         (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - SERIAL_HEADER_BYTES) / SERIAL_ENTRY_BYTES,
 };
 
-// stack_size is clamped to what fits after the header, so the count never exceeds the
-// bytes that follow. The header always fits (buffer is 1024).
 static unsigned scanner_serialize(void *payload, char *buffer) {
     Scanner *scanner = (Scanner *)payload;
     unsigned char *buf = (unsigned char *)buffer;
@@ -264,10 +249,9 @@ static unsigned scanner_serialize(void *payload, char *buffer) {
     return size;
 }
 
-// Restore from a scanner_serialize buffer, treated as untrusted. A buffer shorter than the
-// header, or a stack violating the invariants (non-empty, sentinel 0 at bottom, strictly
-// increasing), resets to fresh state. A corrupt stack would otherwise drive unwind_to to
-// pop past the sentinel and read off the end of indents.
+// The buffer is untrusted. A buffer shorter than the header, or a stack that is empty,
+// lacks the sentinel 0, or does not strictly increase, resets the scanner. A corrupt
+// stack lets unwind_to pop past the sentinel.
 static void scanner_deserialize(void *payload, const char *buffer, unsigned length) {
     Scanner *scanner = (Scanner *)payload;
     const unsigned char *buf = (const unsigned char *)buffer;
@@ -295,8 +279,6 @@ static void scanner_deserialize(void *payload, const char *buffer, unsigned leng
         array_push(&scanner->indents, v);
     }
 
-    // The invariant unwind_to relies on: bottom is 0 (uint16_t can't go negative) and
-    // each entry strictly exceeds the previous.
     bool valid = scanner->indents.size > 0 && *array_get(&scanner->indents, 0) == 0;
     for (uint32_t i = 1; valid && i < scanner->indents.size; i++) {
         if (*array_get(&scanner->indents, i) <=
@@ -309,8 +291,8 @@ static void scanner_deserialize(void *payload, const char *buffer, unsigned leng
     }
 }
 
-// Pop until the top is <= indent, queuing one DEDENT per pop. If indent lands between two
-// levels (error recovery), push it so the stack stays accurate.
+// Queues one DEDENT per pop. An indent between two levels (error recovery) gets its own
+// entry, so the stack stays accurate.
 static void unwind_to(Scanner *scanner, uint16_t indent) {
     uint16_t top = *array_back(&scanner->indents);
     bool popped = false;
@@ -331,20 +313,17 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
     STATS_ENTER();
     STATS_STACK(scanner->indents.size);
 
-    // Drain one queued DEDENT. No advance: the position was committed when the dedents
-    // were queued in a prior call.
+    // No advance. The call that queued the dedents already committed the position.
     if (valid_symbols[DEDENT] && scanner->pending_dedents > 0) {
         scanner->pending_dedents--;
         lexer->result_symbol = DEDENT;
         STATS_PATH(SP_PENDING_DEDENT); return true;
     }
-    // At EOF, return DEDENT on every call. Tree-sitter discards scanner state at the end,
-    // so the unpopped stack never matters.
+    // Tree-sitter discards the scanner state at EOF, so the stack can stay unpopped.
     if (UNLIKELY(valid_symbols[DEDENT] && lexer->eof(lexer))) {
         lexer->result_symbol = DEDENT;
         STATS_PATH(SP_EOF_DEDENT); return true;
     }
-    // Virtual EOF NEWLINE, latched so repeat($._newline) can't loop. See the struct field.
     if (UNLIKELY(valid_symbols[NEWLINE] && lexer->eof(lexer) &&
                  !scanner->eof_newline_emitted)) {
         scanner->eof_newline_emitted = true;
@@ -352,21 +331,14 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
         STATS_PATH(SP_EOF_NEWLINE); return true;
     }
 
-    // Name dispatch, shared by both grammars: choose between an ASCII terminal
-    // and this hidden external for field_name (and cabal's section_name).
-    //
-    //   - ASCII: return false and let the DFA pick, so keyword aliases (cabal's
-    //     ci-regex `library`/`if`, cabal-project's `_word` keywords
-    //     `package`/`repository`) win by precedence. Emitting unconditionally
-    //     would steal them.
-    //   - Unicode: commit. Both ASCII terminals stop at the first byte >= 0x80,
-    //     so the parser would otherwise error. Unicode can sit anywhere
-    //     (`x-無`, `Fünfstück`), so walk the whole body first.
-    //
-    // `lookahead` is the pre-decoded codepoint, so `>= 0x80` is a single
-    // compare. The wasted ASCII advances cost ~17M Ir on the cabal corpus, and
-    // dropping a Unicode range from the regex saves ~105M Ir. cabal-project
-    // never sets SECTION_NAME, so that branch is cabal-only.
+    // Name dispatch for field_name and section_name. The ASCII terminals stop at the
+    // first byte >= 0x80, so this external takes the names that contain Unicode:
+    //   - An ASCII name returns false so that the DFA picks. Keyword aliases, e.g.
+    //     `library` in cabal and `package` in cabal-project, then win by precedence.
+    //   - A Unicode name commits. Unicode can sit anywhere in a name, e.g. `x-無`
+    //     and `Fünfstück`, so the scanner reads the whole name first.
+    // A Unicode range in the regex costs ~105M Ir on the cabal corpus. The wasted
+    // ASCII advances here cost ~17M Ir.
     if (valid_symbols[SECTION_NAME] || valid_symbols[FIELD_NAME]) {
         while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
                lexer->lookahead == '\r' || lexer->lookahead == NBSP) {
@@ -385,12 +357,11 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
                     valid_symbols[FIELD_NAME] ? FIELD_NAME : SECTION_NAME;
                 return true;
             }
-            return false;  // ASCII: relinquish to DFA + keyword extraction.
+            return false;
         }
     }
-    // Skip horizontal whitespace and \r so trailing spaces before a line ending don't
-    // block NEWLINE/DEDENT. The scanner runs before extras are consumed, so it can sit on
-    // a trailing space.
+    // The scanner runs before extras, so it can sit on a trailing space that would
+    // otherwise block NEWLINE and DEDENT.
     while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
            lexer->lookahead == '\r' || lexer->lookahead == 0x00A0) {
         lexer->advance(lexer, true);
@@ -402,18 +373,18 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
 
     uint16_t cur_indent_lvl = *array_back(&scanner->indents);
 
-    // Past the '\n', then measure the next significant line's indent.
     lexer->advance(lexer, true);
     uint16_t indent = consume_blanks(lexer);
 
-    // Cabal `--` comments are layout-transparent, so they must not drive INDENT/DEDENT.
-    // Peek past a run of comment lines to the next real line's indent, marking the token
-    // end before the first comment so tree-sitter re-lexes it as extras.
+    // Cabal `--` comments are layout-transparent, so they must not drive INDENT or
+    // DEDENT. The scanner reads past comment lines to the indent of the next real line.
+    // It marks the token end before the first comment, so that tree-sitter lexes the
+    // comments again as extras.
     //
-    // pre_block: between a block header and its unopened body GLR makes both INDENT and
-    // DEDENT valid, so a header-column comment must be skipped for a deeper body line
-    // behind it to still produce INDENT. Inside an unclosed field only INDENT is valid, so
-    // pre_block is false and same-indent comments fall to the extras mechanism.
+    // Between a block header and its body, GLR makes both INDENT and DEDENT valid. A
+    // comment at the header column must then be skipped, so that a deeper body line
+    // after it still gives INDENT. Inside an open field only INDENT is valid, and a
+    // comment at the same indent goes to extras.
     bool pre_block = valid_symbols[INDENT] && valid_symbols[DEDENT];
     bool marked = false;
     while (lexer->lookahead == '-' && (indent != cur_indent_lvl || pre_block)) {
@@ -421,9 +392,9 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
             lexer->mark_end(lexer);
             marked = true;
         }
-        lexer->advance(lexer, true);  // past first '-'
+        lexer->advance(lexer, true);
         if (lexer->lookahead != '-') {
-            // Single '-', not a comment. mark_end already bounded the token before it.
+            // Not a comment. mark_end already ends the token before the '-'.
             break;
         }
         while (lexer->lookahead != '\n' && !lexer->eof(lexer)) {
@@ -434,7 +405,7 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
             indent = 0;
             break;
         }
-        lexer->advance(lexer, true);  // past '\n'
+        lexer->advance(lexer, true);
         indent = consume_blanks(lexer);
     }
 
@@ -443,21 +414,18 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
         lexer->result_symbol = INDENT;
         STATS_PATH(SP_INDENT); return true;
     } else if (valid_symbols[CONTINUATION] && indent > cur_indent_lvl) {
-        // INDENT is checked first to make its priority explicit. The grammar shouldn't
-        // make both valid.
         lexer->result_symbol = CONTINUATION;
         STATS_PATH(SP_CONTINUATION); return true;
     } else if (valid_symbols[DEDENT] && indent < cur_indent_lvl) {
-        // unwind_to queues one DEDENT per pop. Return one here and drop its count.
+        // unwind_to queued one DEDENT per pop, and this call returns the first.
         unwind_to(scanner, indent);
         scanner->pending_dedents--;
         lexer->result_symbol = DEDENT;
         STATS_PATH(SP_DEDENT_UNWIND); return true;
     } else if (valid_symbols[NEWLINE]) {
-        // No indent change, or DEDENT not yet valid: close the logical line with NEWLINE.
-        // Pre-queue: if the next line is already shallower but the grammar can't take
-        // DEDENT yet (e.g. a single-line field needing NEWLINE first), unwind now, before
-        // consume_blanks discards the indent the later DEDENT call would need.
+        // If the next line is shallower but DEDENT is not valid yet, e.g. after a
+        // single-line field that needs NEWLINE first, unwind now. The next call starts
+        // past the blanks, so it cannot measure this indent again.
         STATS_PREQUEUE_BEGIN();
         if (indent < cur_indent_lvl) {
             unwind_to(scanner, indent);
@@ -470,8 +438,7 @@ static bool scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbol
     }
 }
 
-// Emit both grammars' external-scanner ABI symbols. Each .so links one set via its
-// parser.c. The other is dead-stripped or unreachable.
+// Each parser.c links the symbols of one grammar. The other set is dead code.
 #define EXPORT(LANG)                                                                            \
     void *tree_sitter_##LANG##_external_scanner_create(void) { return scanner_create(); }       \
     void tree_sitter_##LANG##_external_scanner_destroy(void *p) { scanner_destroy(p); }         \

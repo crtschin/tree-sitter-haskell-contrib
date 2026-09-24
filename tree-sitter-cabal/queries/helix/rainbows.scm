@@ -1,6 +1,5 @@
-; cabal rainbow brackets. Only conditional predicates expose named bracket
-; nodes. Brackets inside field values are anonymous tokens with no container,
-; so they are left to highlights.scm.
+; Only predicates have named bracket nodes. A bracket in a field value has no
+; container node, so highlights.scm colors it.
 
 [ "(" ")" ] @rainbow.bracket
 

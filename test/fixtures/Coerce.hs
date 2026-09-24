@@ -1,9 +1,8 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
 
--- Source for generated Core fixtures (see `just gen-corpus`). Exercises the
--- coercion surface the simpler fixtures lack: newtype representation coercions
--- and `coerce` (casts), type-family axioms, and GADT equality evidence.
+-- Casts from newtypes and `coerce`, type-family axioms, and GADT equality
+-- evidence.
 module Coerce where
 
 import Data.Coerce (coerce)
@@ -28,9 +27,8 @@ evalG :: G a -> a
 evalG (GI n) = n
 evalG (GB b) = b
 
--- Richer GADT: a typed expression AST. Each alternative refines the index `a`,
--- so `eval` threads equality coercions (eq evidence / casts) through Core that
--- the two-constructor G never produces.
+-- Each alternative refines `a`, so `eval` gets equality coercions that G does
+-- not produce.
 data Expr a where
   IntLit :: Int -> Expr Int
   BoolLit :: Bool -> Expr Bool

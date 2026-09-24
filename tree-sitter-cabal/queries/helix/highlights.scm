@@ -1,30 +1,22 @@
 ; ===== shared with tree-sitter-cabal-project =====
 ;
-; Every node named below exists in both grammars, so this block is kept
-; byte-identical between the two files. Diff them before changing it. It is
-; duplicated rather than generated: tree-sitter has no query include, and Helix's
-; `; inherits:` pulls a whole language's queries, which would drag in the
-; grammar-specific tail below and fail to compile against the sibling.
+; Keep this block byte-identical in both cabal grammars. Tree-sitter has no
+; query include, and Helix `; inherits:` pulls in the whole sibling file, whose
+; tail does not compile against this grammar.
 
-; comments
 (comment) @comment
 
-; field names
 (field_name) @property
 
-; conditional keywords
 "if"   @keyword.conditional
 "elif" @keyword.conditional
 "else" @keyword.conditional
 
-; predicates
 (predicate_call
   fn: (identifier) @function.builtin)
 
-; identifier arguments to predicate calls
 (predicate_arg (identifier) @variable.parameter)
 
-; bare identifier used as a predicate atom
 (predicate_or    (identifier) @variable)
 (predicate_and   (identifier) @variable)
 (predicate_not   (identifier) @variable)
@@ -32,7 +24,6 @@
 (if_clause   condition: (identifier) @variable)
 (elif_clause condition: (identifier) @variable)
 
-; literals
 (boolean)        @constant.builtin.boolean
 (integer)        @number
 (version)        @number.float
@@ -42,22 +33,18 @@
 (flag_token)     @constant
 (qualified_name) @string
 
-; quoted strings and bare identifiers in field values
 (quoted_string) @string
 (text_fragment) @string
 (field_value (identifier) @string)
 
-; operators
 (constraint_op) @operator
 "!"             @operator
 "||"            @operator
 "&&"            @operator
 "="             @operator
 
-; wildcards / globs
 "*" @character.special
 
-; punctuation
 "," @punctuation.delimiter
 ":" @punctuation.delimiter
 "(" @punctuation.bracket
@@ -67,37 +54,30 @@
 
 ; ===== cabal-only =====
 
-; cabal-version directive
 (spec_version) @number
 
-; section headers
 (section_type) @keyword.type
 (section_name) @type
 
 (module_name)    @module
 
 ; Backpack renaming keywords. This pattern shape does two jobs:
-;   - The `field_value` parent keeps these out of error recovery. The token is reachable
-;     there too, and would colour `as`, `hiding` and `requires` mid-sentence in a
-;     `description` sitting under a half-typed stanza header.
-;   - The parent stays uncaptured, so each keyword in one value wins its own match.
-;     Capturing it collapses them to one. See Note [Later pattern wins].
+;   - The `field_value` parent keeps error recovery from coloring `as`,
+;     `hiding` and `requires` in a `description` under a half-typed header.
+;   - The parent stays uncaptured, so each keyword wins its own match. A
+;     captured parent collapses them to one. See Note [Later pattern wins].
 (field_value (renaming_keyword) @keyword.import)
 
 ; Note [Later pattern wins]
 ;
-; Among the patterns covering a token, the last one in the file wins, whatever its
-; specificity. So every override below has to stay under the generic rules, and has to
-; recapture each node it matches under a name the theme knows. A throwaway @_name on a
-; field name would win and blank it, as the first draft of the prose rule did to
-; `description`.
+; Among the patterns that cover a token, the last one in the file wins, whatever
+; its specificity. Keep every override under the generic rules, and recapture
+; each node that it matches under a name that the theme knows. A throwaway
+; @_name on a field name wins and blanks the name.
 
-; Prose fields. A bare `.` parses as `path`. That node type is right for
-; `hs-source-dirs: .`, a real directory, and only the colour is wrong when the token is a
-; sentence period. Recolour it here, where the field name is in scope, rather than
-; narrowing the grammar and losing the 56 real `hs-source-dirs: .` cases in the Cabal tree.
-; cabal.project has no prose fields and needs none of this.
-; See Note [Later pattern wins].
+; A sentence period in a prose field parses as `path`, which is correct for
+; `hs-source-dirs: .`. Recolor it here, where the field name is in scope. See
+; Note [Later pattern wins].
 ((field
   name: (field_name) @property
   value: (field_value (path) @string))
@@ -105,8 +85,8 @@
     "description" "synopsis" "author" "maintainer" "copyright"
     "category" "stability" "homepage" "bug-reports" "package-url"))
 
-; `<URL>`. Flanking a URL, constraint_op nodes act as bracket punctuation rather than
-; version comparisons. See Note [Later pattern wins].
+; In `<URL>`, the two constraint_op nodes are brackets. See
+; Note [Later pattern wins].
 ((constraint_op) @punctuation.bracket
   .
   (url)

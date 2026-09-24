@@ -1,4 +1,3 @@
-; Named stanzas.
 (stanza header: (stanza_header (package_name) @name)) @definition.section
 (stanza header: (stanza_header (repo_name)    @name)) @definition.section
 

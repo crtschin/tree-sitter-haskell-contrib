@@ -8,47 +8,30 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// These two dumps are bannerless line logs, NOT Core surface syntax (feed real
-// Core to tree-sitter-ghc-core). Each line is one record:
+// These dumps are bannerless line logs. They are not Core syntax, which
+// tree-sitter-ghc-core parses. Each line is one record:
 //
 //   Rule fired: <name> (<origin>)         -- origin is BUILTIN or a module
 //   Inlining done: <id>                   -- default form
 //
-// A rule name may hold spaces, arrows, symbols, and even parentheses
-// (`Class op +`, `Int# -> Integer -> Int#`, `fold/build`, `+#`,
-// `paren (in) name`).
+// A rule name can hold spaces, arrows, symbols, and parentheses, e.g.
+// `Int# -> Integer -> Int#` and `paren (in) name`. The scanner (src/scanner.c)
+// splits the name from the origin, and captures the `-dppr-debug` inlining body
+// as `detail`.
 //
-// The origin is the FINAL ` (...)` group at end of line, so the name-vs-origin
-// split needs lookahead a token regex cannot express: the scanner
-// (src/scanner.c) emits `rule_name` ending before that final group.
-//
-// The keyword tokens never lose a longest-match race because `rule_name`/`module`
-// are only valid AFTER their keyword (tree-sitter's lexer is state-scoped).
-//
-// `-ddump-inlinings -dppr-debug` instead emits a bare `Inlining done:` header
-// followed by an indented, multi-line typed-Core body. The scanner decides
-// id-vs-body by peeking past the keyword and captures the body opaquely as
-// `detail`, so verbose dumps parse without error.
+// `rule_name` and `module` are valid only after their keyword, so they never
+// beat a keyword token on longest match.
 export default grammar({
   name: "ghc_core_explain",
 
-  // Newlines are significant (they terminate a record and bound a verbose
-  // body). Only the intra-line gap is trivia.
+  // A newline ends a record and bounds a verbose body, so it is not an extra.
   extras: (_) => [/[ \t\f]/],
 
-  // Emitted by the scanner (src/scanner.c): the rule name (after `Rule fired:`,
-  // ending before the trailing origin), and after `Inlining done:` the
-  // same-line identifier or the indented verbose body block.
   externals: ($) => [$.rule_name, $.inlined_id, $.detail],
 
-  // A category's trailing inline count ("5 LetFloatFromLet 5") looks, in the
-  // token stream, like the leading count of the next category.
-  //
-  // Entries are not newline-separated at the top level, so the two parses are
-  // ambiguous until the separating newline arrives (it kills the "new category"
-  // stack, since a category needs a name after its count).
-  //
-  // GLR defers the choice to then.
+  // The trailing count in "5 LetFloatFromLet 5" looks like the leading count of
+  // the next category. GLR keeps both parses until the next newline, which ends
+  // the "new category" parse because a category needs a name after its count.
   conflicts: ($) => [[$.tick_category]],
 
   rules: {
@@ -74,8 +57,7 @@ export default grammar({
 
     provenance: ($) => seq("(", choice($.builtin, $.module), ")"),
 
-    // A built-in rule has no defining module. Wins the same-length tie with
-    // `module` on the literal "BUILTIN".
+    // Wins the tie with `module` on the literal "BUILTIN".
     builtin: (_) => token(prec(1, "BUILTIN")),
     module: (_) => token(/[A-Z][A-Za-z0-9_'.]*/),
 
@@ -85,24 +67,20 @@ export default grammar({
         choice(field("name", $.inlined_id), field("detail", $.detail)),
       ),
 
-    // `-ddump-simpl-stats`: the per-pass tick breakdown that rides in the same
-    // stream as the firing trace (coreviewer concatenates both into one body).
+    // The rules from here on parse the `-ddump-simpl-stats` tick breakdown.
+    // coreviewer puts it in the same body as the firing trace.
     //
-    // A blank separator line is a bare `_newline`. A `_indent` (newline THEN
-    // whitespace) heads a detail line.
-    //
-    // Longest-match picks between them, so no scanner state is needed as long as
-    // GHC's blank separators stay empty.
+    // A blank separator line is a bare `_newline`, and `_indent` (a newline, then
+    // whitespace) starts a detail line. Longest match picks between them, which
+    // holds only while the blank separators of GHC stay empty.
 
-    // "Simplifier reached fixed point after N iterations" and its bail-out /
-    // ticks-exhausted variants. Phrasing drifts across GHCs, so match the
-    // keyword and take the rest opaquely (mirrors coreviewer's verbatim keep).
+    // "Simplifier reached fixed point after N iterations" and its variants. The
+    // wording changes across GHC versions, so the rest of the line is opaque.
     iterations: (_) => seq("Simplifier", optional(token(/[^\r\n]+/))),
 
     total_ticks: ($) => seq("Total ticks:", field("count", $.number)),
 
-    // A column-0 bucket "<count> <Category>" (optionally a trailing inline
-    // count, e.g. "5 LetFloatFromLet 5"), then its indented per-binder detail.
+    // "<count> <Category>" at column 0, then indented detail lines.
     tick_category: ($) =>
       seq(
         field("count", $.number),
@@ -111,8 +89,8 @@ export default grammar({
         repeat($.tick_detail),
       ),
 
-    // "  <count> <name>": a rule phrase (spaces, arrows) under RuleFired, else
-    // a binder id. The name runs to end of line.
+    // The name is a rule phrase with spaces under RuleFired, and a binder id
+    // under every other category.
     tick_detail: ($) =>
       seq($._indent, field("count", $.number), field("name", $.detail_name)),
 

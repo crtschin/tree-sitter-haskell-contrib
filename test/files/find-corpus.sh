@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Walk one or more directories and emit absolute paths of files matching
-# the include globs, with exclude globs and per-root deny relpath patterns
-# applied. Output is sorted with LC_ALL=C.
+# Emit the files under each root that match an include glob, in C-locale order.
 #
 # Usage:
 #   find-corpus.sh --root <dir> [--root <dir>...]
@@ -58,8 +56,7 @@ for root in "${roots[@]}"; do
         rel="${f#"$root"/}"
         skip=0
         for d in "${deny[@]}"; do
-            # Unquoted $d on the RHS of [[ == ]] enables glob pattern
-            # matching. '*' matches any sequence including '/'.
+            # $d stays unquoted, so it matches as a glob.
             if [[ "$rel" == $d ]]; then skip=1; break; fi
         done
         [[ $skip -eq 0 ]] && printf '%s\n' "$f"

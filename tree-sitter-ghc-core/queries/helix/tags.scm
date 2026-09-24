@@ -1,6 +1,5 @@
-; Core bindings as symbols for the picker.
 (binding name: (variable) @name) @definition.function
 (binding name: (paren_operator (operator) @name)) @definition.function
-; CorePrep emits nullary data-con workers under their constructor name
-; (`Red :: Color` / `Red = Red`), so the binder is a constructor, not a variable.
+; CorePrep binds a nullary data-con worker under its constructor name, e.g.
+; `Red = Red`.
 (binding name: (constructor) @name) @definition.function

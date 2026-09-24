@@ -1,7 +1,4 @@
-; Sections as symbols for the picker.
-
 (library          name: (section_name) @name) @definition.module
-; Unnamed main library: tag with the section_type ("library") as the name.
 ((library !name (section_type) @name)) @definition.module
 (foreign_library  name: (section_name) @name) @definition.module
 (executable       name: (section_name) @name) @definition.function
@@ -11,14 +8,12 @@
 (common           name: (section_name) @name) @definition.section
 (source_repository name: (section_name) @name) @definition.section
 
-; custom-setup has no name, so tag with the section_type token.
 (custom_setup (section_type) @name) @definition.section
 
-; Tag every `signatures` entry, so a Backpack package's holes reach the symbol picker.
-; Both node kinds appear here: a dotted name lexes as `module_name` and a single-segment
-; one as `identifier`. The field name matches case-insensitively because the corpus
-; carries `Signatures` as well as `signatures`. Tag queries are read match by match, so
-; the collapse in Note [Later pattern wins] does not reach here.
+; Tag each `signatures` entry, so Backpack holes reach the symbol picker. A
+; dotted name lexes as `module_name` and a single segment as `identifier`. The
+; corpus also has `Signatures`, so the match ignores case. Tag queries read match
+; by match, so Note [Later pattern wins] does not apply.
 ((field
   name: (field_name) @_field
   value: (field_value [(identifier) (module_name)] @name)) @definition.module

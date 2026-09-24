@@ -1,4 +1,3 @@
-; Proc / info-table / offset-body / data-section / switch blocks indent.
 [
   (proc)
   (info_table)

@@ -38,15 +38,9 @@
           overlays = [ ];
         };
 
-        # Shared code lives under ./common: grammar.js helpers (./common/grammar,
-        # ./common/utils.mjs) and C scanners (./common/scanners). Every grammar
-        # reaches them through a checked-in `common` symlink (-> ../common) that
-        # `cp -rL` dereferences into the build source, so the build is
-        # self-contained and local `tree-sitter generate` resolves the same paths.
-        # A grammar that needs a C scanner additionally names it via `scanner`
-        # (e.g. "cabal.c", "ghc-core.c"), materialized as src/scanner.c, the
-        # declarative source of truth for which scanner it uses. stg/cmm/dump need
-        # no scanner (scanner unset).
+        # `cp -rL` copies the target of the `common` symlink in each grammar, so
+        # the build source is self-contained. `scanner` names a file in
+        # ./common/scanners that replaces src/scanner.c.
         buildTreeSitterPkg =
           {
             pname,
@@ -108,14 +102,8 @@
           language = "ghc_dump";
         };
 
-        # git-hooks.nix wires the generated git hooks into .git/hooks on `nix
-        # develop` and `nix flake check` runs them. Entries shell out to the
-        # justfile, the single source of truth shared with CI (see
-        # .github/workflows/test.yml). fmt + static checks are cheap, so they
-        # gate every commit. just test (the slow grammar build + corpus parse)
-        # is disabled as a push gate and left to CI and manual runs.
-        # Hooks assume the devShell is active (direnv `use flake`), so
-        # tree-sitter/nixfmt/prettier and `nix` are on PATH for the recipes.
+        # The hooks call the justfile recipes that CI calls, so they need the
+        # devShell tools on PATH. `just test` is too slow for a push gate.
         pre-commit-check = git-hooks.lib.${system}.run {
           src = ./.;
           hooks =
@@ -150,9 +138,6 @@
             };
         };
 
-        # Tools the CI recipes (just check / test / fmt check) shell out to.
-        # Factored out so the minimal `ci` devShell drops the local
-        # profiling/editor tooling while sharing one source of truth with default.
         ciPackages = with pkgs; [
           just
           nixfmt
@@ -161,8 +146,6 @@
           tree-sitter
         ];
 
-        # Corpus sources the parse/validate recipes read via env
-        # (test/runners/parse-corpus.sh, test/files/*.sh, validate-injections.sh).
         corpusEnv = {
           CABAL_SRC = "${cabal-src}";
           HLS_SRC = "${hls-src}";
@@ -180,8 +163,6 @@
           tree-sitter-ghc-dump = treeSitterGhcDump;
         };
 
-        # `nix flake check` runs the hooks over the tree, failing on a diff or
-        # a broken grammar.
         checks.pre-commit-check = pre-commit-check;
 
         devShells = {
@@ -205,10 +186,8 @@
             env = corpusEnv;
           };
 
-          # Minimal shell used by .github/workflows/test.yml: only the tools the
-          # just check / test / fmt-check recipes invoke, none of the local
-          # profiling/editor tooling and no git-hook install, to keep the CI
-          # store closure (and its cache) small.
+          # CI uses this shell. It has no local tools and no git hooks, so the
+          # CI cache stays small.
           ci = pkgs.mkShell {
             buildInputs = ciPackages;
             env = corpusEnv;
@@ -217,10 +196,9 @@
       }
     ))
     // {
-      # Single source of truth for test/runners/gen-corpus.sh's opt-in multi-version
-      # matrix (`gen-corpus.sh <lang> all`). Attr names resolve against the pinned
-      # nixpkgs, so bumping nixpkgs may require adjusting them. A plain string list,
-      # not built packages, so `nix flake check`/CI never realise the GHC closures.
+      # The GHC versions for `gen-corpus.sh <lang> all`, as nixpkgs
+      # haskell.compiler attributes. They are strings, so `nix flake check`
+      # never builds the GHCs.
       ghcVersions = [
         "ghc910"
         "ghc912"

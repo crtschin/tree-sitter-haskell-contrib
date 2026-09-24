@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# Parse every file in the named corpus preset with `tree-sitter parse`
-# (using the grammar in the current working directory) and emit TAP 14 on
-# stdout. Exits non-zero if any file fails to parse.
+# Parse every file of a corpus and fail if one has an error.
 #
 # Usage: parse-corpus.sh <preset>
-#   preset = cabal | cabal-project | ghc-core | ghc-core-explain | ghc-stg | ghc-cmm | ghc-dump
 #
-# Must be invoked from inside the grammar's directory (the one containing
-# tree-sitter.json) so `tree-sitter parse` picks the right parser.
+# Run it from the grammar directory, because `tree-sitter parse` finds the
+# parser from the cwd.
 
 set -uo pipefail
 
@@ -29,14 +26,12 @@ if [[ $n -eq 0 ]]; then
     exit 1
 fi
 
-# cwd auto-detects the parser. A load failure is a Bail out, not a silent all-ok pass.
 declare -A error_for=()
 if ! collect_parse_errors error_for "${files[@]}"; then
     echo "Bail out! tree-sitter could not parse preset $preset (build the grammar first?)"
     exit 1
 fi
 
-# Strip a known corpus root prefix for human-readable TAP labels.
 label_for() {
     local f="$1" root
     for root in "${CABAL_SRC:-}" "${HLS_SRC:-}" "${GHC_SRC:-}"; do

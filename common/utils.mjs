@@ -2,16 +2,11 @@
 // @ts-check
 
 // Case-insensitive regex for a keyword: each ASCII letter becomes [aA].
+// Cabal lowercases every field and section name in both formats, so `Library`
+// and `Package foo` are legal.
 //
-// Both formats need it. Cabal lowercases every field and section name as it builds them
-// (Distribution.Fields.Field.mkName), and that module is shared by the .cabal and
-// cabal.project parsers, so `Library` and `Package foo` are both legal.
-//
-// Not applied to `if`/`elif`/`else`, which the same lowercasing also makes case-insensitive.
-// Both grammars match them as plain literals, so `IF flag(dev)` is legal input they reject.
-// Left alone on the evidence: capitalised section headers appear in ~700 files of the Cabal
-// tree, capitalised conditionals in none. Fixing it would mean named keyword nodes in place
-// of the anonymous `"if"` tokens the shared highlight queries capture, for no real input.
+// `if`, `elif` and `else` stay case-sensitive. Cabal accepts `IF`, but no file
+// in the Cabal tree uses it.
 export function ci(str) {
   return new RegExp(
     str
@@ -23,18 +18,14 @@ export function ci(str) {
   );
 }
 
-// Horizontal whitespace for both cabal grammars. U+00A0 (non-breaking space) shows up in
-// some old .cabal files, and the scanner already counts it as indentation
-// (common/scanners/cabal.c), so the grammars have to accept it mid-line as well. Written
-// as an escape rather than a literal byte so an editor cannot silently eat it.
+// Horizontal whitespace for both cabal grammars. Some old .cabal files hold
+// U+00A0, which the scanner counts as indentation. The escape keeps an editor
+// from eating the byte.
 export const CABAL_WHITESPACE = /[ \t\r\u00a0]/;
 
-// The externals array for both cabal grammars. Order is the scanner's `enum Token` order
-// (common/scanners/cabal.c); tree-sitter matches externals to that enum by index, so a
-// grammar declares even the tokens it never uses. Keeping one definition here means the
-// two grammars cannot drift out of alignment with the scanner.
-//
-// Currently unused per grammar: `_section_name` in cabal-project (no section concept).
+// Externals for both cabal grammars, in the order of `enum Token` in
+// common/scanners/cabal.c. Tree-sitter maps externals to that enum by index,
+// so a grammar lists every token, e.g. cabal-project never uses `_section_name`.
 export function makeCabalExternals($) {
   return [
     $._newline,
@@ -46,26 +37,13 @@ export function makeCabalExternals($) {
   ];
 }
 
-// `pkg:sublib`, `pkg:*`, `*:*`, and `pkg:{a, b}`. One atomic token, shared by both grammars.
+// `pkg:sublib`, `pkg:*`, `*:*` and `pkg:{a, b}` as one token.
 //
-// Atomic is not a style choice, it is forced. A parser-level rule with `package:` and
-// `sublibrary:` fields would be friendlier to query, and cabal-project used to have one, but
-// any such rule commits at the colon and tree-sitter cannot backtrack over a consumed token.
-// `.cabal` prose then breaks: in Cabal's own Cabal.cabal,
-//
-//     description:
-//       The Haskell Common Architecture for Building Applications and
-//       Libraries: a framework defining a common interface ...
-//
-// the parser takes `Libraries` as a package, finds no sublibrary after the colon, and emits
-// an ERROR. Eleven real files in the corpus failed that way. Making the colon or the
-// sublibrary `token.immediate` does not help, because the commitment happens at the colon,
-// before the constraint is tested. As one token the whole shape either matches or the lexer
-// falls back to `identifier` + `":"`, which is why both grammars keep `":"` among their value
-// tokens.
-//
-// Consumers that want the halves can split the node text on the first `:`; that is cheap, and
-// unlike an ERROR node it is always available.
+// A parser-level rule commits at the colon, so prose such as
+// `Libraries: a framework` in a `description` becomes an ERROR.
+// `token.immediate` does not help, because the commit happens at the colon. As
+// one token, the shape matches whole or the lexer falls back to `identifier`
+// and `":"`, so both grammars keep `":"` as a value token.
 export function makeQualifiedNameRules({ precedence }) {
   const NAME = /[A-Za-z_][A-Za-z0-9_.\-]*/;
   return {
@@ -79,8 +57,8 @@ export function makeQualifiedNameRules({ precedence }) {
             choice(
               NAME,
               "*",
-              // A sublibrary set. Cabal allows spaces after `{`, around the commas, and
-              // before `}`; inside a token, extras do not apply, so fold them in by hand.
+              // Extras do not apply inside a token, so the spaces that Cabal
+              // allows around `{`, `,` and `}` are explicit.
               seq(
                 "{",
                 /[ \t]*/,
@@ -103,11 +81,8 @@ export const PREDICATE_PRECEDENCE = {
   call: 1,
 };
 
-// Predicate-expression rules shared by the cabal and cabal-project grammars. Spread the
-// result into the grammar's `rules`.
-//
-// `extraArgChoices`: rule names (looked up off `$`) appended to the `predicate_arg`
-// choice. cabal-project passes `["path"]`. cabal omits it (no `path` token).
+// `extraArgChoices` names extra rules for `predicate_arg`, e.g. `["path"]` in
+// cabal-project.
 export function makePredicateRules({ extraArgChoices = [] } = {}) {
   return {
     _predicate_expr: ($) =>
@@ -194,20 +169,12 @@ export function makeValueTokenRules({ precs }) {
 
     integer: ($) => token(prec(precs.integer, /[0-9]+/)),
 
-    // Filesystem paths and globs, one definition for both grammars. Must sit above
-    // `identifier` so a path is a single node: `packages: vendor/*` used to lex as an
-    // identifier in cabal-project while `./pkg-a` beside it lexed as a path, so one list
-    // produced two node types and two highlight colours.
+    // A value token is a path if it holds a `/`, is `.` or `..`, or starts with
+    // a glob char. The precedence sits above `identifier`, so `vendor/*` and
+    // `./pkg-a` in one list are both paths.
     //
-    // The bare `.`/`..` alternative is deliberately kept for `.cabal` too, where
-    // `hs-source-dirs: .` is ordinary. The cost is that a lone period in `description`
-    // prose (as in `...(http://x).`) also becomes a path. Getting real paths right is
-    // worth more than prose precision, and both render as string-ish anyway.
-    //
-    // The rule in one line: a value token is a path if it contains a `/`, or is `.`/`..`,
-    // or starts with a glob character. So `csrc/codec.h`, `vendor/*`, `pkg-*/` and
-    // `packages/**/*.cabal` are each one node, while a plain name stays an identifier and a
-    // bare `*` (glob-all, `packages: *`) stays its own token.
+    // The bare `.` alternative serves `hs-source-dirs: .`. As a cost, a lone
+    // period in `description` prose also lexes as a path.
     path: ($) =>
       choice(
         token(
@@ -221,11 +188,10 @@ export function makeValueTokenRules({ precs }) {
             ),
           ),
         ),
-        // A Windows drive-letter path (`with-compiler: C:\ghc\bin\ghc.exe`). Separate
-        // because its precedence pulls the other way: it has to outrank `qualified_name`,
-        // which would otherwise read `C:` as package:sublibrary and leave the backslash as
-        // an ERROR, while the alternatives above have to stay under `flag_token` so
-        // `-optP-I/usr/include` keeps its flag instead of becoming one path.
+        // A Windows drive path (`C:\ghc\bin\ghc.exe`). It must outrank
+        // `qualified_name`, which reads `C:` as a package and a sublibrary. The
+        // other alternatives must stay under `flag_token`, so
+        // `-optP-I/usr/include` stays a flag.
         token(prec(precs.path_drive, /[A-Za-z]:[\\/][^\s,()"]*/)),
       ),
 
@@ -234,10 +200,8 @@ export function makeValueTokenRules({ precs }) {
 
     quoted_string: ($) => token(/"[^"\n]*"/),
 
-    // Catch-all for value text no other token claims, at the lowest precedence so it only
-    // fills gaps. Both grammars need it: without it, a Windows compiler path
-    // (`C:\ghc\bin\ghc.exe`), a semicolon-separated dir list, or a plugin arg with `@`
-    // produces ERROR nodes instead of degrading.
+    // Catch-all at the lowest precedence. With no catch-all, a value such as a
+    // `;`-separated dir list or a plugin arg with `@` is an ERROR.
     text_fragment: ($) => token(prec(-1, /[^\s,()!*<>{}=\n"]+/)),
 
     comment: ($) => token(seq("--", /[^\n]*/)),

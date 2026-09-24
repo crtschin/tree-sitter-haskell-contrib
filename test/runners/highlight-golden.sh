@@ -1,28 +1,13 @@
 #!/usr/bin/env bash
-# Diff the resolved highlighting against a golden. Runs `tree-sitter highlight`
-# over a grammar's committed test/extract-samples/* and compares the winning
-# capture per token against test/highlights.golden.
+# Run `tree-sitter highlight` over test/extract-samples/* and diff the winning
+# capture of each token against test/highlights.golden. check-queries.sh cannot
+# see which of two overlapping patterns wins. See Note [Later pattern wins] in
+# tree-sitter-cabal/queries/helix/highlights.scm.
 #
-# check-queries.sh only proves each queries/*.scm parses against the grammar. It
-# cannot see which pattern wins where two overlap, which has bitten here. See
-# Note [Later pattern wins] in tree-sitter-cabal/queries/helix/highlights.scm.
-#
-# `--css-classes` emits capture names as classes, so the golden carries no theme
-# colours. Classes still come from the config theme's keys, and a capture missing
-# there collapses to its nearest ancestor (`keyword.type` -> `keyword`), so the
-# theme is derived from the query files on every run instead of committed.
-#
-# Two things this gate cannot see:
-#   - A capture name no editor theme defines. The theme comes from the queries under
-#     test, so every capture is a key by construction. `@keyword.import` is one such
-#     name, defined by 2 of the 214 themes Helix ships while 33 define
-#     `keyword.control.import`. Catching that needs a real theme.
-#   - A golden block whose sample file is gone. `find` builds the sample list and
-#     golden_block only pulls blocks for samples it found, so an untracked sample reads
-#     as green with its golden dead.
-#
-# `--update` rewrites the golden. TAP 14 on stdout, one test per sample file. Run
-# from anywhere.
+# This gate cannot find:
+#   - A capture name that no editor theme defines, because the theme comes from
+#     the queries under test.
+#   - A golden block whose sample file is gone.
 #
 # Usage: highlight-golden.sh <slug> [--update]
 
@@ -41,8 +26,8 @@ golden="$dir/test/highlights.golden"
 mapfile -t samples < <(find "$samples_dir" -type f 2>/dev/null | LC_ALL=C sort)
 [[ ${#samples[@]} -gt 0 ]] || { echo "Bail out! no samples in $samples_dir"; exit 1; }
 
-# Keys are every capture name this grammar's queries use, so `--css-classes`
-# reports each capture verbatim. The colours are never read.
+# The theme keys are every capture name in the queries. A capture that is not a
+# key collapses to its nearest ancestor, e.g. `keyword.type` to `keyword`.
 config="$(mktemp -d)/config.json"
 trap 'rm -rf "$(dirname "$config")"' EXIT
 {
@@ -53,16 +38,11 @@ trap 'rm -rf "$(dirname "$config")"' EXIT
     printf '}}\n'
 } >"$config"
 
-# One `<line>\t<capture>\t<text>` per run of highlighted text, in source order. Text no
-# pattern captured is skipped, so a capture that stops matching shows up as a missing
-# line, the regression worth catching. Class names come back space-separated
-# (`string special path`). Keep that form, it is what the CLI emits.
+# Emit one `<line>\t<capture>\t<text>` per run of highlighted text.
 #
-# The stack decodes nesting. A capture on a container node wraps the captures on its
-# descendants, the CLI renders that as nested spans, and the innermost open class governs
-# the text. A non-greedy `<span ...>(.*?)</span>` would close the outer span on the inner
-# tag and silently record truncated text. Nothing nests today, but nesting is how one
-# capture spatially overrides another, which is what this gate watches.
+# The stack decodes nested spans, and the innermost class wins. A non-greedy
+# `<span ...>(.*?)</span>` closes the outer span on the inner tag and truncates
+# the text.
 normalize() { # normalize <sample>
     ( cd "$dir" && tree-sitter highlight --html --css-classes --config-path "$config" "$1" 2>/dev/null ) \
         | sed -n '/<table>/,/<\/table>/p' \

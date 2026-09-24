@@ -1,6 +1,5 @@
--- Source for a generated Core fixture (see `just gen-core-corpus`). Compiled
--- with -g3 so the simplifier keeps SourceNotes, which print as `src<...>`
--- ticks in the Core dump -- a construct absent from the harvested corpus.
+-- The -g3 cells print `src<...>` ticks, which the harvested corpus does not
+-- have.
 module Ticks where
 
 area :: Double -> Double -> Double

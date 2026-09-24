@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
-# Generate an EPHEMERAL GHC dump matrix for one grammar, parse each file with the
-# freshly-built grammar (result/parser), report errors, then delete everything
-# (the dumps live in a `mktemp` dir removed on exit).
+# Compile the fixtures into a temporary GHC dump matrix, parse each dump with the
+# built grammar, then delete the dumps. Run `just build` first.
 #
-# The on-demand coverage check for grammar development. Its default
-# single-version run is also part of `just test`/CI via _il-test.
-#
-# Pulls GHC on demand via `nix shell`. Run from a grammar dir after `just build`.
-#
-# Usage: gen-corpus.sh <ghc-core|ghc-stg|ghc-cmm|ghc-dump> [all | <ghc-attr>...]
-#   (no selector)  the default GHC (nixpkgs#ghc), what `just test --fast` uses
-#   all            every version in flake.nix `ghcVersions` (heavy)
-#   <ghc-attr>...  explicit nixpkgs haskell.compiler attrs, e.g. ghc96 ghc98
-# The selector may also come from $GEN_GHC; `just test` sets GEN_GHC=all so the
-# default suite validates every version (`--fast` leaves it unset for one GHC).
+# Usage: gen-corpus.sh <ghc-core|ghc-core-explain|ghc-stg|ghc-cmm|ghc-dump> [all | <ghc-attr>...]
+#   (no selector)  the default GHC, nixpkgs#ghc
+#   all            every version in flake.nix `ghcVersions`
+#   <ghc-attr>...  nixpkgs haskell.compiler attrs, e.g. ghc96 ghc98
+# With no selector argument, $GEN_GHC gives the selector.
 
 set -uo pipefail
 
@@ -29,8 +22,6 @@ repo="$(cd "$(dirname "$0")/../.." && pwd)"
 parser_dir="$repo/tree-sitter-$lang/result/parser"
 ts_lang="${lang//-/_}"
 
-# Version selector: positional args after <lang>, else $GEN_GHC. `all` expands
-# to the flake's `ghcVersions`. Bare attrs are nixpkgs haskell.compiler names.
 sel=("${@:2}")
 [[ ${#sel[@]} -eq 0 && -n "${GEN_GHC:-}" ]] && read -ra sel <<<"$GEN_GHC"
 versions=("default")
@@ -45,8 +36,7 @@ fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# One `nix shell` per version amortises closure realisation across all compiles
-# for that version. $GEN_* come from the environment. $GEN_TMP namespaces output.
+# One `nix shell` per version realises the GHC closure once for every compile.
 generate_for() { # generate_for <nix-ref> <out-dir>
     mkdir -p "$2"
     GEN_TMP="$2" GEN_REPO="$repo" GEN_LANG="$lang" \
@@ -54,14 +44,9 @@ generate_for() { # generate_for <nix-ref> <out-dir>
 set -uo pipefail
 cd "$GEN_REPO"
 
-# Compile one fixture with the given dump flags.
-#
-#   - -ddump-to-file routes each pass to its own <sub>/<Module>.dump-<pass>
-#     file.
-#   - Each cell gets a distinct -outputdir (GHC aliases dumpdir to it), so
-#     different format cells do not overwrite each other's <Module>.dump-simpl.
-#   - Failures (a fixture that rejects a flag combo) are tolerated. Coverage is
-#     best-effort per cell.
+# Each cell gets its own -outputdir, because GHC writes the dumps there and two
+# cells otherwise overwrite the same <Module>.dump-simpl. A compile failure for
+# one flag set is not an error.
 emit() { # emit <out-subdir> <ghc-flags...>
     local sub="$1"; shift
     local hs
@@ -71,15 +56,9 @@ emit() { # emit <out-subdir> <ghc-flags...>
     done
 }
 
-# Each IL grammar sets two variables, run by the shared loop below:
-#
-#   - `passes`: every dump flag of that IL, emitted at the default format in
-#     one compile per fixture.
-#   - `formats`: a display matrix applied to `fmt_pass` (one representative
-#     pass).
-#
-# ghc-dump is special (a multi-IL stream). Inapplicable cells produce no dump,
-# since the parse step only sees files that were generated.
+# Each IL sets `passes`, every dump flag at the default format, and `formats`,
+# the display flags applied to the one pass `fmt_pass`. The matrix is one factor
+# at a time, never the full product. A cell that does not apply makes no dump.
 case "$GEN_LANG" in
     ghc-core)
         passes="-ddump-ds -ddump-ds-preopt -ddump-simpl -ddump-simpl-iterations \
@@ -106,9 +85,8 @@ case "$GEN_LANG" in
         )
         ;;
     ghc-core-explain)
-        # Bannerless simplifier logs. -dppr-debug leaves rule firings unchanged
-        # but expands inlinings into indented typed-Core bodies (the scanner's
-        # `detail` path), so it is the representative format cell.
+        # -dppr-debug expands inlinings into indented Core bodies, the `detail`
+        # path of the scanner. It does not change rule firings.
         passes="-ddump-rule-firings -ddump-inlinings"
         fmt_pass="-ddump-inlinings"
         formats=(
@@ -153,23 +131,19 @@ case "$GEN_LANG" in
         )
         ;;
     ghc-dump)
-        # The container consumes a multi-IL stream: several -ddump passes to
-        # stdout in one compile (NOT -ddump-to-file, which would split them).
+        # The container parses several ILs in one stream, so these compiles do
+        # not use -ddump-to-file.
         for hs in test/fixtures/*.hs; do
             mod="$(basename "$hs" .hs)"
             ghc -c -fforce-recomp -O2 -ddump-simpl -ddump-stg-final -ddump-cmm \
                 -outputdir "$GEN_TMP/o" "$hs" >"$GEN_TMP/$mod.mixed.dump" 2>/dev/null || true
-            # -g3 keeps SourceNotes, so every sub-IL in the stream carries
-            # src<...> ticks: the container must span them across the multi-IL
-            # boundaries too, not just each grammar in isolation.
+            # -g3 puts src<...> ticks into every IL of the stream.
             ghc -c -fforce-recomp -O2 -g3 -ddump-simpl -ddump-stg-final -ddump-cmm \
                 -outputdir "$GEN_TMP/o-ticks" "$hs" >"$GEN_TMP/$mod.mixed-ticks.dump" 2>/dev/null || true
         done
         ;;
 esac
 
-# IL grammars: every pass at default format, then the representative pass
-# across the display-format matrix.
 if [[ -n "${passes:-}" ]]; then
     emit passes $passes
     for fmt in "${formats[@]}"; do
@@ -184,8 +158,7 @@ for v in "${versions[@]}"; do
     generate_for "$ref" "$tmp/$v" || echo "warning: generation failed for $v" >&2
 done
 
-# Drop GHC's wall-clock timestamp line (a -ddump-to-file artifact absent from
-# stderr dumps) so what we parse matches the real-world surface.
+# -ddump-to-file adds a timestamp line that a stderr dump does not have.
 find "$tmp" -type f \( -name '*.dump-*' -o -name '*.dump' \) \
     -exec sed -i -E '/^[0-9]{4}-[0-9]{2}-[0-9]{2} .*UTC$/d' {} +
 
@@ -202,29 +175,22 @@ if [[ ! -e "$parser_dir" ]]; then
     exit 1
 fi
 
-# A parser load failure is a Bail out, not a silent all-ok pass.
 declare -A error_for=()
 if ! collect_parse_errors error_for --lib-path "$parser_dir" --lang-name "$ts_lang" "${files[@]}"; then
     echo "Bail out! parser at $parser_dir failed to load"
     exit 1
 fi
 
-# Known long-tail gaps (<format-cell>/<Module>.dump-<pass> labels): cells whose
-# generated dump is outside the grammar's modelled scope. That covers a
-# non-Tidy-Core pass (CorePrep, a Float-out pass header, a multi-iteration
-# dump), an analysis dump in a non-IL format (Cmm CAFEnv), or an exotic
-# -dppr/-fprint display format. Emitted as TAP `# TODO` so they stay visible
-# without failing the gate. A NEW failure outside this set still fails.
+# Cells outside the scope of the grammar, keyed <format-cell>/<Module>.dump-<pass>.
+# They print as TAP `# TODO` and do not fail the gate.
 declare -A xfail=()
-# Structural gaps (scanner limitation or wholesale-out-of-scope format) apply to
-# every fixture, so they are keyed off the fixture set rather than a
-# hand-maintained module list (new fixture covered without editing this file).
-# Content-specific cells are listed individually so a NEW failure fails the gate.
+# A gap in a whole format applies to every fixture. List a gap in one module by
+# its own key, so that a new failure still fails.
 mods=()
 for hs in "$repo"/test/fixtures/*.hs; do mods+=("$(basename "$hs" .hs)"); done
 case "$lang" in
-ghc-core) ;;         # no remaining gaps
-ghc-core-explain) ;; # no remaining gaps (verbose inlinings captured as `detail`)
+ghc-core) ;;
+ghc-core-explain) ;;
 ghc-cmm)
     for m in "${mods[@]}"; do
         xfail["ppr-debug/$m.dump-cmm"]="heavily-decorated -dppr-debug developer format (package prefixes, unique tags throughout)"
@@ -242,10 +208,8 @@ i=0
 for f in "${files[@]}"; do
     i=$((i + 1))
     label="${f#"$tmp"/}"
-    label="${label/test\/fixtures\//}" # drop the source-path noise GHC mirrors
-    # label carries a leading "<version>/" segment. xfail keys are
-    # version-agnostic, so match on the stripped key, but let a version-qualified
-    # key win if one is ever added.
+    label="${label/test\/fixtures\//}"
+    # An xfail key has no "<version>/" prefix. A key with the prefix wins.
     xkey="${label#*/}"
     reason="${xfail[$label]:-${xfail[$xkey]:-}}"
     todo=""
@@ -255,7 +219,6 @@ for f in "${files[@]}"; do
         echo "  ---"
         echo "  error: ${error_for[$f]}"
         echo "  ..."
-        # Only an unexpected (non-xfail) failure fails the gate.
         [[ -z "$reason" ]] && exit_code=1
     else
         echo "ok $i - $label$todo"

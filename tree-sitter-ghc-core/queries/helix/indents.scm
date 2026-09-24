@@ -1,4 +1,3 @@
-; Brace/paren-delimited blocks indent their contents.
 [
   (let)
   (case)

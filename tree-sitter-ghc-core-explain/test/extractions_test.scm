@@ -1,6 +1,5 @@
 ; Extraction contract for the extract-golden gate (test/runners/extract-golden.sh).
-; Captures the semantic payload each record must expose, so the golden asserts
-; both shape and the exact extracted text (not merely absence of ERROR nodes).
+; The golden records the exact text of each capture.
 
 (rule_firing
   name: (rule_name) @rule.name

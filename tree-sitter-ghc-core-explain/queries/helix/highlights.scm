@@ -22,9 +22,8 @@
 ; -dppr-debug verbose inlining bodies are opaque typed-Core soup.
 (detail) @comment
 
-; simpl-stats breakdown. detail_name is uniformly @variable: it mixes binder ids
-; (most categories) and rule phrases (RuleFired), but splitting them needs an
-; #eq? predicate that coreviewer's query runner does not evaluate.
+; detail_name holds binder ids and, under RuleFired, rule phrases. A split needs
+; an #eq? predicate, and the query runner of coreviewer ignores predicates.
 (number) @number
 (category_name) @constructor
 (detail_name) @variable

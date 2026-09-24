@@ -1,22 +1,20 @@
 ; ===== shared with tree-sitter-cabal =====
 ;
-; Kept byte-identical between the two files (see highlights.scm for why it is
-; duplicated rather than generated).
+; Keep this block byte-identical in both cabal grammars. highlights.scm says
+; why.
 
-; if / elif / else bodies indent one level.
 [
   (if_clause)
   (elif_clause)
   (else_clause)
 ] @indent @extend
 
-; Multi-line field values. The indent token is a hidden external, so detect
-; multi-line values with the predicate; the structure does not mark them.
+; The indent token is a hidden external, so the predicate finds a multi-line
+; value.
 ((field (field_value) @v) @indent
   (#not-one-line? @v)
   (#set! "scope" "tail"))
 
 ; ===== cabal-project-only =====
 
-; Each stanza body indents one level relative to its header.
 (stanza) @indent @extend

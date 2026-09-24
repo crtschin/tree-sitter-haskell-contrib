@@ -1,23 +1,15 @@
 #!/usr/bin/env bash
-# Profile `tree-sitter parse` over the named corpus preset under valgrind
-# and emit the chosen tool's output (and annotated text report where the
-# tool has one).
+# Profile `tree-sitter parse` over a corpus with valgrind.
 #
-# Usage: valgrind-corpus.sh <preset> <output-prefix> [--tool=TOOL]
-#   preset = cabal | cabal-project
-#   TOOL   = callgrind (default) | cachegrind | memcheck | massif
+# Usage: valgrind-corpus.sh <cabal|cabal-project> <output-prefix> [--tool=TOOL]
+#   TOOL = callgrind (default) | cachegrind | memcheck | massif
 #
-# Emits:
-#   <output-prefix>.out  raw tool output
-#   <output-prefix>.txt  annotated report (callgrind/cachegrind/massif)
+# Writes <output-prefix>.out, and a <output-prefix>.txt report for every tool
+# except memcheck.
 #
-# Must be invoked from inside the grammar's directory (the one containing
-# tree-sitter.json) so `tree-sitter parse` picks the right parser.
-#
-# The scanner .so is rebuilt with `-O1 -g -fno-omit-frame-pointer` so
-# valgrind can attribute instructions to lines in scanner.c. After the
-# run an uninstrumented rebuild restores the cache, mirroring the
-# pattern used by `just stats`.
+# Run it from the grammar directory, because `tree-sitter parse` finds the
+# parser from the cwd. The run rebuilds the cached parser with debug symbols,
+# then rebuilds it without them.
 
 set -uo pipefail
 

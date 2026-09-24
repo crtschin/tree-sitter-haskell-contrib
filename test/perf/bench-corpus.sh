@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-# Benchmark `tree-sitter parse` over the named grammar's corpus using
-# hyperfine. Relative, machine-dependent throughput -- nothing is committed;
-# compare across runs/branches by hand.
+# Benchmark `tree-sitter parse` over the corpus of a grammar with hyperfine.
+# The numbers depend on the machine, so nothing is committed.
 #
 # Usage: bench-corpus.sh <slug>
-#   slug = any grammar with a test/files/<slug>-files.sh selector
-#          (cabal | cabal-project | ghc-core | ghc-core-explain | ghc-stg |
-#           ghc-cmm | ghc-dump)
 #
-# Must be invoked from inside the grammar's directory (the one containing
-# tree-sitter.json) so `tree-sitter parse` picks the right parser.
+# Run it from the grammar directory, because `tree-sitter parse` finds the
+# parser from the cwd.
 
 set -uo pipefail
 

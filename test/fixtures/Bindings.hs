@@ -1,19 +1,16 @@
 {-# LANGUAGE BangPatterns #-}
 
--- Source for generated Core fixtures (see `just gen-core-corpus`). Exercises
--- the binding forms the harvested testsuite corpus under-represents: join
--- points, letrec, and nested non-recursive let. Compiled at -O2 so the
--- simplifier actually produces them.
+-- Join points, letrec, and nested let, which the harvested corpus has few of.
 module Bindings where
 
--- Strict local recursive worker: becomes a joinrec under -O.
+-- Becomes a joinrec.
 sumList :: [Int] -> Int
 sumList = go 0
   where
     go !acc [] = acc
     go !acc (x : xs) = go (acc + x) xs
 
--- Shared tail continuation across case alternatives: becomes a join point.
+-- Becomes a join point.
 label :: Either Int Int -> Int
 label e =
   case e of
@@ -22,7 +19,7 @@ label e =
   where
     finish y = y + length [1 .. y]
 
--- Mutually recursive local bindings: become a letrec / joinrec group.
+-- Becomes a letrec or joinrec group.
 parity :: Int -> Bool
 parity n = isEven n
   where
@@ -31,7 +28,6 @@ parity n = isEven n
     isOdd 0 = False
     isOdd k = isEven (k - 1)
 
--- Plain nested non-recursive let.
 poly :: Int -> Int
 poly x =
   let a = x + 1

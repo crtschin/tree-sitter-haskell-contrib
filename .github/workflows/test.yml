@@ -17,8 +17,8 @@ jobs:
         with:
           primary-key: cache-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: cache-${{ runner.os }}-
-          # 1G was below the run's closure (the ci shell plus the on-demand GHC),
-          # so the GC-before-save wiped it and the cache never restored anything.
+          # The limit must hold the ci shell and the on-demand GHC, or the GC
+          # before the save empties the cache.
           gc-max-store-size-linux: 6G
           purge: true
           purge-prefixes: cache-${{ runner.os }}-
@@ -29,12 +29,7 @@ jobs:
       - run: nix develop .#ci --command just test --fast
       - run: nix develop .#ci --command just fmt check
 
-  # Cross-GHC validation of the IL grammars against real dumps from every flake
-  # `ghcVersions`, one matrix job per version. Gates PRs. The preflight below
-  # fails fast if a GHC is not substitutable from cache.nixos.org (e.g. after a
-  # nixpkgs bump), blocking the merge instead of triggering a multi-hour source
-  # build. fail-fast is off so every version's result is reported, not just the
-  # first failure.
+  # One job for each `ghcVersions` entry in flake.nix. Keep the two lists equal.
   cross-ghc:
     runs-on: ubuntu-22.04
     strategy:
@@ -46,10 +41,8 @@ jobs:
       - uses: nixbuild/nix-quick-install-action@9f63be77f412a248c9d9a65a4c82cf066cdf8f0c # v35
       - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
         with:
-          # Shares the test job's single cache key (one entry, not one per
-          # version) so the small ci shell is restored rather than re-realised.
-          # The on-demand GHC (~3.3 GiB, essentially disjoint across versions) is
-          # cheap to re-fetch from cache.nixos.org, so no per-version caching.
+          # The test job uses the same key. Each GHC is cheap to fetch from
+          # cache.nixos.org, so it gets no cache entry of its own.
           primary-key: cache-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: cache-${{ runner.os }}-
           gc-max-store-size-linux: 6G

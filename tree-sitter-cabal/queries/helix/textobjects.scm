@@ -1,20 +1,17 @@
 ; ===== shared with tree-sitter-cabal-project =====
 ;
-; Kept byte-identical between the two files (see highlights.scm for why it is
-; duplicated rather than generated).
+; Keep this block byte-identical in both cabal grammars. highlights.scm says
+; why.
 
-; comments
 (comment) @comment.around
 (comment) @comment.inside
 
-; list entries inside a field value (build-depends, packages, ...)
 (field_value (identifier)     @entry.around) @entry.inside
 (field_value (qualified_name) @entry.around) @entry.inside
 (field_value (path)           @entry.around) @entry.inside
 
 ; ===== cabal-only =====
 
-; Whole section / its body block.
 [
   (library)
   (foreign_library)
@@ -37,7 +34,6 @@
 (source_repository properties: (_) @function.inside)
 (custom_setup      properties: (_) @function.inside)
 
-; Tests.
 [(test_suite) (benchmark)] @test.around
 (test_suite properties: (_) @test.inside)
 (benchmark  properties: (_) @test.inside)

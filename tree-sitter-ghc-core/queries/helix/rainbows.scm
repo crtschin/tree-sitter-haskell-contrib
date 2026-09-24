@@ -1,8 +1,5 @@
-; GHC Core dump rainbow brackets.
-
 [ "(" ")" "[" "]" "{" "}" "(#" "#)" ] @rainbow.bracket
 
-; Nodes that open a new nesting level.
 [
   (parens)
   (tuple)

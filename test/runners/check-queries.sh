@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
-# Validate that every editor query (tree-sitter-<slug>/queries/*/*.scm, e.g.
-# queries/helix/highlights.scm) compiles against the grammar. `tree-sitter
-# query` checks each referenced node type and field against the parser. A
-# query that drifts from the grammar, such as a node renamed or removed after a
-# grammar change, fails here before it can silently break an editor's
-# highlighting. Custom predicates (#not-one-line? etc.) are passed through.
-# TAP output. Run via `just <grammar>::check-queries`.
+# Compile every editor query of a grammar against its parser. A query that names
+# a removed node type or field fails here.
 
 set -uo pipefail
 
 slug="${1:?usage: check-queries.sh <grammar-slug>}"
-ts_lang="${slug//-/_}" # cabal-project -> cabal_project, ghc-core -> ghc_core
+ts_lang="${slug//-/_}"
 
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 dir="$repo/tree-sitter-$slug"
@@ -20,8 +15,7 @@ parser="$dir/result/parser"
     exit 1
 }
 
-# Query compilation is independent of the input. `tree-sitter query` still needs
-# a file to parse, so use the grammar's first corpus file.
+# `tree-sitter query` needs an input file. Any corpus file does.
 sample="$("$repo/test/files/${slug}-files.sh" 2>/dev/null | head -1)"
 [[ -n "$sample" ]] || {
     echo "no corpus sample for $slug (is CABAL_SRC/GHC_SRC set?)" >&2

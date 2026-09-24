@@ -1,19 +1,12 @@
-; Dispatch each dump section to the member grammar for its IL, keyed by the
-; phase banner. The banner regexes are mutually exclusive, so at most one
-; applies per section.
+; The banner regexes are mutually exclusive, so at most one pattern matches a
+; section. Each language name matches the `injection-regex` of its member.
 ;
-; Languages resolve at query/highlight time against installed parsers named
-; ghc_core / ghc_stg / ghc_cmm (see each member's tree-sitter.json
-; `injection-regex`).
+; The injected range is the whole section, banner included:
 ;
-; injection.content is the whole section (banner + body), not just the body:
+;   - Each member grammar parses banner-led dumps standalone.
 ;
-;   - Every member grammar's source_file begins with an optional banner and is
-;     validated standalone against banner-led dumps, so handing it the banner
-;     lets it parse the surface it already covers.
-;
-;   - ghc_core routes a `Tidy Core rules` banner into its trailing-rules
-;     section, which a bare body could not trigger.
+;   - ghc_core needs a `Tidy Core rules` banner to open its trailing rules
+;     section.
 
 ((section
    (banner) @_banner) @injection.content

@@ -7,19 +7,10 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Models the System FC surface GHC's Core printer emits (compiler/GHC/Core/Ppr.hs,
-// compiler/GHC/Iface/Type.hs). Expressions are fully brace/keyword-delimited.
-//
-//   - The external scanner's _item_sep (src/scanner.c) recovers the column-0
-//     top-level layout, and bounds a multi-line signature from the binding line
-//     below it.
-//
-//   - The [IdInfo] bracket, coercion bodies, and trailing banner-delimited
-//     sections (Tidy Core rules, CorePrep) are modelled coarsely as balanced
-//     delimiter soup, a deliberate leniency over structure.
-//
-// This drives the harvested Tidy Core and repeated-pass dumps (CSE, float,
-// occur-anal, simplifier iterations) to a clean parse. See README.md.
+// Models the System FC surface that the GHC Core printer emits
+// (compiler/GHC/Core/Ppr.hs). Braces and keywords delimit every expression, and
+// the external scanner recovers the column-0 top-level layout. IdInfo brackets,
+// coercion bodies, and non-Core trailing sections parse as balanced soup.
 
 import { sepBy1, sepBy } from "./common/grammar/combinators.mjs";
 import { makeSoupRules, soupBracket } from "./common/grammar/soup.mjs";
@@ -40,11 +31,10 @@ export default grammar({
 
   word: ($) => $.variable,
 
-  // After a signature's type, the next atom is either a type-application argument
-  // or the binding name on the next line. Let GLR explore both. Munching the
-  // next-line name dies (the binding can't complete), but a trailing same-line
-  // `constructor`/`tyvar` also completes as a wrapper name, so type_apply carries a
-  // prec.dynamic to keep it in the type (see common/grammar/haskell.mjs).
+  // After a signature type, the next atom is a type argument or the binding name
+  // on the next line. A same-line `constructor` or `tyvar` also completes as a
+  // wrapper name, so `type_apply` takes a dynamic precedence that keeps it in the
+  // type (see common/grammar/haskell.mjs).
   conflicts: ($) => [
     [$._type, $.type_apply],
     // A banner may open another Core section or a trailing soup section. Both
@@ -61,9 +51,8 @@ export default grammar({
     // soup (`"r" [1] (@a)..`), all balanced bracket soup. GLR's viability picks.
     [$.idinfo, $._soup],
     [$._soup, $.id_annotation],
-    // A group's head may begin a binding (`name ..  = ..`) or a bare expression
-    // statement (the `Simplified expression` section). They share the leading
-    // name/atom. The `=` decides, so GLR explores both.
+    // A group head begins a binding or a bare expression statement. Only the `=`
+    // decides.
     [$._def_name, $._stmt_head],
     // A parenthesised operator is either a binder name `(:|) = ..` or a
     // parenthesised atom (in a bare expression or an argument).
@@ -79,11 +68,8 @@ export default grammar({
   ],
 
   rules: {
-    // One or more banner-delimited Core sections, then an optional non-Core tail captured
-    // as soup. The first section is inlined here because the start rule may match empty (a
-    // named rule may not), and its banner is optional for harvested stderr that strips it.
-    // A section is a banner, an optional simplifier-counts preamble and Result-size header,
-    // then _item_sep-separated binding groups.
+    // The first section is inlined because only the start rule can match empty.
+    // Its banner is optional because some harvested stderr strips it.
     source_file: ($) =>
       seq(
         optional($._item_sep),
@@ -125,20 +111,15 @@ export default grammar({
 
     _group: ($) => choice($.binding, $.rec_block, $.expr_statement),
 
-    // The `==== Simplified expression ====` dump (-ddump-simpl-expr, some TH
-    // splices) is a single bare CoreExpr with no `name =`.
+    // The `==== Simplified expression ====` dump (-ddump-simpl-expr) is one bare
+    // CoreExpr with no `name =`.
     //
-    //   - Its head excludes a bare literal or `[..]` bracket (those would be a
-    //     rule's `"name"` string or an [IdInfo]/soup bracket), so a trailing
-    //     rules/CorePrep section stays soup.
-    //
-    //   - A bare expr and a binding share a leading run, so the negative dynamic
-    //     precedence keeps the binding whenever a `=` follows. A bare expr only
-    //     wins in an expression-only section.
-    //
-    //   - A top-level cast hangs off `_stmt_head`, not the full `cast` rule
-    //     (whose `_atom` lhs would re-admit a bare-literal head), preserving the
-    //     no-bare-literal invariant.
+    //   - The head excludes a bare literal and a `[..]` bracket, so a trailing
+    //     rules or CorePrep section stays soup.
+    //   - The negative dynamic precedence keeps the binding reading when a `=`
+    //     follows.
+    //   - A top-level cast hangs off `_stmt_head`, because the `_atom` lhs of
+    //     `cast` admits a bare literal.
     expr_statement: ($) =>
       prec.dynamic(
         -1,
@@ -172,23 +153,19 @@ export default grammar({
         $.foreign_call,
       ),
 
-    // Banner-led sections after the Tidy Core whose body is not Core, such as
-    // `==== Tidy Core rules ====` and CorePrep tails. Soup runs to the next
-    // header, which out-lexes a soup token by longest match.
-    //
-    // A dash header never opens a section, see `rules_block`.
+    // Non-Core sections after Tidy Core, e.g. `Tidy Core rules` and CorePrep
+    // tails. The soup stops at the next header, which beats a soup token by
+    // longest match. A dash header never opens a section, see `rules_block`.
     trailing_sections: ($) => repeat1(seq($.banner, repeat($._soup))),
 
-    // ------ Local rules for imported ids -------- (4+ dashes both ends, so it
-    // out-precedences the `--` line comment).
+    // `---- Local rules for imported ids ----`. The precedence beats the `--`
+    // line comment.
     dash_header: ($) => token(prec(2, /-{4,}[^\n]*-{4,}/)),
 
-    // ==================== Tidy Core ==================== (shared)
     banner,
 
-    // Result size of Tidy Core = {terms: 182, types: 90, ...}. The pass description can
-    // carry its own `(..)` record (Float out(FOS {..})) that GHC 9.12+ wraps across lines,
-    // so allow it to span newlines (bounded by the first `)`) before the `= {..}` record.
+    // The pass description can hold its own `(..)` record, e.g.
+    // `Float out(FOS {..})`, that GHC 9.12+ wraps across lines.
     result_size: ($) =>
       token(/Result size of[^\n(]*(\([^)]*\))?\s*=\s*\{[^}]*\}/),
 
@@ -197,11 +174,9 @@ export default grammar({
     rec_block: ($) =>
       seq("Rec", "{", sepBy1($._item_sep, $.binding), "end", "Rec", "}"),
 
-    // A binding, optionally preceded by its type signature (same group, single newline, no
-    // _item_sep). The binders are join-point parameters (empty for ordinary bindings). A
-    // multi-line signature type is bounded by where the binding `name` parses (GLR).
-    // A let-bound type prints its binder as a bare `@a` line above the `a = TYPE: t`
-    // equation, so the signature slot also accepts a `type_binder` (worker/wrapper -O output).
+    // The binders are join-point parameters. A let-bound type prints its binder
+    // as a bare `@a` line above `a = TYPE: t`, so the signature slot also takes a
+    // `type_binder`.
     binding: ($) =>
       seq(
         optional(field("signature", choice($.type_signature, $.type_binder))),
@@ -218,23 +193,17 @@ export default grammar({
     type_signature: ($) =>
       seq($._def_name, optional($.binder_annotation), $._dcolon, $._type),
 
-    // A defined name: an ordinary id, a data-con wrapper (an upper-led name like
-    // Coerce.GB, bound by CorePrep), or an operator printed in prefix form
-    // ((+++), (.)). GHC parenthesises operator-named top-level binders.
+    // CorePrep binds data-con wrappers under upper-led names, e.g. `Coerce.GB`.
     _def_name: ($) =>
       choice($.variable, $.constructor, $.paren_operator, $.operator_name),
     paren_operator: ($) =>
       seq("(", choice($.operator, $.con_operator, $.operator_name), ")"),
 
-    // The [IdInfo] bracket (GblId, Arity=N, Str=<..>, Cpr=.., Unf=Unf{..Tmpl=e},
-    // RULES: ..). Modelled coarsely as balanced delimiter soup for now. The
-    // Tmpl= template is real Core to be recursed into in a later pass.
     idinfo: soupBracket,
 
     _binder: ($) =>
       choice($.variable, $.annotated_binder, $.typed_binder, $.type_binder),
 
-    // A binder carrying an occurrence/demand annotation, e.g. x [Occ=Once1!].
     annotated_binder: ($) => seq($.variable, $.binder_annotation),
 
     typed_binder: ($) =>
@@ -244,18 +213,16 @@ export default grammar({
         optional($.binder_annotation),
         $._dcolon,
         $._type,
-        // -dppr-debug appends the binder's IdInfo after the type (`:: t Unf=..`,
-        // `Str=..`), absorbed as coarse soup so the `variable`/type stay structured.
+        // -dppr-debug appends the IdInfo of the binder after the type, e.g.
+        // `:: t Unf=..`.
         repeat($._soup),
         ")",
       ),
 
     binder_annotation: soupBracket,
 
-    // Balanced bracket/brace/paren soup (shared with ghc-stg/ghc-cmm).
     ...makeSoupRules(),
 
-    // Lambda-bound type variables: @a, @{a} (inferred), (@ a).
     type_binder: ($) =>
       choice(
         seq("@", $._type_atom),
@@ -276,8 +243,7 @@ export default grammar({
         $._atom,
       ),
 
-    // -dppr-case-as-let prints a single-alternative case as
-    // `let! { <pat> ~ <binder>? <- <scrutinee> } in <body>`.
+    // -dppr-case-as-let prints a single-alternative case in this form.
     case_as_let: ($) =>
       seq(
         "let!",
@@ -292,32 +258,23 @@ export default grammar({
         field("body", $._expr),
       ),
 
-    // e `cast` co  (compiler/GHC/Core/Ppr.hs ppr_expr Cast).
     cast: ($) => prec.left(seq($._atom, "`cast`", $.coercion)),
 
-    // A coercion, either `(co :: t1 ~role# t2)` unsuppressed or a bare atom:
-    // the suppressed `<Co:N>` (optionally with its `:: type`) or a Refl `<ty>_N`.
-    //
-    //   - The body is coarse balanced soup for now
-    //     (Sym/Sub/Trans/axioms/SelCo/forall-co/function-co).
-    //
-    //   - Angle brackets are treated as atoms (the function-coercion arrow
-    //     `->_R` carries a lone `>`), so (), [] and {} nest (a forall-co prints
-    //     its binder brace, `forall {a}. ..`).
+    // An unsuppressed `(co :: t1 ~role# t2)`, or a bare `<Co:N>` or Refl
+    // `<ty>_N` atom. The soup treats angle brackets as atoms, because the
+    // function-coercion arrow `->_R` has a lone `>`.
     coercion: ($) =>
       choice(
         seq("(", repeat($._soup), ")"),
-        // bare/suppressed: <Co:N> or <ty>_R, optionally with its `:: type`.
         seq($._soup_token, optional(seq($._dcolon, $._type))),
       ),
 
     // A lone `/` lexes as the lambda head, because an anonymous string beats the
-    // `operator` regex. Spelling the token out as an operator too recovers Core's
-    // prefix division, `(/ @Double $fFractionalDouble x y)`.
+    // `operator` regex. The alias recovers the prefix division
+    // `(/ @Double $fFractionalDouble x y)`.
     //
-    // Both readings then complete, since an unparenthesised `->` also lexes as an
-    // `operator`. The negative dynamic precedence hands that tie to the lambda.
-    // Where no `->` follows, the lambda derivation has already died.
+    // An unparenthesised `->` also lexes as an `operator`, so both readings can
+    // complete. The negative dynamic precedence gives that tie to the lambda.
     _operator_atom: ($) =>
       choice($.operator, prec.dynamic(-1, alias("/", $.operator))),
 
@@ -337,25 +294,21 @@ export default grammar({
         $.id_annotation,
       ),
 
-    // A `:`-led data-constructor operator (:|, :*:, :%, :=>, :~:), printed in
-    // prefix form by Core (`:| a b`). The required second symbol char keeps the
-    // `::` ascription out (its second char is `:`). Shared shape with the type
-    // grammar's colon-led type_operator.
+    // A data-constructor operator such as `:|`. The first char after the `:`
+    // excludes `:`, so the `::` ascription does not match.
     con_operator: ($) =>
       token(
         /([A-Z][A-Za-z0-9_']*\.)*:[-+*/<>=~!&|^%.][-+*/<>=~!&|^%.:]*(\{[^}]*\})?/,
       ),
 
-    // GHC mangles some operator-named binders to symbolic names printed bare or
-    // parenthesised, with a trailing-digit occurrence disambiguator. Three shapes
-    // the plain `operator`/`con_operator` tokens can't take:
-    //   - `@`-led (`@?6`, `@?==2`, `(@.)`): a `@` + operator char is never a
-    //     `@type`/`@kind` application (those lead with a letter/`(`/`*`). The
-    //     first char excludes `~` so `@~coercion` stays intact.
-    //   - `\`-led (`\\1`): `\` is an operator char too, so requiring a second
-    //     symbol char keeps a lambda's lone `\` out.
-    //   - any operator run (>=2 symbol chars) glued to digits (`>*<1`): the >=2
-    //     guard keeps a negative literal `-1` off this token.
+    // GHC mangles some operator binders to symbolic names with a trailing-digit
+    // disambiguator. Three shapes that `operator` and `con_operator` miss:
+    //   - `@`-led, e.g. `@?6`. A type application never puts an operator char
+    //     after the `@`. The first char excludes `~` to keep `@~coercion` intact.
+    //   - `\`-led, e.g. `\\1`. The second symbol char keeps the lone lambda `\`
+    //     out.
+    //   - An operator run glued to digits, e.g. `>*<1`. The run needs 2 or more
+    //     chars, so the negative literal `-1` does not match.
     operator_name: ($) =>
       token(
         choice(
@@ -365,30 +318,18 @@ export default grammar({
         ),
       ),
 
-    // A C foreign call printed as an applied primitive (Core/Ppr FCallId):
-    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..`.
+    // `{__ffi_static_ccall_unsafe pkg:sym :: ty} arg..`
     //
-    //   - The target is a package-qualified C symbol `unit:sym`. An RTS/wired-in
-    //     symbol drops the unit and glues `:sym` to the keyword, which absorbs
-    //     that colon.
-    //
-    //   - A dyn call's DynamicTarget prints as the empty C label `""`, a string
-    //     literal.
-    //
-    //   - Under -dppr-debug the FCallId's Unique glues onto the closing brace as
-    //     a `{v d12d}` tag, absorbed explicitly here (a plain Var carries it
-    //     inside its name token, the structural `}` cannot).
-    //
-    //   - The rest of the debug decoration (`Just Many` multiplicity,
-    //     `[gid[ForeignCall]]` IdInfo, `:: ty` ascription) parses like a
-    //     decorated plain Var.
+    //   - An RTS symbol drops the unit and glues `:sym` to the keyword, so the
+    //     keyword token takes that colon.
+    //   - A dynamic call prints its target as the empty string `""`.
+    //   - Under -dppr-debug the Unique glues onto the closing brace as a
+    //     `{v d12d}` tag.
     foreign_call: ($) =>
       seq(
         "{",
         $._ffi_keyword,
         field("target", choice($.variable, $.constructor, $.literal)),
-        // The C symbol name, printed as a string after the target
-        // (`__ffi_static_ccall_safe pkg:sym "sym" :: ty`).
         optional(field("symbol", $._string_lit)),
         $._dcolon,
         field("type", $._type),
@@ -398,12 +339,10 @@ export default grammar({
     _ffi_keyword: ($) => token(/__ffi_[a-z_]+:?/),
     _ppr_debug_tag: ($) => token(/\{[^}]*\}/),
 
-    // [gid..] / [lid..]: an occurrence's IdInfo, printed inline under
-    // -dppr-debug. Coarse balanced soup, like the binding [IdInfo].
+    // An occurrence IdInfo, `[gid..]` or `[lid..]`, under -dppr-debug.
     id_annotation: soupBracket,
 
-    // A -dppr-debug case binder carries its annotations, type, and IdInfo inside
-    // the parens, `(wild [Occ=Dead] :: t Unf=..)`. Coarse balanced soup.
+    // A -dppr-debug case binder, e.g. `(wild [Occ=Dead] :: t Unf=..)`.
     debug_binder: ($) => prec.dynamic(1, seq("(", repeat($._soup), ")")),
 
     // -dppr-debug ascribes a parenthesised expression with its type, `(e :: t)`.
@@ -428,7 +367,7 @@ export default grammar({
         $._expr,
       ),
 
-    // The join target is a variable, or `(v :: t)` under -dppr-debug.
+    // -dppr-debug prints the join target as `(v :: t)`.
     jump: ($) => seq("jump", $._atom, repeat($._arg)),
 
     let: ($) =>
@@ -473,25 +412,20 @@ export default grammar({
         repeat($._binder),
       ),
 
-    // Tuple patterns: (a, b), (# a, b #).
     tuple_pattern: ($) =>
       choice(
         seq("(", $._binder, repeat1(seq(",", $._binder)), ")"),
         seq("(#", sepBy(",", $._binder), "#)"),
       ),
 
-    // Literals, the tickish prefix, the System-FC type grammar, and
-    // qualified-name lexical tokens are shared with ghc-stg
-    // (common/grammar/haskell.mjs).
     ...makeLiteralRules(),
     ...makeTickRules(),
     ...makeTypeRules(),
     ...makeLexicalRules(),
 
-    // A line comment, or a `-- RHS size: {..}` whose count record wraps across
-    // lines (big dumps print thousand-separated counts, e.g. terms: 1,236). The
-    // wrapped body is bounded to record chars (word/space/.,:/) so it can never
-    // run past its `}` into a binding's braces. (Specific to Core.)
+    // A `-- RHS size: {..}` record wraps across lines in big dumps. The record
+    // body admits only record chars, so it cannot run past its `}` into the
+    // braces of a binding.
     comment: ($) =>
       token(choice(seq("--", /[^\n]*/), /--[^{\n]*\{[\s\w.,:/]*\}/)),
   },

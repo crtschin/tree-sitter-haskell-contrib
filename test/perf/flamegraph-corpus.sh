@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# Profile `tree-sitter parse` over the named corpus preset under perf and
-# emit a flamegraph SVG.
+# Profile `tree-sitter parse` over a corpus with perf and write a flamegraph.
 #
-# Usage: flamegraph-corpus.sh <preset> <output-svg>
-#   preset = cabal | cabal-project
+# Usage: flamegraph-corpus.sh <cabal|cabal-project> <output-svg>
 #
-# Must be invoked from inside the grammar's directory (the one containing
-# tree-sitter.json) so `tree-sitter parse` picks the right parser.
+# Run it from the grammar directory, because `tree-sitter parse` finds the
+# parser from the cwd.
 
 set -uo pipefail
 
@@ -38,8 +36,8 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "profiling ${#files[@]} files" >&2
 
-# tree-sitter parse exits non-zero on any file with parse errors and perf
-# propagates that, so only abort when no perf.data was written.
+# perf passes on the non-zero exit of a parse with errors. Only a missing
+# perf.data is a failure.
 perf record \
     --call-graph dwarf \
     -F 4999 \

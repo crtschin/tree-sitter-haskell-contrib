@@ -1,4 +1,3 @@
-; Closure bodies and brace-delimited groups indent their contents.
 [
   (closure)
   (let)

@@ -1,11 +1,9 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
-// Balanced bracket/brace/paren "soup" with arbitrary non-delimiter tokens. The
-// coarse-over-structure idiom the GHC grammars use to model metadata they
-// don't (yet) parse: Core/STG [IdInfo] brackets, Cmm info-tables and static
-// info. Spread makeSoupRules() into a grammar's `rules`. Reference `$._soup`
-// (e.g. `seq("[", repeat($._soup), "]")`) and stop at the enclosing delimiter.
+// Balanced bracket "soup": nested (), {} and [] around arbitrary tokens. The GHC
+// grammars use it for metadata that they do not parse, e.g. Core/STG [IdInfo]
+// and Cmm info tables. Spread makeSoupRules() into a grammar's `rules`.
 export function makeSoupRules() {
   return {
     _soup: ($) =>
@@ -19,9 +17,7 @@ export function makeSoupRules() {
   };
 }
 
-// A `[..]` bracket whose contents are soup: the bracketed-metadata idiom the GHC
-// grammars share (Core/STG [IdInfo], occurrence annotations). prec.dynamic lets GLR pick
-// it over an alternative that also opens with `[`. Assign it to a named rule per grammar
-// (idinfo, binder_annotation, ...), each a distinct node. Requires makeSoupRules().
+// A `[..]` bracket of soup. prec.dynamic lets GLR pick it over another
+// alternative that opens with `[`. Needs makeSoupRules().
 export const soupBracket = ($) =>
   prec.dynamic(1, seq("[", repeat($._soup), "]"));

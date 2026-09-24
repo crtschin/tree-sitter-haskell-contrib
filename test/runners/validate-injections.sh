@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
-# Validate ghc-dump's injection dispatch end to end. For every banner-delimited
-# section in the harvested dump streams:
-#
-#   - Classify the banner with the SAME (regex -> language) table that
-#     queries/injections.scm uses.
-#   - Parse the section body with the dispatched member grammar and assert no
-#     ERROR/MISSING.
-#
-# This is what an editor's injection does at highlight time, checked
-# deterministically. No GHC compiler is needed, only $GHC_SRC (a flake input)
-# and the built member parsers.
-#
-# The dispatch table is read straight out of injections.scm, so this stays in
-# lockstep with the real query. Sections whose banner matches no rule (Demand
-# signatures, Cpr signatures, ...) are intentionally not injected, so skipped.
+# Check the ghc-dump injections. Each section of the harvested dumps goes to the
+# grammar that its banner selects in injections.scm, and must parse without
+# errors. A section whose banner matches no rule is skipped.
 
 set -uo pipefail
 
@@ -24,12 +12,8 @@ source "$(dirname "$0")/../lib/parse-lib.sh"
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 inj="$repo/tree-sitter-ghc-dump/queries/helix/injections.scm"
 
-# The (banner-regex, member-language) dispatch table, built from injections.scm.
-#
-#   - Paired per rule: a rule's `#match?` regex is bound to the
-#     `injection.language` that follows it, so the two arrays cannot desync.
-#   - Hard-fail if nothing parses out, so a reformatted query breaks loudly
-#     instead of validating zero sections and passing.
+# Each `#match?` regex pairs with the next `injection.language`. If a change to
+# the query format reads zero rules, the script fails.
 regexes=()
 langs=()
 rx=""
@@ -66,22 +50,18 @@ trap 'rm -rf "$tmp"' EXIT
 
 mapfile -t files < <("$repo/test/files/ghc-files.sh" ghc-dump)
 
-# Split each file into banner-delimited sections and bucket each section file by
-# its dispatched member language. injections.scm injects the whole section
-# (banner + body), so each section file starts with its banner line.
+# injections.scm injects the banner with the body, so each section file starts
+# with its banner line.
 declare -A bucket=()    # lang -> newline-separated body files
 declare -A banner_of=() # body file -> its banner
 n=0
 for f in "${files[@]}"; do
-    # fid is the file's path under testsuite/tests/ with slashes -> underscores,
-    # so it is unique across the suite. Many dirs share basename `should_compile`,
-    # which a basename-only id would collide on, clobbering section temp files and
-    # cross-suppressing known gaps.
+    # Many test directories share the basename `should_compile`, so fid holds
+    # the full path. A basename id makes two files overwrite each other.
     rel="${f#"$GHC_SRC"/}"
     rel="${rel#testsuite/tests/}"
     fid="${rel%.stderr}"
     fid="${fid//\//_}"
-    # awk prints "banner<TAB>bodyfile" per section and writes each body to a file.
     while IFS=$'\t' read -r banner body; do
         lang="$(classify "$banner")"
         [[ -z "$lang" ]] && continue
@@ -102,8 +82,8 @@ for f in "${files[@]}"; do
     ' "$f")
 done
 
-# Sections outside the member's modelled surface. An editor leaves them
-# un-highlighted. <fileid>_<section-index> -> reason.
+# Sections outside the scope of the member grammar, keyed
+# <fileid>_<section-index>.
 declare -A known_gaps=(
     [simplCore_should_compile_T23083_1]="CorePrep is a second Core pass; ghc-core models Tidy Core"
     [simplStg_should_compile_T13588_2]="pre-unarise STG omits the binding-terminating ; that ghc-stg requires"
@@ -115,7 +95,7 @@ echo "TAP version 13"
 echo "1..${#uniq_langs[@]}"
 rc=0
 i=0
-declare -A hit_gap=() # which known gaps actually showed up (to flag stale ones)
+declare -A hit_gap=()
 for lang in "${uniq_langs[@]}"; do
     i=$((i + 1))
     mapfile -t list < <(printf '%s' "${bucket[$lang]:-}" | grep -v '^$')
@@ -124,15 +104,12 @@ for lang in "${uniq_langs[@]}"; do
         echo "ok $i - $lang (0 sections)"
         continue
     fi
-    # Parse the bucket via the shared helper. A parser that fails to load fails
-    # this lang's test instead of silently passing with zero detected errors.
     declare -A sec_err=()
     if ! collect_parse_errors sec_err --lib-path "$parser" --lang-name "$lang" "${list[@]}"; then
         echo "not ok $i - $lang (parser at $parser failed to load)"
         rc=1
         continue
     fi
-    # Partition failing sections into known gaps and unexpected regressions.
     unexpected=()
     known=0
     for bf in "${!sec_err[@]}"; do
@@ -153,8 +130,6 @@ for lang in "${uniq_langs[@]}"; do
     fi
 done
 
-# A known gap that no longer fails means a member grammar grew to cover it.
-# Flag it so the allowlist gets pruned (warning, not a hard failure).
 for sec in "${!known_gaps[@]}"; do
     [[ -z "${hit_gap[$sec]:-}" ]] &&
         echo "# stale known-gap (now parses, prune it): $sec"

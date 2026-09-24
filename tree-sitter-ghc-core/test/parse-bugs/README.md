@@ -1,30 +1,32 @@
-# Known parse bugs (deferred)
+# Known parse bugs
 
-Minimal repros of ghc-core parse failures the extraction-widening pass surfaced.
-Each ERRORs today.
+Minimal repros of ghc-core parse failures that are not fixed yet. Each file
+parses with an ERROR node. No gate reads this directory, so the files do not
+fail CI.
 
-Nothing globs this directory, so they document the bugs without failing CI.
+Both bugs sit in the GLR area around `trailing_sections` and `_item_sep`, where
+the grammar regressed before. A fix needs a full harvest and gen-corpus run.
+From `tree-sitter-ghc-core/`, parse a repro with this command:
 
-Both live in the delicate `trailing_sections` / `_item_sep` / GLR area the grammar
-has regressed in before (a naive relaxation once took the harvest from 135 to 33).
-Fixing them needs a full harvest + gen-corpus revalidation, not a quick patch.
+    tree-sitter parse --lib-path result/parser --lang-name ghc_core test/parse-bugs/<file>
 
-- **`banner-no-resultsize.dump-simpl`**: a Core section whose banner is not
-  followed by a `Result size of ...` line (then a blank line, then more content)
-  mis-parses: GLR commits the banner to `trailing_sections` and swallows the
-  bindings as soup. Adding a `result_size` line makes it parse. Real trigger:
-  `-dsuppress-*` variants that strip the result-size line.
-- **`blank-in-trailing-rules.dump-simpl`**: a trailing rules/soup section cannot
-  contain a blank line: `trailing_sections` has no `_item_sep` slot, so the
-  external `_item_sep` emitted at a blank line has nowhere to go. Real GHC rules
-  dumps routinely blank-line-separate rules.
-  ATTEMPT (2026-07-06, reverted): adding `_item_sep` to the soup repeat
-  (`repeat(choice($._soup, $._item_sep))`) plus a `[$.trailing_sections]` GLR
-  conflict fixes this repro but REGRESSES 12 gen-corpus cells (the `dump-occur-anal`
-  set + a ppr-debug cell) and an inline test: absorbing `_item_sep` makes the soup
-  greedy, so a banner over blank-line-separated binding groups is mis-read as a
-  trailing soup section (this is bug #7's ambiguity, made worse). A real fix must
-  disambiguate banner-to-section vs banner-to-soup structurally, not let soup eat
-  separators.
+## Banner with no result-size line
 
-To re-check: `tree-sitter parse --lib-path result/parser --lang-name ghc_core test/parse-bugs/<file>`
+`banner-no-resultsize.dump-simpl` holds a Core section whose banner has no
+`Result size of ...` line after it, then a blank line and more content. GLR
+commits the banner to `trailing_sections` and parses the bindings as soup. In
+real dumps, the `-dsuppress-*` flags that strip the result-size line cause this
+bug.
+
+## Blank line in a trailing rules section
+
+`blank-in-trailing-rules.dump-simpl` holds a trailing rules section with a blank
+line. `trailing_sections` has no `_item_sep` slot, so the `_item_sep` that the
+scanner emits at the blank line has nowhere to go. Real GHC rules dumps separate
+rules with blank lines.
+
+A fix that we tried on 2026-07-06 added `_item_sep` to the soup repeat and a
+`[$.trailing_sections]` conflict. It fixed this repro, but 12 gen-corpus cells
+and one inline test failed, so we reverted it. The greedy soup read a banner
+over blank-line-separated binding groups as a trailing soup section. A real fix
+must tell banner-to-section from banner-to-soup by structure.

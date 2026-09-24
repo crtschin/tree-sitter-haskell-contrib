@@ -1,50 +1,39 @@
 * text=auto eol=lf
 
-# Regenerated parser tables across every grammar: treat as binary so a
-# `tree-sitter generate` does not spew thousands of diff lines. They are
-# machine-generated, never reviewed line-by-line, and never hand-merged. Set
-# here (not in the per-grammar .gitattributes, which `tree-sitter init`
-# overwrites) so the rule survives a regenerate.
+# Diff the generated parser tables as binary. This rule lives here because
+# `tree-sitter init` overwrites the .gitattributes of each grammar.
 tree-sitter-*/src/parser.c binary
 tree-sitter-*/src/grammar.json binary
 tree-sitter-*/src/node-types.json binary
 
-# Generated source files
 src/*.json linguist-generated
 src/parser.c linguist-generated
 src/tree_sitter/* linguist-generated
 
-# C bindings
 bindings/c/** linguist-generated
 CMakeLists.txt linguist-generated
 Makefile linguist-generated
 
-# Rust bindings
 bindings/rust/* linguist-generated
 Cargo.toml linguist-generated
 Cargo.lock linguist-generated
 
-# Node.js bindings
 bindings/node/* linguist-generated
 binding.gyp linguist-generated
 package.json linguist-generated
 package-lock.json linguist-generated
 
-# Python bindings
 bindings/python/** linguist-generated
 setup.py linguist-generated
 pyproject.toml linguist-generated
 
-# Go bindings
 bindings/go/* linguist-generated
 go.mod linguist-generated
 go.sum linguist-generated
 
-# Swift bindings
 bindings/swift/** linguist-generated
 Package.swift linguist-generated
 Package.resolved linguist-generated
 
-# Zig bindings
 build.zig linguist-generated
 build.zig.zon linguist-generated

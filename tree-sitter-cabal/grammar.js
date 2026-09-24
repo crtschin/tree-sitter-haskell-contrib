@@ -19,8 +19,6 @@ export default grammar({
 
   word: ($) => $.identifier,
 
-  // Flatten the hidden _value_token wrapper rule into its callsite (field_value).
-  // Inlining shrinks the parse table without altering the AST.
   inline: ($) => [$._value_token],
 
   // Empty if_clause/elif_clause bodies make `else`/`elif` reachable both as a continuation
@@ -36,9 +34,8 @@ export default grammar({
         optional($.sections),
       ),
 
-    // The keyword is aliased to `field_name`, which it is: without that it stays an
-    // anonymous regex token, unreachable from a query, and `cabal-version` renders
-    // unhighlighted while every other field name is a property.
+    // The alias makes the keyword a `field_name`, so queries highlight it like
+    // every other field name.
     cabal_version: ($) =>
       seq(
         repeat($._newline),
@@ -47,7 +44,6 @@ export default grammar({
         $.spec_version,
       ),
 
-    // Modern bare version (3.0), old range prefix (>= 1.8), and old -any/-none forms.
     spec_version: ($) => /(>=?\s*)?\d+\.\d+(\.\d+)*(\.\*)?|[+\-]any/,
 
     properties: ($) => repeat1(seq($.field, repeat($._newline))),
@@ -132,12 +128,8 @@ export default grammar({
         optional(field("properties", $.property_or_conditional_block)),
       ),
 
-    // ASCII via DFA, Unicode via the scanner's `_section_name`.
-    //
-    // ci-regex section_type aliases win by specificity.
-    //
-    // The scanner fires only on a non-ASCII byte, so ASCII keywords are never
-    // preempted.
+    // ASCII names lex in the DFA and Unicode names come from the scanner. The
+    // scanner fires only on a non-ASCII byte, so it never preempts a keyword.
     section_name: ($) => choice(/\w*[a-zA-Z]\w*(-\w+)*/, $._section_name),
 
     property_block: ($) =>
@@ -148,17 +140,13 @@ export default grammar({
         $._dedent,
       ),
 
-    // `mixins` and `reexported-modules` share one rule so their keywords stay
-    // consistent. Cabal parses `as` the same way in both, in ModuleRenaming.hs and
-    // ModuleReexport.hs. The value aliases back to `field_value`, so the node shape
-    // stays `(field name: (field_name) value: (field_value ...))` everywhere and only
-    // the leaf kinds differ.
+    // `mixins` and `reexported-modules` share one rule, because Cabal parses
+    // `as` the same way in both. The value aliases to `field_value`, so the node
+    // shape matches every other field.
     //
-    // `signatures` deliberately gets no rule. Re-aliasing its identifiers to
-    // `module_name` accepts whatever the lexer produced, so `signatures: a-b` and a
-    // pasted `signatures: base >= 4.14` became module names and reached the symbol
-    // picker as definitions. Keep the grammar general and resolve a field-specific
-    // reading in a query.
+    // `signatures` has no rule. A `module_name` alias accepts any lexed value,
+    // so `signatures: base >= 4.14` puts module names in the symbol picker.
+    // Resolve that field in a query.
     field: ($) => choice($._renaming_field, $._plain_field),
 
     _plain_field: ($) =>
@@ -180,28 +168,23 @@ export default grammar({
         $._newline,
       ),
 
-    // Flat like `field_value`, because nesting the mixin grammar would thread
-    // `_continuation` through every level. It takes a superset of what `field_value`
-    // takes, so no corpus file can regress.
+    // Flat, because a nested mixin grammar must thread `_continuation` through
+    // every level. It accepts a superset of `field_value`.
     renaming_value: ($) =>
       repeat1(choice($._value_token, $.renaming_keyword, $._continuation)),
 
-    // Case-sensitive, matching Cabal's `P.string "hiding"` in ModuleRenaming.hs.
+    // Case-sensitive, as in Cabal. Precedence 2 must beat `identifier` (1),
+    // which also matches these words.
     //
-    // Precedence 2 sits directly above `identifier` (1). Both match these words here, so
-    // dropping the bump lets `identifier` win and the keywords vanish.
-    //
-    // The flat repeat cannot tell a head position from a tail one, so `mixins: as (Foo)`
-    // reads the package name `as` as the keyword. No such package exists on Hackage.
+    // The flat repeat cannot tell a head from a tail, so `mixins: as (Foo)`
+    // reads the package `as` as a keyword. Hackage has no such package.
     renaming_keyword: ($) => token(prec(2, choice("as", "hiding", "requires"))),
 
     field_name: ($) => choice(/\w(\w|-)+/, $._field_name),
 
-    // Mixing `_continuation` and `_value_token` in one `repeat1` lets a value start on a
-    // continuation line and span indented continuation lines, without opening an indent
-    // block. Opening one would force the looser `_indented` reference column; upstream
-    // Cabal measures continuations against the field's own column for both formats
-    // (Distribution.Fields.Parser.fieldLayoutOrBraces).
+    // A value can start on a continuation line and span more of them with no
+    // indent block. An indent block uses the looser `_indented` column, but
+    // Cabal measures a continuation against the column of the field.
     field_value: ($) => repeat1(choice($._value_token, $._continuation)),
 
     _value_token: ($) =>
@@ -253,7 +236,6 @@ export default grammar({
         optional(seq(repeat($._newline), $.else_clause)),
       ),
 
-    // if/elif body can be empty (`if flag(x)` then `else`), so the block is optional.
     if_clause: ($) =>
       seq(
         "if",

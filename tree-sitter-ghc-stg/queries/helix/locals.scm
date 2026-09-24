@@ -1,7 +1,3 @@
-; GHC STG dump scope tracking. Resolved references inherit the definition's
-; highlight class, linking closure parameters and bound names to their uses.
-
-; ---- scopes ----
 [
   (let)
   (let_no_escape)
@@ -11,22 +7,19 @@
   (rec_block)
 ] @local.scope
 
-; ---- definitions ----
-; `function` matches highlights.scm's binding-name treatment.
+; `function` matches the binding-name capture in highlights.scm.
 (binding name: (variable) @local.definition.function)
 (tagged_binder name: (variable) @local.definition.function)
 
 (case binder: (variable) @local.definition.variable)
 (case binder: (annotated_binder (variable) @local.definition.variable))
 
-; arg_list holds only binders, so these captures are unambiguous.
 (arg_list (variable) @local.definition.variable.parameter)
 (arg_list (annotated_binder (variable) @local.definition.variable.parameter))
 (arg_list (tagged_binder name: (variable) @local.definition.variable.parameter))
 
-; alternative lists its binders as direct children with the rhs in a field, so a
-; bare-variable rhs (rare) also matches here. Harmless: its own sole occurrence.
+; A bare-variable rhs also matches, because the rhs is a direct child too. Its
+; only occurrence is itself, so the extra definition is harmless.
 (alternative (variable) @local.definition.variable)
 
-; ---- references (free_vars occurrences are references to outer binders) ----
 (variable) @local.reference

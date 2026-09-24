@@ -1,8 +1,5 @@
-; GHC Cmm dump rainbow brackets.
-
 [ "(" ")" "[" "]" "{" "}" "{offset" ] @rainbow.bracket
 
-; Nodes that open a new nesting level.
 [
   (parens)
   (machop_call)

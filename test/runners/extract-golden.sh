@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
-# Assert information EXTRACTION, not merely absence of ERROR nodes: run a
-# grammar's test/extractions_test.scm over its committed test/extract-samples/*
-# via `tree-sitter query`, normalize each capture to a stable
-# `<capture>\t<start>-<end>\t<text>` line, and diff the whole set against the
-# committed test/extractions.golden. A mis-split (wrong span) or a dropped field
-# changes the captures and fails the diff, which the ERROR-only gates miss.
-#
-# Regenerate-and-diff, like the repo's other drift guards: `--update` rewrites
-# the golden. TAP 14 on stdout, one test per sample file. Run from anywhere.
+# Run test/extractions_test.scm over test/extract-samples/* and diff the
+# captures against test/extractions.golden. This gate finds a wrong span or a
+# dropped field, which the ERROR-only gates miss. `--update` rewrites the golden.
 #
 # Usage: extract-golden.sh <slug> [--update]
 
@@ -30,10 +24,8 @@ golden="$dir/test/extractions.golden"
 mapfile -t samples < <(find "$samples_dir" -type f 2>/dev/null | LC_ALL=C sort)
 [[ ${#samples[@]} -gt 0 ]] || { echo "Bail out! no samples in $samples_dir"; exit 1; }
 
-# `tree-sitter query` prints one line per capture: `capture: <n> - <name>, start:
-# (r, c), end: (r, c), text: `<t>`` for single-line captures and a text-less
-# `capture: <name>, start: (r, c), end: (r, c)` for multi-line ones (e.g. a
-# verbose `detail` body). Fold both to `<name>\t<sr>,<sc>-<er>,<ec>\t<text>`.
+# A multi-line capture prints with no index and no `text:` part. Both forms fold
+# to `<name>\t<sr>,<sc>-<er>,<ec>\t<text>`.
 normalize() { # normalize <sample>
     tree-sitter query --lib-path "$parser" --lang-name "$ts_lang" "$query" "$1" 2>&1 \
         | sed -nE 's/^[[:space:]]*capture: ([0-9]+ - )?([^,]+), start: \(([0-9]+), ([0-9]+)\), end: \(([0-9]+), ([0-9]+)\)(, text: `(.*)`)?$/\2\t\3,\4-\5,\6\t\8/p'
@@ -56,8 +48,6 @@ fi
 
 [[ -f "$golden" ]] || { echo "Bail out! no golden at $golden -- run \`just $slug::update-extractions\`"; exit 1; }
 
-# One TAP test per sample: compare its normalized block against the same block
-# in the golden (delimited by the `## <relpath>` headers).
 golden_block() { # golden_block <relpath>
     awk -v h="## $1" '
         $0 == h { on = 1; next }

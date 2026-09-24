@@ -38,8 +38,6 @@ export default grammar({
 
     _block_item: ($) => choice($.field, $.conditional, $._newline),
 
-    // ---------- Fields ----------
-
     field: ($) =>
       seq(
         field("name", $.field_name),
@@ -48,15 +46,12 @@ export default grammar({
         $._newline,
       ),
 
-    // ASCII via $._word (the grammar's word token), Unicode via the scanner's
-    // $._field_name. _word stays a terminal so keyword extraction wins for stanza headers
-    // (`package`, `repository`). The scanner fires only on a non-ASCII byte.
+    // ASCII names come from `_word` and Unicode names from the scanner. `_word`
+    // stays a terminal, so keyword extraction still finds the stanza headers.
     field_name: ($) => choice($._word, $._field_name),
 
     _word: ($) => /[A-Za-z][A-Za-z0-9_-]*/,
 
-    // Mixing `_continuation` and `_value_token` in one `repeat1` lets a value start on a
-    // continuation line (`packages:\n    foo\n  , bar`) and span indented continuations.
     field_value: ($) => repeat1(choice($._value_token, $._continuation)),
 
     _value_token: ($) =>
@@ -85,25 +80,16 @@ export default grammar({
         ":",
       ),
 
-    // Enum-ish values, versionish tokens (ghc-9.4), and git refs.
+    // Slashes and glob chars stay out, because `path` claims them.
     //
-    // Slashes and glob characters are deliberately NOT included: `path` (shared, in
-    // common/utils.mjs) claims those, so `vendor/*` is one path node rather than an
-    // identifier. Keeping them here made a single `packages:` list emit both kinds.
-    //
-    // Second alt: a digit-leading token that contains a letter and no `.` (a git commit
-    // SHA / ref in `tag:`), which would otherwise split into `integer` (the leading digits)
-    // + `identifier`. Its own token above `integer` (2) so it wins the shared prefix, but
-    // below `iso_date`/`url` so a date or URL still wins.
-    //
-    // A pure number stays `integer` and a dotted `1.2.3` stays `version`.
+    // The second alternative takes a digit-led token with a letter and no `.`,
+    // e.g. a git SHA in `tag:`. Its precedence sits above `integer` (2) and
+    // under `iso_date` and `url`.
     identifier: ($) =>
       choice(
         token(prec(1, /[A-Za-z_][A-Za-z0-9_.\-]*/)),
         token(prec(4, /[0-9][A-Za-z0-9_\-]*[A-Za-z][A-Za-z0-9_\-]*/)),
       ),
-
-    // ---------- Stanzas ----------
 
     stanza: ($) => seq(field("header", $.stanza_header), indented_block($)),
 
@@ -116,10 +102,8 @@ export default grammar({
         $._program_locations_header,
       ),
 
-    // Stanza keywords are case-insensitive: see `ci` in common/utils.mjs. The explicit
-    // precedence puts them above the `_word` token so a header is not read as a field name.
-    // Longest-match still protects longer field names, so the `packages` field is unaffected
-    // by the `package` keyword.
+    // Precedence 2 puts a stanza keyword above `_word`, so a header is not a
+    // field name. Longest match keeps the `packages` field apart from `package`.
     _package_header: ($) =>
       seq(alias($._kw_package, $.keyword), field("name", $.package_name)),
 
@@ -139,10 +123,7 @@ export default grammar({
     _kw_program_locations: ($) => token(prec(2, ci("program-locations"))),
 
     package_name: ($) => choice("*", $._word),
-    // Allow domain-style names like `packages.example.org`.
     repo_name: ($) => /[A-Za-z][A-Za-z0-9_.-]*/,
-
-    // ---------- Conditionals ----------
 
     conditional: ($) =>
       seq($.if_clause, repeat($.elif_clause), optional($.else_clause)),
