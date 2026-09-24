@@ -2,56 +2,44 @@
 
 Tree-sitter grammars for Haskell-ecosystem file formats.
 
-- **tree-sitter-cabal**: `.cabal` package description files
-- **tree-sitter-cabal-project**: `cabal.project` and `*.project` workspace files
-- **tree-sitter-ghc-core**: GHC Core dumps (`-ddump-simpl` and the other Core passes)
-- **tree-sitter-ghc-core-explain**: GHC simplifier-explanation logs (`-ddump-rule-firings`, `-ddump-inlinings`)
-- **tree-sitter-ghc-stg**: GHC STG dumps (`-ddump-stg-final` and the other STG passes)
-- **tree-sitter-ghc-cmm**: GHC Cmm dumps (`-ddump-cmm` and the pipeline-stage passes)
-- **tree-sitter-ghc-dump**: container grammar that injects the per-IL grammars into multi-section dump files
+- `tree-sitter-cabal`: `.cabal` package description files
+- `tree-sitter-cabal-project`: `cabal.project` and `*.project` workspace files
+- `tree-sitter-ghc-core`: GHC Core dumps (`-ddump-simpl` and the other Core passes)
+- `tree-sitter-ghc-core-explain`: GHC simplifier logs (`-ddump-rule-firings`, `-ddump-inlinings`)
+- `tree-sitter-ghc-stg`: GHC STG dumps (`-ddump-stg-final` and the other STG passes)
+- `tree-sitter-ghc-cmm`: GHC Cmm dumps (`-ddump-cmm` and the pipeline-stage passes)
+- `tree-sitter-ghc-dump`: a container grammar that injects the grammars above into multi-section dump files
 
-The `.cabal` grammar was initially forked from [magus/tree-sitter-cabal](https://gitlab.com/magus/tree-sitter-cabal/).
-
-## Setup
-
-```sh
-nix develop   # enter dev shell (provides tree-sitter, just, etc.)
-```
+The `.cabal` grammar started as a fork of [magus/tree-sitter-cabal](https://gitlab.com/magus/tree-sitter-cabal/).
 
 ## Commands
 
-All commands run across every grammar via the top-level justfile.
+Enter the dev shell with `nix develop`. It provides tree-sitter, just, and the
+other tools. The top-level justfile runs each command across every grammar:
 
 | Command            | Description                                                  |
 |--------------------|--------------------------------------------------------------|
-| `just`             | Run every grammar's full suite (default)                     |
-| `just test`        | Per grammar: query compile, parse-corpus, inline tests, and the GHC dump matrix across every `flake.nix` `ghcVersions` GHC. Runs all suites to completion, then fails if any failed (heavy) |
-| `just test --fast` | Same, but the GHC dump matrix uses only the default nixpkgs GHC (quick) |
+| `just`             | Run `just test` (default)                                    |
+| `just test`        | Run every test suite to completion, with the GHC dump matrix over every `ghcVersions` GHC in `flake.nix` (slow) |
+| `just test --fast` | Run `just test` with the default nixpkgs GHC alone           |
 | `just build`       | Generate each parser and build its shared library            |
-| `just check`       | Validate every grammar without building                      |
-| `just fmt`         | Format grammar files and the flake (prettier and nixfmt)     |
-| `just gen-corpus`  | Build and parse the GHC dump-flag matrix as a TAP suite for the default GHC; set `GEN_GHC=all` for every `ghcVersions` GHC (needs a GHC compiler) |
+| `just check`       | Build each grammar without a `result` symlink                |
+| `just fmt`         | Format the grammar files with prettier and the flake with nixfmt |
+| `just gen-corpus`  | Parse the generated GHC dump matrix for the default GHC. Set `GEN_GHC=all` for every `ghcVersions` GHC |
 | `just clean`       | Remove build artifacts                                       |
 
-Per-grammar commands are available as `just <name>::<cmd>`, where `<name>` is
-one of `cabal`, `cabal-project`, `ghc-core`, `ghc-stg`, `ghc-cmm`, `ghc-dump`.
+`just <name>::<cmd>` runs a command for one grammar. `<name>` is one of
+`cabal`, `cabal-project`, `ghc-core`, `ghc-core-explain`, `ghc-stg`, `ghc-cmm`,
+or `ghc-dump`.
 
 ## Testing
 
-The cabal grammars parse a corpus drawn from the
+The cabal grammars parse a corpus from the
 [cabal](https://github.com/haskell/cabal) and
 [haskell-language-server](https://github.com/haskell/haskell-language-server)
-source trees.
-
-The GHC grammars parse a harvested corpus of real dumps from the GHC test suite.
-On top of that, `gen-corpus` compiles a handful of fixtures with GHC across a
-matrix of dump and display flags.
-
-- `just test` runs the matrix once per version listed in `flake.nix`
-  `ghcVersions`, validating against several compilers.
-
-- `just test --fast` and the CI pull-request gate restrict it to the one GHC in
-  the pinned nixpkgs.
+source trees. The GHC grammars parse real dumps from the GHC test suite. Also,
+`gen-corpus` compiles a set of fixtures with GHC over a matrix of dump and
+display flags, then parses the output.
 
 ## References
 
