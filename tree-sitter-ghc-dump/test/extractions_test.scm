@@ -18,3 +18,6 @@
 ; Preamble before the first banner is a bare body at file scope, not a section.
 (source_file
   (body) @preamble.body)
+
+; A progress line ends the section before it. Assert it is its own node.
+(progress) @progress

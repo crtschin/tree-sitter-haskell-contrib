@@ -89,6 +89,8 @@ for f in "${files[@]}"; do
         banner_of[$body]="$banner"
         n=$((n + 1))
     done < <(awk -v dir="$tmp" -v fid="$fid" '
+        # A progress line ends the section, as in the ghc-dump grammar.
+        /^[[:space:]]*\[[[:space:]]*[0-9]+ of[[:space:]]*[0-9]+\]/ { active = 0; next }
         /^={4,}.+={4,}[[:space:]]*$/ {
             idx++; out = dir "/" fid "_" idx
             b = $0
@@ -107,7 +109,6 @@ done
 declare -A known_gaps=(
     [simplCore_should_compile_T23083_1]="CorePrep is a second Core pass; ghc-core models Tidy Core"
     [simplStg_should_compile_T13588_2]="pre-unarise STG omits the binding-terminating ; that ghc-stg requires"
-    [simplCore_should_compile_T26615_1]="1900-line two-pass dump; trailing imported-rules dash-section"
 )
 
 mapfile -t uniq_langs < <(printf '%s\n' "${langs[@]}" | sort -u)

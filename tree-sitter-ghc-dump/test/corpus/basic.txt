@@ -50,3 +50,84 @@ c:
   (section
     (banner)
     (body)))
+
+================================
+Progress line ends a section
+================================
+
+==================== Tidy Core ====================
+a = 1
+
+[2 of 2] Compiling B ( B.hs, B.o )
+==================== Tidy Core ====================
+b = 2
+
+--------------------------------
+
+(source_file
+  (section
+    (banner)
+    (body))
+  (progress)
+  (section
+    (banner)
+    (body)))
+
+================================
+Output after a progress line
+================================
+
+==================== Tidy Core ====================
+a = 1
+[2 of 2] Compiling B ( B.hs, B.o )
+B.hs:3:1: warning: [-Wfoo]
+==================== Tidy Core ====================
+b = 2
+
+--------------------------------
+
+(source_file
+  (section
+    (banner)
+    (body))
+  (progress)
+  (body)
+  (section
+    (banner)
+    (body)))
+
+================================
+Progress line as the first line
+================================
+
+[1 of 1] Compiling Main ( Main.hs, Main.o )
+==================== Final STG: ====================
+x = \r [] y
+
+--------------------------------
+
+(source_file
+  (progress)
+  (section
+    (banner)
+    (body)))
+
+================================
+Consecutive and padded progress lines
+================================
+
+==================== Output Cmm ====================
+c:
+[ 9 of 10] Compiling Main ( Main.hs, Main.o )
+[10 of 10] Linking Main
+  [1 of 2] Instantiating p
+
+--------------------------------
+
+(source_file
+  (section
+    (banner)
+    (body))
+  (progress)
+  (progress)
+  (progress))

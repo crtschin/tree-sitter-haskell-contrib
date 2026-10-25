@@ -1,5 +1,5 @@
 ## test/extract-samples/banner-variety.dump
-preamble.body	0,0-0,55	[1 of 1] Compiling Main             ( Main.hs, Main.o )
+progress	0,0-0,55	[1 of 1] Compiling Main             ( Main.hs, Main.o )
 section	1,0-5,20	
 section.banner	1,0-1,70	==================== Desugar (after optimization) ====================
 section.body	2,0-5,20	

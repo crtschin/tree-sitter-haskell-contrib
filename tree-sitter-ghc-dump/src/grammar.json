@@ -20,8 +20,17 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "section"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "section"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_interlude"
+              }
+            ]
           }
         }
       ]
@@ -64,6 +73,38 @@
               "value": "={4,}[^\\n(]*\\([^)]*\\)[^\\n]*={4,}"
             }
           ]
+        }
+      }
+    },
+    "_interlude": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "progress"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "body"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "progress": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "\\[\\s*\\d+ of\\s*\\d+\\][^\\n]*"
         }
       }
     },
