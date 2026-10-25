@@ -107,3 +107,102 @@ if os(linux) || arch(arm) && !flag(foo)
         name: (field_name)
         value: (field_value
           (flag_token))))))
+
+================================================================================
+Package stanza inside if
+================================================================================
+
+if os(windows)
+  package zlib
+    flags: -pkg-config +bundled-c-zlib
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (conditional
+    (if_clause
+      condition: (predicate_call
+        fn: (identifier)
+        arg: (predicate_arg
+          (identifier)))
+      (stanza
+        header: (stanza_header
+          (keyword)
+          name: (package_name))
+        (field
+          name: (field_name)
+          value: (field_value
+            (flag_token)
+            (flag_token)))))))
+
+================================================================================
+Source-repository-package stanza inside else
+================================================================================
+
+if impl(ghc >= 9.8)
+  optimization: True
+else
+  source-repository-package
+    type: git
+    location: https://example.org/foo.git
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (conditional
+    (if_clause
+      condition: (predicate_call
+        fn: (identifier)
+        arg: (predicate_arg
+          (identifier)
+          (constraint_op)
+          (version)))
+      (field
+        name: (field_name)
+        value: (field_value
+          (boolean))))
+    (else_clause
+      (stanza
+        header: (stanza_header
+          (keyword))
+        (field
+          name: (field_name)
+          value: (field_value
+            (identifier)))
+        (field
+          name: (field_name)
+          value: (field_value
+            (url)))))))
+
+================================================================================
+Stanza inside nested conditional
+================================================================================
+
+if os(linux)
+  if arch(x86_64)
+    package foo
+      ghc-options: -O2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (conditional
+    (if_clause
+      condition: (predicate_call
+        fn: (identifier)
+        arg: (predicate_arg
+          (identifier)))
+      (conditional
+        (if_clause
+          condition: (predicate_call
+            fn: (identifier)
+            arg: (predicate_arg
+              (identifier)))
+          (stanza
+            header: (stanza_header
+              (keyword)
+              name: (package_name))
+            (field
+              name: (field_name)
+              value: (field_value
+                (flag_token)))))))))

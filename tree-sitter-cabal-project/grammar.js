@@ -16,8 +16,8 @@ import {
   makeValueTokenRules,
 } from "./common/utils.mjs";
 
-function indented_block($) {
-  return optional(seq($._indent, repeat($._block_item), $._dedent));
+function indented_block($, item) {
+  return optional(seq($._indent, repeat(item), $._dedent));
 }
 
 export default grammar({
@@ -36,7 +36,7 @@ export default grammar({
 
     _top_item: ($) => choice($.field, $.stanza, $.conditional, $._newline),
 
-    _block_item: ($) => choice($.field, $.conditional, $._newline),
+    _stanza_item: ($) => choice($.field, $.conditional, $._newline),
 
     // ---------- Fields ----------
 
@@ -105,7 +105,8 @@ export default grammar({
 
     // ---------- Stanzas ----------
 
-    stanza: ($) => seq(field("header", $.stanza_header), indented_block($)),
+    stanza: ($) =>
+      seq(field("header", $.stanza_header), indented_block($, $._stanza_item)),
 
     stanza_header: ($) =>
       choice(
@@ -148,12 +149,20 @@ export default grammar({
       seq($.if_clause, repeat($.elif_clause), optional($.else_clause)),
 
     if_clause: ($) =>
-      seq("if", field("condition", $._predicate_expr), indented_block($)),
+      seq(
+        "if",
+        field("condition", $._predicate_expr),
+        indented_block($, $._top_item),
+      ),
 
     elif_clause: ($) =>
-      seq("elif", field("condition", $._predicate_expr), indented_block($)),
+      seq(
+        "elif",
+        field("condition", $._predicate_expr),
+        indented_block($, $._top_item),
+      ),
 
-    else_clause: ($) => seq("else", indented_block($)),
+    else_clause: ($) => seq("else", indented_block($, $._top_item)),
 
     ...makeQualifiedNameRules({ precedence: 4 }),
     ...makePredicateRules({ extraArgChoices: ["path"] }),

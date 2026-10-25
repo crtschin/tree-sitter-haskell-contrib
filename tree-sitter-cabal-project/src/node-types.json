@@ -72,6 +72,10 @@
         {
           "type": "field",
           "named": true
+        },
+        {
+          "type": "stanza",
+          "named": true
         }
       ]
     }
@@ -90,6 +94,10 @@
         },
         {
           "type": "field",
+          "named": true
+        },
+        {
+          "type": "stanza",
           "named": true
         }
       ]
@@ -239,6 +247,10 @@
         },
         {
           "type": "field",
+          "named": true
+        },
+        {
+          "type": "stanza",
           "named": true
         }
       ]

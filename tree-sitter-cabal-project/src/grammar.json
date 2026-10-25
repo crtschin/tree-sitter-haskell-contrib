@@ -31,7 +31,7 @@
         }
       ]
     },
-    "_block_item": {
+    "_stanza_item": {
       "type": "CHOICE",
       "members": [
         {
@@ -259,7 +259,7 @@
                   "type": "REPEAT",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_block_item"
+                    "name": "_stanza_item"
                   }
                 },
                 {
@@ -500,7 +500,7 @@
                   "type": "REPEAT",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_block_item"
+                    "name": "_top_item"
                   }
                 },
                 {
@@ -545,7 +545,7 @@
                   "type": "REPEAT",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_block_item"
+                    "name": "_top_item"
                   }
                 },
                 {
@@ -582,7 +582,7 @@
                   "type": "REPEAT",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_block_item"
+                    "name": "_top_item"
                   }
                 },
                 {

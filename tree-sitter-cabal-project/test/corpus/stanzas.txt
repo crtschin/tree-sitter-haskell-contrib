@@ -152,3 +152,29 @@ Program-Options
       (field_name)
       (field_value
         (flag_token)))))
+
+================================================================================
+Conditional inside a stanza body
+================================================================================
+
+package foo
+  if os(linux)
+    ghc-options: -O2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (stanza
+    header: (stanza_header
+      (keyword)
+      name: (package_name))
+    (conditional
+      (if_clause
+        condition: (predicate_call
+          fn: (identifier)
+          arg: (predicate_arg
+            (identifier)))
+        (field
+          name: (field_name)
+          value: (field_value
+            (flag_token)))))))
