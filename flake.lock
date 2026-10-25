@@ -3,11 +3,11 @@
     "cabal-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1787837547,
-        "narHash": "sha256-FC3p84qguYWlAm0vmabIE+EHM4mf8saJZIIpdg5p74E=",
+        "lastModified": 1792352996,
+        "narHash": "sha256-Ca8kxksC3ds7xMSUS4kdQaVubOB5F5BIhfS/5heuUko=",
         "owner": "haskell",
         "repo": "cabal",
-        "rev": "5969ad6e60c51aace6f6f6f6d2f77be1cb1a605a",
+        "rev": "9cd921b600189e4199b278d4637b5adcb762ef7b",
         "type": "github"
       },
       "original": {
@@ -35,11 +35,11 @@
     "ghc-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1787939956,
-        "narHash": "sha256-xkHOFDrFWEPcDzTdcs4JEmVxvgTRQL0r0N3wyPDG2oU=",
+        "lastModified": 1792253050,
+        "narHash": "sha256-x38f6Ea+F9RAKyH5LSne/JPGpXzL8Efo8R1c4sGdnqc=",
         "owner": "ghc",
         "repo": "ghc",
-        "rev": "5bd65f00e9ec53f6bf4a2fb1f0991bd0b4dbce8a",
+        "rev": "26b9a8a02a5c5dc2471d2aa4ac7df48bcfbce56b",
         "type": "github"
       },
       "original": {
@@ -56,11 +56,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787770114,
-        "narHash": "sha256-wFwVQb1x5FAY4T5VRZtgh0PCD9nbgtlaV9ta8+ZE8zs=",
+        "lastModified": 1791909798,
+        "narHash": "sha256-VAhpCOmrun/KXimYfR8NM88bciKCui7CqHHhThSzgag=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "903a4c22c12860082f6a5e1b9a638d667883fcfd",
+        "rev": "1ba1dbfe28738c9a71c266be6efa5b89e75491a9",
         "type": "github"
       },
       "original": {
@@ -72,11 +72,11 @@
     "hls-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1787852014,
-        "narHash": "sha256-wUf/zDeBjmFMBsSkT0kUnaxaEjfKbad4pZgAPBipr8s=",
+        "lastModified": 1791985892,
+        "narHash": "sha256-SZ8hykTwniX4CB9irSpeG4NNwJiD0VfP7sQHhCegyQw=",
         "owner": "haskell",
         "repo": "haskell-language-server",
-        "rev": "d3464b6361dd84b8aa6ae9426ff9814b7809d23c",
+        "rev": "5905e8b9674eb5b2cf761faafabb55a0e976a538",
         "type": "github"
       },
       "original": {
@@ -129,11 +129,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1731533236,
-        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "lastModified": 1791914995,
+        "narHash": "sha256-Zf/xfQEAasnwnmEfHqW/4hjDE/s44yn2hD4RuVIZRjA=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "rev": "b7a79d3fea1e214f6d668d521cecec0c01e26544",
         "type": "github"
       },
       "original": {
